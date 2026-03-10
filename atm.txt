@@ -1,0 +1,53 @@
+Koncepcja użycia ATM (Asteroid Thermal Modeling) w projekcie
+------------------------------------------------------------
+
+Rola ATM:
+    - Dostarczać realistyczne modele temperatury powierzchniowej i podpowierzchniowej
+      asteroid w funkcji:
+        * odległości od Słońca (r),
+        * rozmiaru (R),
+        * albeda, bezwładności cieplnej, rotacji i kształtu.
+    - Wyniki ATM (T(θ, φ, t) lub uśrednione T) będą używane jako wejście do:
+        * modeli hydrolizy i reakcji chemicznych,
+        * modeli erozji / sublimacji (zmiana promienia i masy),
+        * oceny przetrwalności życia w różnych częściach asteroid.
+
+Integracja z REBOUND/REBOUNDx:
+    - REBOUND/REBOUNDx:
+        * liczy orbity Słońca, planet, 50 gwiazd i asteroid (N-body + ciśnienie promieniowania).
+        * daje nam trajektorie asteroid: r(t), v(t).
+    - ATM:
+        * nie jest wywoływany co każdy krok REBOUND,
+        * działa „nad” symulacją:
+            - dla reprezentatywnych punktów orbity (lub dla siatki w (r, R, parametry)),
+            - liczy T dla danej klasy asteroidy.
+        * wyniki są tablicowane (lookup tables) i później interpolowane w czasie.
+
+Typowy cykl:
+    1. Generujemy populację asteroid (R, ρ, albedo, rotacja, materiał).
+    2. Dla siatki (r, R, parametry materiału) uruchamiamy ATM i zapisujemy:
+         - średnie T_powierzchni, T_podpowierzchni,
+         - ewentualnie zakresy temperatur.
+    3. W trakcie długiej integracji REBOUND:
+         - co pewien większy krok (np. co 10^4–10^5 lat) dla każdej asteroidy:
+             a) bierzemy jej aktualne r (i inne parametry),
+             b) interpolujemy T z tablic ATM,
+             c) aktualizujemy:
+                 - szybkość hydrolizy / reakcji chemicznych,
+                 - tempo erozji/sublimacji (→ dR/dt, zmiana masy i beta(t)),
+                 - wskaźnik przetrwalności życia η(t).
+
+Dlaczego ATM:
+    - Zamiast ręcznie wymyślonych modeli T(r), używamy kodu sprawdzonego na danych (NEOWISE itp.).
+    - Oddziela „ciężką” fizykę termiczną od N-body:
+        * REBOUND: trajektorie,
+        * ATM: wiarygodne T,
+        * nasz moduł: chemia/biologia i ewolucja promienia/beta.
+
+Kiedy wdrażać ATM:
+    - Po ustabilizowaniu:
+        * modelu orbitalnego (REBOUND/REBOUNDx),
+        * podstawowej ewolucji promienia/beta bez pełnej fizyki termicznej.
+    - ATM będzie etapem 2.0 dla bardziej realistycznego opisu temperatur i procesów
+      zależnych od T na i wewnątrz asteroid.
+
