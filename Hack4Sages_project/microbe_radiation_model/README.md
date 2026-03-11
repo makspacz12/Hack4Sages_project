@@ -8,10 +8,11 @@ Ten katalog zawiera kompletny pipeline:
 
 ## Struktura funkcjonalna
 - `physics/` - fundament matematyczny i fizyczny (bez logiki symulacji)
+- `materials/` - kanoniczne typy i presety skał (`materials/rocks/*`)
 - `radiation/` - właściwy łańcuch promieniowania (flux -> shielding -> exposure)
 - `simulation/` - warstwa łącząca `radiation/` z REBOUND
 - `demos/` - gotowe skrypty uruchomieniowe i formatowanie wyjścia
-- `catalogs/` - presety i katalogi parametrów wejściowych
+- `catalogs/` - warstwa kompatybilności dla starszych importów presetów
 - `pozostalosci/` - nieaktywne i historyczne elementy robocze
 - `legacy/` - alias zgodności dla starszych importów
 
@@ -32,4 +33,7 @@ Dawne aliasy z poziomu głównego zostały usunięte z runtime i zarchiwizowane 
 
 ## Zależności danych
 - `nearest_50_gaia.csv` - źródło dodatkowych gwiazd dla `simulation/builder.py`
-- `srodowisko.ipynb` - notebook, który generuje/aktualizuje dane Gaia i testuje środowisko
+- `srodowisko.ipynb` - plik roboczy/archiwalny; nie jest wymagany przez aktywny runtime
+
+## Dokumentacja szczegolowa
+- `DOKUMENTACJA_TECHNICZNA_PELNA.md` - pelny opis modulow, fizyki, danych i etapow uruchomienia

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from materials.rocks import Rock, get_rock_param
+from ...materials.rocks import Rock, get_rock_param
 
 from .constants import (
     K40_BQ_PER_KG_PER_PERCENT_K,

@@ -1,22 +1,9 @@
-from dataclasses import dataclass
+"""
+Backward-compatible alias for the canonical rock dataclass.
 
+Canonical type is `microbe_radiation_model.materials.rocks.Rock`.
+"""
 
-@dataclass(frozen=True)
-class RockVariant:
-    """
-    Opis materiału skały/asteroidy używany w modelach symulacyjnych.
-    """
+from ..materials.rocks.types import Rock as RockVariant
 
-    name: str
-
-    # physical properties
-    density_kg_m3: float
-    albedo: float
-
-    # probability in population models
-    probability: float
-
-    # radiogenic composition
-    uranium238_ppm: float
-    thorium232_ppm: float
-    potassium_percent: float
+__all__ = ["RockVariant"]

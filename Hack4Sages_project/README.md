@@ -1,18 +1,27 @@
 # Hack4Sages_project
 
-Repozytorium zawiera model promieniowania dla asteroid/mikroorganizmow oraz środowisko eksperymentalne oparte o REBOUND.
+Repozytorium zawiera aktywny model promieniowania i symulacji orbitalnej
+zorganizowany jako pakiet `microbe_radiation_model`.
 
-## Najważniejsze elementy
+## Najwazniejsze elementy
 - `microbe_radiation_model/`
-  - uporządkowany pakiet kodu
-  - dokumentacja modułów: `microbe_radiation_model/KATALOG_MODULOW.md`
-- `srodowisko.ipynb`
-  - notebook roboczy do eksperymentów i przygotowania środowiska
+  - glowny, aktywny pakiet runtime
+  - szczegolowy opis: `microbe_radiation_model/KATALOG_MODULOW.md`
+  - pelna dokumentacja techniczna: `microbe_radiation_model/DOKUMENTACJA_TECHNICZNA_PELNA.md`
 - `nearest_50_gaia.csv`
-  - dane gwiazd Gaia wykorzystywane przez notebook i warstwę symulacyjną
+  - dane gwiazd Gaia wykorzystywane przez `simulation/builder.py`
+- `run.py`
+  - runner aktualnego pipeline (bez zaleznosci od notebooka)
 - `pozostalosci/`
-  - notatki koncepcyjne (AMUSE, ATM) niepodłączone do aktywnego runtime
+  - notatki i materialy historyczne, niepodlaczone do aktywnego runtime
 
-## Dokumentacja struktury
-- `KATALOG_REPOZYTORIUM.md` - opis elementów na poziomie całego repo
-- `microbe_radiation_model/KATALOG_MODULOW.md` - dokładny opis moduł po module
+## Co nie jest juz sciezka runtime
+- `srodowisko.ipynb`
+  - plik roboczy/archiwalny
+  - nie jest wymagany do uruchamiania obecnego pipeline
+
+## Szybkie uruchomienie
+- `python -m microbe_radiation_model.demos.demo`
+- `python -m microbe_radiation_model.demos.run_simulation`
+- `python -m microbe_radiation_model.demos.run_radiation_demo`
+- `python run.py`

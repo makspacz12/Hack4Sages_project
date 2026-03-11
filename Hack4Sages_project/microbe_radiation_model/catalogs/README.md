@@ -1,14 +1,17 @@
 # catalogs
 
-Ten katalog przechowuje presety i słowniki parametrów wejściowych.
+Ten katalog przechowuje kompatybilnościowe eksporty presetów.
 
 ## Moduły
 - `asteroid_properties.py`
-  - trzyma listę `DEFAULT_ROCK_VARIANTS`
-  - każdy wariant zawiera: nazwę, gęstość, albedo i udział prawdopodobieństwa
+  - eksportuje `DEFAULT_ROCK_VARIANTS`
+  - warianty są utrzymywane kanonicznie w `microbe_radiation_model/materials/rocks/variants.py`
+  - alias `RockVariant` wskazuje na `materials.rocks.Rock`
+- `rock_material.py`
+  - alias zgodności `RockVariant` dla starszych importów
 - `__init__.py`
-  - eksportuje katalog wariantów do innych warstw
+  - eksportuje `DEFAULT_ROCK_VARIANTS`
 
 ## Jak jest to używane
 - `simulation/config.py` pobiera pierwszy wariant jako domyślną skałę dla uruchomień demo
-- katalog jest miejscem, gdzie warto dodawać kolejne profile materiałowe
+- nowe profile skał dodawaj w `materials/rocks/variants.py`, nie w `catalogs/`

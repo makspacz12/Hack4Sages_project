@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import math
 
-from materials.rocks import Rock, get_rock_param
+from ...materials.rocks import Rock, get_rock_param
 
 
 @dataclass(frozen=True)

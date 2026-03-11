@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import math
 
-from materials.rocks import Rock, get_rock_param
+from ...materials.rocks import Rock, get_rock_param
 
 from .activity import activity_from_rock, volumetric_activity_bq_m3
 from .geometry import geometry_from_rock

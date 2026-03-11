@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import math
 
-from materials.rocks import Rock, get_rock_param
+from microbe_radiation_model.materials.rocks import Rock, get_rock_param
 
 from .constants import (
     K_HEAT_COEFF_MICRO_W_PER_KG_PER_MASS_FRACTION,
