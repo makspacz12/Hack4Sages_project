@@ -178,3 +178,6 @@ Lista obejmuje pliki z kodem, dokumentacja i dane, bez `__pycache__` i `.pyc`.
 
 - Aktywny runtime projektu to glownie: `microbe_radiation_model/*`, `run.py`, `nearest_50_gaia.csv`.
 - Katalog `pozostalosci/*` zostaje jako archiwum i warstwa zgodnosci.
+
+
+

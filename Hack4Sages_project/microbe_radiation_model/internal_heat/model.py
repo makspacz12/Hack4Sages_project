@@ -215,7 +215,7 @@ def heat_production_from_rock(
     else:
         volume_m3 = None
 
-    if resolved_mass is not None:
+    if resolved_mass != None:
         total_power_w = total_w_kg * resolved_mass
 
     return RadiogenicHeatResult(
