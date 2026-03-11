@@ -19,7 +19,7 @@ def survival_function(radiation_space, radiation_decay, t, hDNA):
     -------
         survival_function(N/N0) - proportion of original microbe population surviving in given time-step
     """
-     N_N0 = math.exp(-((radiation_surv_coeff*(radiation_space + radiation_decay)) + hDNA*(2.3/0.001) * t)
+     N_N0 = math.exp(-((radiation_surv_coeff*(radiation_space + radiation_decay)) + hDNA*(1.2/0.001) * t)
      return(N_N0)
 
 
