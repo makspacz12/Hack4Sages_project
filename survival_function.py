@@ -1,6 +1,6 @@
 #combined function
 
-def survival_function(radiation_space, radiation_decay, Temp, t, hDNA, radiation_surv_coeff, hydrolysis_surv_coeff):
+def survival_function(radiation_space, radiation_decay, Temp, t, hDNA, radiation_surv_coeff):
      """
     Computes fraction of surviving microbes based on function
         N/N0 = exp(- (kill_radiation + kill_hydrolysis) * t)
@@ -13,13 +13,13 @@ def survival_function(radiation_space, radiation_decay, Temp, t, hDNA, radiation
         Temp = temperature in given time step [K]
         t = time since meteorite launch [years]
         hDNA = rate of DNA hydrolysis [...?]
-        survival_coeff_hDNA = how much hydrolysis affects DNA [arbitrary]
+        hydrolysis_surv_coeff = how much hydrolysis affects DNA [arbitrary]
     
     Returns
     -------
         survival_function(N/N0) - proportion of original microbe population surviving in given time-step
     """
-     N_N0 = math.exp(-((radiation_surv_coeff*(radiation_space + radiation_decay)) + hDNA*hydrolysis_surv_coeff) * t)
+     N_N0 = math.exp(-((radiation_surv_coeff*(radiation_space + radiation_decay)) + hDNA*(2.3/0.001) * t)
      return(N_N0)
 
 
