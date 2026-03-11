@@ -86,6 +86,8 @@ def with_rock_overrides(rock: Rock, **overrides: Any) -> Rock:
         "radius_m": rock.radius_m,
         "density_kg_m3": rock.density_kg_m3,
         "albedo": rock.albedo,
+        "water_mass_fraction": rock.water_mass_fraction,
+        "porosity": rock.porosity,
         "probability": rock.probability,
         "uranium238_ppm": rock.uranium238_ppm,
         "thorium232_ppm": rock.thorium232_ppm,

@@ -35,3 +35,7 @@ Ten katalog jest sercem uruchomieniowym projektu i spina fizykę z dynamiką orb
 - wejście danych gwiazd: `nearest_50_gaia.csv`
 - zależność opcjonalna: `rebound` (bez niej działa fallback statyczny)
 - dane materiałowe: pobierane z `catalogs/` przez `config.py`
+
+## Dane wyjsciowe
+Scenariusze demo zapisują dane do katalogu `microbe_radiation_model/data/` (JSON),
+korzystając z `microbe_radiation_model/data_store.py`.

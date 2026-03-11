@@ -1,0 +1,16 @@
+{
+  "__description__": {
+    "stars": "Słownik gwiazd; klucz to nazwa, wartość zawiera metadane i profil UV.",
+    "star_fields": {
+      "name": "Nazwa gwiazdy (np. 'Sun').",
+      "mass_solar": "Masa gwiazdy w jednostkach masy Słońca [M_sun].",
+      "luminosity_W": "Jasność gwiazdy [W].",
+      "uv_profile": "Lista punktów (distance_au, uv_surface_flux) opisujących strumień UV na różnych odległościach od gwiazdy."
+    },
+    "profile_fields": {
+      "distance_au": "Odległość od gwiazdy [AU].",
+      "uv_surface_flux": "Strumień UV na tej odległości [W/m^2]."
+    }
+  },
+  "stars": {}
+}

@@ -13,7 +13,7 @@ if __package__ in (None, ""):
 
 from microbe_radiation_model.demos.console import configure_utf8_output
 from microbe_radiation_model.physics.stellar_physics import stellar_luminosity_from_solar_mass
-from microbe_radiation_model.radiation.radiation_model import stellar_flux_at_au
+from microbe_radiation_model.radiation.stellar.radiation_model import stellar_flux_at_au
 from microbe_radiation_model.simulation.scenarios import format_demo_report, run_connected_demo
 
 

@@ -8,7 +8,7 @@ from typing import Any
 from ..physics.constants import AU
 from ..physics.geometry import biological_core_radius
 from ..radiation.exposure_model import update_exposure
-from ..radiation.radiation_model import stellar_flux
+from ..radiation import stellar_flux
 from ..radiation.shielding_model import radiation_at_point_in_rock_with_bio_core
 
 

@@ -8,6 +8,9 @@ zorganizowany jako pakiet `microbe_radiation_model`.
   - glowny, aktywny pakiet runtime
   - szczegolowy opis: `microbe_radiation_model/KATALOG_MODULOW.md`
   - pelna dokumentacja techniczna: `microbe_radiation_model/DOKUMENTACJA_TECHNICZNA_PELNA.md`
+- `microbe_radiation_model/data/`
+  - dane wyjsciowe generowane przez demo (JSON pod analize i wizualizacje)
+  - m.in. `gamma_radiation_timeseries.json`, `rock_radiation_summary.json`, `star_uv_profile.json`
 - `nearest_50_gaia.csv`
   - dane gwiazd Gaia wykorzystywane przez `simulation/builder.py`
 - `run.py`

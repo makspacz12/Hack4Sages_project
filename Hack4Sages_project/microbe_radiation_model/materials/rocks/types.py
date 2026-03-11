@@ -19,6 +19,9 @@ class Rock:
     # material properties
     density_kg_m3: float | None = None
     albedo: float | None = None
+    water_mass_fraction: float | None = None
+    porosity: float | None = None
+    thermal_conductivity_w_mk: float | None = None
 
     # population models
     probability: float | None = 1.0

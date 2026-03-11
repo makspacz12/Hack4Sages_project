@@ -12,6 +12,8 @@ Ten katalog zawiera kompletny pipeline:
 - `radiation/` - właściwy łańcuch promieniowania (flux -> shielding -> exposure)
 - `simulation/` - warstwa łącząca `radiation/` z REBOUND
 - `demos/` - gotowe skrypty uruchomieniowe i formatowanie wyjścia
+- `data/` - dane wyjsciowe generowane przez uruchomienia (JSON pod analize i wizualizacje)
+- `data_store.py` - centralny magazyn zapisu danych do `data/*.json` (IO/analityka, nie fizyka)
 - `catalogs/` - warstwa kompatybilności dla starszych importów presetów
 - `pozostalosci/` - nieaktywne i historyczne elementy robocze
 - `legacy/` - alias zgodności dla starszych importów
@@ -34,6 +36,12 @@ Dawne aliasy z poziomu głównego zostały usunięte z runtime i zarchiwizowane 
 ## Zależności danych
 - `nearest_50_gaia.csv` - źródło dodatkowych gwiazd dla `simulation/builder.py`
 - `srodowisko.ipynb` - plik roboczy/archiwalny; nie jest wymagany przez aktywny runtime
+
+## Dane wyjsciowe (`data/`)
+W demach i scenariuszach dane są zapisywane do JSON-ów w `microbe_radiation_model/data/`:
+- `gamma_radiation_timeseries.json` - globalny log czasowy (UV/GCR/gamma) pod wykresy
+- `rock_radiation_summary.json` - podsumowania i rekordy promieniowania per typ skały (`Rock`)
+- `star_uv_profile.json` - profil UV gwiazd (masa, jasnosc, flux w funkcji odleglosci)
 
 ## Dokumentacja szczegolowa
 - `DOKUMENTACJA_TECHNICZNA_PELNA.md` - pelny opis modulow, fizyki, danych i etapow uruchomienia

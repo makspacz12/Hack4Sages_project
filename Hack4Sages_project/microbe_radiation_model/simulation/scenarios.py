@@ -6,12 +6,20 @@ from dataclasses import dataclass, field
 from importlib.util import find_spec
 from typing import List, Optional
 
-from ..physics.constants import AU
+from ..materials.rocks import Rock, BASALT
+from ..physics.constants import AU, SECONDS_PER_YEAR
 from ..physics.geometry import biological_core_radius
 from ..physics.stellar_physics import stellar_luminosity_from_solar_mass
 from ..radiation.exposure_model import ExposureState, update_exposure
-from ..radiation.radiation_model import stellar_flux
+from ..radiation import stellar_flux
 from ..radiation.shielding_model import radiation_at_point_in_rock_with_bio_core
+from ..data_store import (
+    append_radiation_record,
+    append_rock_radiation_record,
+    write_star_uv_profile,
+)
+from ..internal_heat.model import heat_production_from_rock
+from ..thermal import equilibrium_temperature_from_flux, temperature_profile_surface_mid_center
 from .config import SimulationMaterialConfig, SimulationRunConfig, default_material_config
 from .engine import run_simulation
 
@@ -78,6 +86,62 @@ def run_static_radiation_demo(
     state = ExposureState()
     update_exposure(state=state, local_flux=result.local_flux, dt=dt_seconds)
 
+    # Zapisujemy dane promieniowania do pliku JSON.
+    # W tym prostym demo traktujemy obliczony strumień jako komponent UV:
+    # - uv_surface_flux: flux na powierzchni skały
+    # - uv_local_flux: flux w centrum biologicznym
+    # - uv_cumulative_exposure: skumulowana energia UV w czasie dt_seconds
+    append_radiation_record(
+        time_seconds=dt_seconds,
+        uv_surface_flux=surface_flux,
+        uv_local_flux=result.local_flux,
+        uv_cumulative_exposure=state.cumulative_exposure,
+        context="static_radiation_demo",
+    )
+
+    # Szacujemy prosty profil temperatury wewnątrz skały:
+    # - T_surface z równowagi radiacyjnej (zewnętrzny flux),
+    # - Q z modelu ciepła radiogenicznego,
+    # - k_th z przewodnictwa cieplnego skały.
+    rock_variant = BASALT  # dla demo statycznego używamy domyślnej skały bazaltowej
+    albedo = rock_variant.albedo or 0.0
+    k_th = rock_variant.thermal_conductivity_w_mk
+    if k_th is not None and rock_variant.radius_m is not None:
+        T_surface_K = equilibrium_temperature_from_flux(
+            surface_flux_w_m2=surface_flux,
+            albedo=albedo,
+        )
+        heat_result = heat_production_from_rock(rock_variant)
+        Q_w_m3 = heat_result.total_w_m3
+        T_surface_K, T_mid_K, T_center_K = temperature_profile_surface_mid_center(
+            surface_temperature_k=T_surface_K,
+            heat_production_w_m3=Q_w_m3,
+            radius_m=rock_variant.radius_m,
+            thermal_conductivity_w_mk=k_th,
+        )
+
+        append_rock_radiation_record(
+            rock=rock_variant,
+            run_id="static_radiation_demo",
+            step_index=0,
+            time_seconds=dt_seconds,
+            uv_local_flux=result.local_flux,
+            gcr_local_flux=None,
+            gamma_local_flux=None,
+            cumulative_exposure=state.cumulative_exposure,
+            T_surface_K=T_surface_K,
+            T_mid_radius_K=T_mid_K,
+            T_center_K=T_center_K,
+        )
+
+    # Dodatkowo zapisujemy prosty profil UV dla gwiazdy (np. Słońca) w kilku odległościach,
+    # żeby można go było łatwo zwizualizować w JS.
+    write_star_uv_profile(
+        name="Sun",
+        mass_solar=mass_solar,
+        distances_au=[0.1, 0.5, 1.0, 2.0, 5.0, 10.0],
+    )
+
     return SimulationReport(
         mode="static_radiation",
         used_rebound=False,
@@ -123,6 +187,45 @@ def run_connected_demo(
         BodyExposureReport(body_index=body_index, cumulative_exposure=state.cumulative_exposure)
         for body_index, state in sorted(exposure_by_body.items())
     ]
+
+    # Zapisujemy podsumowanie promieniowania względem skały do osobnego JSON-a.
+    rock_def = Rock(
+        name=material_config.rock_material.name,
+        radius_m=material_config.rock_radius,
+        density_kg_m3=material_config.rock_material.density,
+        albedo=None,
+        water_mass_fraction=None,
+        porosity=None,
+        probability=1.0,
+        uranium238_ppm=None,
+        thorium232_ppm=None,
+        potassium_percent=None,
+        extra={},
+        notes="Generated from SimulationMaterialConfig in run_connected_demo.",
+    )
+
+    total_time_seconds = sim.t * SECONDS_PER_YEAR
+    if total_time_seconds <= 0.0:
+        total_time_seconds = run_config.dt_yr * run_config.n_steps * SECONDS_PER_YEAR
+
+    for body_index, state in exposure_by_body.items():
+        # Średni lokalny strumień UV w centrum skały ~ ekspozycja / czas
+        avg_uv_local_flux = (
+            state.cumulative_exposure / total_time_seconds
+            if total_time_seconds > 0.0
+            else None
+        )
+
+        append_rock_radiation_record(
+            rock=rock_def,
+            run_id="connected_demo",
+            step_index=run_config.n_steps,
+            time_seconds=total_time_seconds,
+            uv_local_flux=avg_uv_local_flux,
+            gcr_local_flux=None,
+            gamma_local_flux=None,
+            cumulative_exposure=state.cumulative_exposure,
+        )
 
     return SimulationReport(
         mode="rebound_pipeline",

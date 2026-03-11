@@ -28,10 +28,13 @@ def normalize_probabilities(rocks: list[Rock]) -> list[Rock]:
                 radius_m=r.radius_m,
                 density_kg_m3=r.density_kg_m3,
                 albedo=r.albedo,
+                water_mass_fraction=r.water_mass_fraction,
+                porosity=r.porosity,
                 probability=r.probability / total,
                 uranium238_ppm=r.uranium238_ppm,
                 thorium232_ppm=r.thorium232_ppm,
                 potassium_percent=r.potassium_percent,
+                extra=dict(r.extra),
                 notes=r.notes,
             )
         )
