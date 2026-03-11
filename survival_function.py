@@ -13,7 +13,7 @@ def survival_function(radiation_space, radiation_decay, t, hDNA):
         Temp = temperature in given time step [K]
         t = time since meteorite launch [years]
         hDNA = rate of DNA hydrolysis [...?]
-        hydrolysis_surv_coeff = how much hydrolysis affects DNA [arbitrary]
+        hydrolysis_surv_coeff = how much hydrolysis affects DNA [arbitrary] = 2.3/0.001
     
     Returns
     -------
