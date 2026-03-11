@@ -1,0 +1,52 @@
+Koncepcja użycia AMUSE w projekcie (wersja robocza)
+--------------------------------------------------
+
+Cel główny:
+    - Rozszerzyć obecną symulację (REBOUND/REBOUNDx) o dodatkowe fizyki,
+      które w przyszłości mogą wymagać wielu wyspecjalizowanych solverów.
+
+Co już mamy bez AMUSE:
+    - Dynamika N‑body w REBOUND: Słońce + planety + 50 gwiazd z Gaia.
+    - (Planowane) ciśnienie promieniowania w REBOUNDx na asteroidach.
+    - Możliwość dopisania „lokalnych” procesów na asteroidach (promieniowanie kosmiczne,
+      hydroliza, erozja) jako własne moduły nad REBOUND.
+
+Potencjalne role AMUSE:
+1) Zarządzanie wieloma solverami:
+    - N‑body: różne kody grawitacyjne (ph4, Huayno, Hermite) zamiast/obok REBOUND.
+    - Hydrodynamika: modele gazu po eksplozji (SPH) + jego wpływ na ruch asteroid.
+    - Ewolucja gwiazd: zmiana L(t), M(t) dla gwiazd (np. SSE/BSE), wpływająca na beta(t)
+      w modelu ciśnienia promieniowania.
+    - Coupling: AMUSE spina te solvery i dba o wymianę danych w czasie.
+
+2) Spójne jednostki i czas:
+    - AMUSE ma wbudowany system jednostek (amuse.units), co ułatwia:
+        - unikanie błędów przeliczeń (AU vs m vs pc),
+        - integrację różnych kodów (każdy może używać innych jednostek wewnętrznych).
+    - Może przejąć kontrolę czasu globalnego i kroków między solverami.
+
+3) Zaawansowane scenariusze:
+    - Modelowanie ewolucji całego lokalnego środowiska gwiazdowego
+      (zmiany mas/jasności gwiazd, ich ruch w galaktycznym potencjale).
+    - Dodanie zewnętrznego potencjału galaktycznego (płaszczyzna Galaktyki, ramiona spiralne),
+      wpływającego na trajektorie asteroid i gwiazd.
+    - Wspólna symulacja:
+        - chmury gazowej po eksplozji (hydro),
+        - asteroid w tym gazie (N‑body),
+        - gwiazd, które ewoluują (evo-kody),
+      wszystko zsynchronizowane przez AMUSE.
+
+4) Eksperymenty porównawcze:
+    - Możliwość łatwego porównania:
+        - tego samego problemu liczonego różnymi solverami N‑body,
+        - wpływu różnych modeli ewolucji gwiazd lub hydrodynamiki na przetrwanie asteroid.
+
+Kiedy realnie warto przejść na AMUSE:
+    - Gdy projekt wyjdzie poza „REBOUND + lokalna fizyka cząstki” i
+      zaczniemy potrzebować:
+        - pełnej hydrodynamiki chmury po eksplozji,
+        - realistycznej ewolucji gwiazd (zmienne L(t), M(t)),
+        - silnie sprzężonej symulacji wielu fizyk z różnymi solverami.
+    - Na razie REBOUND/REBOUNDx wystarcza; AMUSE traktujemy jako potencjalny etap 2.0
+      dla bardziej złożonej, wielofizykowej wersji projektu.
+
