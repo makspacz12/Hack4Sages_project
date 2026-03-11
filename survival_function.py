@@ -1,6 +1,6 @@
 #combined function
 
-def survival_function(radiation_space, radiation_decay, Temp, t, hDNA, radiation_surv_coeff):
+def survival_function(radiation_space, radiation_decay, t, hDNA):
      """
     Computes fraction of surviving microbes based on function
         N/N0 = exp(- (kill_radiation + kill_hydrolysis) * t)
