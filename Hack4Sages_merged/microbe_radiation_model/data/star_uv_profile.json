@@ -1,0 +1,79 @@
+{
+  "__description__": {
+    "stars": "Słownik gwiazd; klucz to nazwa, wartość zawiera metadane i profil UV.",
+    "star_fields": {
+      "name": "Nazwa gwiazdy (np. 'Sun').",
+      "mass_solar": "Masa gwiazdy w jednostkach masy Słońca [M_sun].",
+      "luminosity_W": "Jasność gwiazdy [W].",
+      "uv_profile": "Lista punktów (distance_au, uv_surface_flux) opisujących strumień UV na różnych odległościach od gwiazdy."
+    },
+    "profile_fields": {
+      "distance_au": "Odległość od gwiazdy [AU].",
+      "uv_surface_flux": "Strumień UV na tej odległości [W/m^2]."
+    }
+  },
+  "stars": {
+    "Sun": {
+      "name": "Sun",
+      "mass_solar": 1.0,
+      "luminosity_W": 3.828e+26,
+      "uv_profile": [
+        {
+          "distance_au": 0.1,
+          "uv_surface_flux": 136112.7717933597
+        },
+        {
+          "distance_au": 0.5,
+          "uv_surface_flux": 5444.510871734388
+        },
+        {
+          "distance_au": 1.0,
+          "uv_surface_flux": 1361.127717933597
+        },
+        {
+          "distance_au": 2.0,
+          "uv_surface_flux": 340.28192948339927
+        },
+        {
+          "distance_au": 5.0,
+          "uv_surface_flux": 54.44510871734388
+        },
+        {
+          "distance_au": 10.0,
+          "uv_surface_flux": 13.61127717933597
+        }
+      ]
+    },
+    "star_0": {
+      "name": "star_0",
+      "mass_solar": 0.9999999999950272,
+      "luminosity_W": 3.8279999999333745e+26,
+      "uv_profile": [
+        {
+          "distance_au": 0.1,
+          "uv_surface_flux": 136112.77179099066
+        },
+        {
+          "distance_au": 0.5,
+          "uv_surface_flux": 5444.510871639627
+        },
+        {
+          "distance_au": 1.0,
+          "uv_surface_flux": 1361.1277179099068
+        },
+        {
+          "distance_au": 2.0,
+          "uv_surface_flux": 340.2819294774767
+        },
+        {
+          "distance_au": 5.0,
+          "uv_surface_flux": 54.44510871639627
+        },
+        {
+          "distance_au": 10.0,
+          "uv_surface_flux": 13.611277179099067
+        }
+      ]
+    }
+  }
+}
