@@ -1,0 +1,16 @@
+numpy
+scipy
+pandas
+matplotlib
+jupyterlab
+astropy
+astroquery
+biopython
+scikit-bio
+scikit-learn
+plotly
+tqdm
+requests
+rebound
+spiceypy
+reboundx
