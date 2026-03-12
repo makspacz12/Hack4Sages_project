@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from importlib.util import find_spec
-from math import sqrt
+from math import pi, sqrt
 from typing import List, Optional
 
 from ..chemistry.hydrolysis_model import compute_hydrolysis_rate
@@ -30,6 +30,118 @@ from ..radiation.shielding_model import radiation_at_point_in_rock_with_bio_core
 from ..thermal import equilibrium_temperature_from_flux, temperature_profile_surface_mid_center
 from .config import SimulationMaterialConfig, SimulationRunConfig, default_material_config
 
+# Collision: stars (Sun + Gaia) = 2× radius, planets = 1× radius
+STAR_COLLISION_RADIUS_MULTIPLIER = 2.0
+PLANET_COLLISION_RADIUS_MULTIPLIER = 1.0
+
+
+def _check_asteroid_collisions(
+    sim: object,
+    body_indices: list[int],
+    n_permanent: int,
+    asteroid_state_store: object,
+    star_indices: list[int],
+) -> None:
+    """
+    Mark asteroids as inactive (active=False) when they enter the collision radius
+    of the Sun, any planet, or any Gaia star. Uses sim.particles[i].r (in AU).
+    Stars (Sun + Gaia): 2× radius; planets: 1× radius.
+    """
+    for body_index in body_indices:
+        state = asteroid_state_store.get(body_index)
+        if not state.active:
+            continue
+        body = sim.particles[body_index]
+        for target_index in range(n_permanent):
+            target = sim.particles[target_index]
+            radius_au = float(getattr(target, "r", 0.0))
+            if radius_au <= 0.0:
+                continue
+            multiplier = (
+                STAR_COLLISION_RADIUS_MULTIPLIER
+                if target_index in star_indices
+                else PLANET_COLLISION_RADIUS_MULTIPLIER
+            )
+            threshold_au = multiplier * radius_au
+            dx = body.x - target.x
+            dy = body.y - target.y
+            dz = body.z - target.z
+            distance_au = sqrt(dx * dx + dy * dy + dz * dz)
+            if distance_au < threshold_au:
+                asteroid_state_store.update(body_index, active=False)
+                break
+
+
+# Minimum v_inf (AU/yr) to avoid division by zero in R_eff formula
+_V_INF_EPSILON_AU_YR = 1e-20
+
+
+def _check_asteroid_effective_radii(
+    sim: object,
+    body_indices: list[int],
+    asteroid_state_store: object,
+    star_indices: list[int],
+    sun_index: int = 0,
+) -> None:
+    """
+    For stars other than the Sun: set a distinct asteroid status flag when they
+    enter the effective-radius zone of the star's Hill sphere (R_eff_hill).
+
+    R_eff = R * sqrt(1 + (v_esc/v_inf)^2) with R = Hill radius of the star with
+    respect to the Sun. REBOUND units: AU, yr, Msun.
+    """
+    non_sun_star_indices = [i for i in star_indices if i != sun_index]
+    if not non_sun_star_indices:
+        return
+
+    sun = sim.particles[sun_index]
+    for body_index in body_indices:
+        state = asteroid_state_store.get(body_index)
+        if not state.active:
+            continue
+        body = sim.particles[body_index]
+
+        for star_index in non_sun_star_indices:
+            star = sim.particles[star_index]
+            dx = body.x - star.x
+            dy = body.y - star.y
+            dz = body.z - star.z
+            distance_au = sqrt(dx * dx + dy * dy + dz * dz)
+
+            m_star = float(star.m)
+            if m_star <= 0.0:
+                continue
+
+            # Hill radius of this star relative to the Sun: a * (m/(3*M_sun))^(1/3)
+            ax = star.x - sun.x
+            ay = star.y - sun.y
+            az = star.z - sun.z
+            a_au = sqrt(ax * ax + ay * ay + az * az)
+            if a_au <= 0.0:
+                continue
+            r_hill_au = a_au * (m_star / 3.0) ** (1.0 / 3.0)
+
+            # v_inf: relative velocity (AU/yr). G = 4*pi^2 in REBOUND (AU, yr, Msun)
+            vx = body.vx - star.vx
+            vy = body.vy - star.vy
+            vz = body.vz - star.vz
+            v_inf = sqrt(vx * vx + vy * vy + vz * vz)
+            if v_inf < _V_INF_EPSILON_AU_YR:
+                v_inf = _V_INF_EPSILON_AU_YR
+
+            # v_esc = sqrt(2*G*M/R) = 2*pi*sqrt(2*M/R) AU/yr with R = R_Hill
+            v_esc_hill = 2.0 * pi * sqrt(2.0 * m_star / r_hill_au)
+            r_eff_hill_au = r_hill_au * sqrt(1.0 + (v_esc_hill / v_inf) ** 2)
+
+            if distance_au < r_eff_hill_au:
+                asteroid_state_store.update(
+                    body_index,
+                    active=False,
+                    termination_reason="entered_effective_hill",
+                    termination_star_index=star_index,
+                )
+                break
+
 
 @dataclass(frozen=True)
 class BodyExposureReport:
@@ -43,6 +155,7 @@ class BodyExposureReport:
     distance_au: float | None = None
     surface_flux: float | None = None
     local_flux: float | None = None
+    gcr_local_flux: float | None = None
     surface_temperature_k: float | None = None
     mid_temperature_k: float | None = None
     center_temperature_k: float | None = None
@@ -150,6 +263,7 @@ def _build_body_report(
     local_flux: float,
     rock: Rock,
     run_config: SimulationRunConfig,
+    gcr_local_flux: float | None = None,
 ) -> tuple[BodyExposureReport, float, object]:
     thermal_state = _estimate_thermal_state(rock=rock, surface_flux=surface_flux, run_config=run_config)
     gcr_total_flux = cosmic_flux_by_region(distance_au=distance_au)
@@ -162,6 +276,7 @@ def _build_body_report(
             distance_au=distance_au,
             surface_flux=surface_flux,
             local_flux=local_flux,
+            gcr_local_flux=gcr_local_flux,
             surface_temperature_k=thermal_state[0],
             mid_temperature_k=thermal_state[1],
             center_temperature_k=thermal_state[2],
@@ -192,6 +307,7 @@ def _write_json_outputs(
         gcr_alpha_flux=getattr(gcr_spectrum, "alpha_flux", None),
         gcr_hze_flux=getattr(gcr_spectrum, "hze_flux", None),
         gcr_surface_flux=gcr_total_flux,
+        gcr_local_flux=body_report.gcr_local_flux,
         context=f"{run_id}_body_{body_report.body_index}",
     )
     append_rock_radiation_record(
@@ -200,6 +316,7 @@ def _write_json_outputs(
         step_index=step_index,
         time_seconds=time_seconds,
         uv_local_flux=body_report.local_flux,
+        gcr_local_flux=body_report.gcr_local_flux,
         cumulative_exposure=body_report.cumulative_exposure,
         distance_au=body_report.distance_au,
         nearest_star_index=body_report.nearest_star_index,
@@ -230,6 +347,7 @@ def _collect_json_output_payloads(
         "gcr_alpha_flux": getattr(gcr_spectrum, "alpha_flux", None),
         "gcr_hze_flux": getattr(gcr_spectrum, "hze_flux", None),
         "gcr_surface_flux": gcr_total_flux,
+        "gcr_local_flux": body_report.gcr_local_flux,
         "context": f"{run_id}_body_{body_report.body_index}",
     }
     rock_record = {
@@ -238,6 +356,7 @@ def _collect_json_output_payloads(
         "step_index": step_index,
         "time_seconds": time_seconds,
         "uv_local_flux": body_report.local_flux,
+        "gcr_local_flux": body_report.gcr_local_flux,
         "cumulative_exposure": body_report.cumulative_exposure,
         "distance_au": body_report.distance_au,
         "nearest_star_index": body_report.nearest_star_index,
@@ -454,6 +573,20 @@ def run_mars_ejecta_pipeline_demo(
         for _ in range(integration_substeps):
             sim.integrate(sim.t + integration_dt_yr)
 
+        _check_asteroid_effective_radii(
+            sim,
+            body_indices,
+            asteroid_state_store,
+            star_indices or [0],
+        )
+        _check_asteroid_collisions(
+            sim,
+            body_indices,
+            n_permanent,
+            asteroid_state_store,
+            star_indices or [0],
+        )
+
         if run_config.dust_erosion.enabled:
             apply_dust_erosion_step(
                 sim=sim,
@@ -478,6 +611,8 @@ def run_mars_ejecta_pipeline_demo(
         current_body_reports: list[BodyExposureReport] = []
         for body_index in body_indices:
             asteroid_state = asteroid_state_store.get(body_index)
+            if not asteroid_state.active:
+                continue
             nearest_index = nearest_star_index(sim, body_index, star_indices or [])
             if nearest_index is None:
                 continue
@@ -515,6 +650,21 @@ def run_mars_ejecta_pipeline_demo(
                 bio_material=bio_material,
                 surface_flux=surface_flux,
             )
+            gcr_surface_flux = cosmic_flux_by_region(distance_au=distance_au)
+            gcr_shielding_result = radiation_at_point_in_rock_with_bio_core(
+                point=(0.0, 0.0, 0.0),
+                rock_radius=asteroid_state.radius_m,
+                bio_radius=biological_core_radius(
+                    rock_radius=asteroid_state.radius_m,
+                    rock_density=rock_material.density,
+                    bio_density=bio_material.density,
+                    bio_mass_fraction=material_config.bio_mass_fraction,
+                ),
+                rock_material=rock_material,
+                bio_material=bio_material,
+                surface_flux=gcr_surface_flux,
+            )
+            gcr_local_flux = gcr_shielding_result.local_flux
             update_exposure(
                 state=exposure_by_body[body_index],
                 local_flux=shielding_result.local_flux,
@@ -530,6 +680,7 @@ def run_mars_ejecta_pipeline_demo(
                 local_flux=shielding_result.local_flux,
                 rock=rock,
                 run_config=run_config,
+                gcr_local_flux=gcr_local_flux,
             )
             current_body_reports.append(body_report)
 
@@ -541,6 +692,7 @@ def run_mars_ejecta_pipeline_demo(
                 distance_au=body_report.distance_au,
                 surface_flux=body_report.surface_flux,
                 local_flux=body_report.local_flux,
+                gcr_local_flux=body_report.gcr_local_flux,
                 surface_temperature_k=body_report.surface_temperature_k,
                 mid_temperature_k=body_report.mid_temperature_k,
                 center_temperature_k=body_report.center_temperature_k,

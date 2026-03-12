@@ -48,6 +48,7 @@ class AsteroidState:
     current_nearest_star: int | None = None
     initial_nearest_star: int | None = None
     active: bool = True
+    termination_reason: str | None = None
     extra: dict[str, Any] = field(default_factory=dict)
 
     @property
