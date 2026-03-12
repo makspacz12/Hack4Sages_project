@@ -28,6 +28,9 @@ class RadiationRecord:
 
     time_seconds: float
 
+    # Simulation step index (optional; filled when available)
+    step: Optional[int] = None
+
     # UV
     uv_surface_flux: Optional[float] = None
     uv_local_flux: Optional[float] = None
@@ -103,6 +106,8 @@ def _initial_payload() -> Dict[str, Any]:
     """
     return {
         "__description__": {
+            "time_seconds": "Simulation time [yr] at this step.",
+            "step": "Time-step index within the simulation (0-based).",
             # UV
             "uv_surface_flux": "UV flux at the rock surface before passing through material [W/m^2].",
             "uv_local_flux": "UV flux at the microbe location after passing through rock [W/m^2].",
@@ -271,6 +276,7 @@ def _load_star_uv_payload(path: Path) -> Dict[str, Any]:
 def append_radiation_record(
     *,
     time_seconds: float,
+    step: Optional[int] = None,
     uv_surface_flux: Optional[float] = None,
     uv_local_flux: Optional[float] = None,
     uv_cumulative_exposure: Optional[float] = None,
@@ -289,6 +295,7 @@ def append_radiation_record(
     """
     record = RadiationRecord(
         time_seconds=time_seconds,
+        step=step,
         uv_surface_flux=uv_surface_flux,
         uv_local_flux=uv_local_flux,
         uv_cumulative_exposure=uv_cumulative_exposure,

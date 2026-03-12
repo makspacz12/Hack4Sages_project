@@ -2,7 +2,15 @@
 Public API for radiation models used across the merged project.
 """
 
-from .cosmic import CosmicRaySpectrum, cosmic_background_flux, cosmic_flux_by_region, cosmic_flux_by_star, split_cosmic_flux
+from .cosmic import (
+    COSMIC_DEEP_SPACE_MULTIPLIER,
+    DEFAULT_HELIOSPHERE_RADIUS_AU,
+    CosmicRaySpectrum,
+    cosmic_background_flux,
+    cosmic_flux_by_region,
+    cosmic_flux_by_star,
+    split_cosmic_flux,
+)
 from .exposure_model import ExposureState, update_exposure
 from .shielding_model import (
     RadiationPointResult,
@@ -13,6 +21,8 @@ from .shielding_model import (
 from .stellar import relative_flux, stellar_flux, stellar_flux_at_au
 
 __all__ = [
+    "COSMIC_DEEP_SPACE_MULTIPLIER",
+    "DEFAULT_HELIOSPHERE_RADIUS_AU",
     "CosmicRaySpectrum",
     "ExposureState",
     "RadiationPointResult",

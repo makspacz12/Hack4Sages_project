@@ -24,7 +24,14 @@ from ..physics.constants import AU, SECONDS_PER_YEAR
 from ..physics.geometry import biological_core_radius
 from ..physics.materials import Material
 from ..physics.stellar_physics import stellar_luminosity_from_solar_mass
-from ..radiation import cosmic_flux_by_region, cosmic_flux_by_star, split_cosmic_flux, stellar_flux
+from ..radiation import (
+    COSMIC_DEEP_SPACE_MULTIPLIER,
+    DEFAULT_HELIOSPHERE_RADIUS_AU,
+    cosmic_flux_by_region,
+    cosmic_flux_by_star,
+    split_cosmic_flux,
+    stellar_flux,
+)
 from ..radiation.radionuclide_model import radiation_decay_gy_per_year_from_rock
 from ..biology.survival import survival_function
 from ..radiation.exposure_model import ExposureState, update_exposure
@@ -302,6 +309,7 @@ def _write_json_outputs(
 ) -> None:
     append_radiation_record(
         time_seconds=time_seconds,
+        step=step_index,
         uv_surface_flux=body_report.surface_flux,
         uv_local_flux=body_report.local_flux,
         uv_cumulative_exposure=body_report.cumulative_exposure,
@@ -350,6 +358,7 @@ def _collect_json_output_payloads(
 
     radiation_record = {
         "time_seconds": time_seconds,
+        "step": step_index,
         "uv_surface_flux": body_report.surface_flux,
         "uv_local_flux": body_report.local_flux,
         "uv_cumulative_exposure": body_report.cumulative_exposure,
@@ -433,7 +442,7 @@ def _build_visualizer_payload(
                 "objects.id": "Stable identifier for a simulated object (sun, planet, star or asteroid).",
                 "objects.name": "Human-readable name of the object.",
                 "objects.type": "Object type: 'star', 'planet' or 'asteroid'.",
-                "objects.status": "Object status for visualization: static, traveling, destroyed or arrived.",
+                "objects.status": "Object status for visualization: static, traveling, escaped_and_travelling, destroyed or arrived.",
                 "objects.visual": "Default visual settings for the object (radius and color in the viewer).",
                 "objects.info": "Additional information fields shown in the UI (mass, radius, rock type, etc.).",
                 # Frames
@@ -454,12 +463,21 @@ def _build_visualizer_payload(
                 "frames.properties.mass": "Object mass [kg] (physical mass for stars/planets, asteroid mass from state).",
                 "frames.properties.radius": "Object radius [m] (physical radius or asteroid radius).",
                 "frames.properties.beta": "Radiation-pressure beta parameter for the body (dimensionless), if available.",
-                "frames.properties.status": "Object status in this frame (static, traveling, destroyed, arrived).",
+                "frames.properties.status": "Object status in this frame (static, traveling, escaped_and_travelling, destroyed, arrived).",
                 "frames.properties.termination_reason": "Reason why an asteroid became inactive, if any.",
                 "frames.properties.termination_star_index": "Index of the star that captured/destroyed the asteroid, if applicable.",
                 # Frame-level aggregates (Mars ejecta pipeline)
                 "frames.aggregates": "Frame-level global aggregates over all asteroids.",
                 "frames.aggregates.asteroid_count": "Number of active asteroids in this frame.",
+                "frames.aggregates.escaped_and_travelling_count": (
+                    "Number of asteroids that have escaped the Solar System (escaped_and_travelling status)."
+                ),
+                "frames.aggregates.destroyed_count": (
+                    "Number of asteroids that are inactive due to destruction, including collisions with stars."
+                ),
+                "frames.aggregates.arrived_count": (
+                    "Number of asteroids that have arrived in the effective Hill sphere of a non-Sun star."
+                ),
                 "frames.aggregates.total_population_fraction": "Sum of surviving population fractions over all active asteroids.",
                 "frames.aggregates.time_years": "Simulation time for this frame [yr] (duplicate of frames.time for convenience).",
                 "frames.aggregates.uv_local_flux_sum": "Sum of UV flux at microbe locations over all reported bodies [W/m^2].",
@@ -485,8 +503,11 @@ def _default_mars_pipeline_run_config() -> SimulationRunConfig:
     from .config import ImpactSimulationConfig, OutputConfig, RadiationPressureConfig
 
     return SimulationRunConfig(
-        dt_yr=0.1,
-        n_steps=1000,
+        # Test configuration: long integration with many ejecta.
+        #  - dt_yr: 100,000 years per output step
+        #  - n_steps: 100 (total ~10 Myr)
+        dt_yr=100_000.0,
+        n_steps=100,
         integration_substeps=10,
         add_test_particle=False,
         radiation_pressure=RadiationPressureConfig(
@@ -501,10 +522,10 @@ def _default_mars_pipeline_run_config() -> SimulationRunConfig:
             flux_definition="cross_section",
             refresh_interval_steps=1,
         ),
-        # Use ImpactSimulationConfig defaults (including n_asteroids)
-        # so that changing it in config.py is respected.
         impact=ImpactSimulationConfig(
             enabled=True,
+            # Test configuration: large ejecta population for statistics.
+            n_asteroids=10_000,
         ),
         output=OutputConfig(
             export_json=True,
@@ -631,6 +652,10 @@ def run_mars_ejecta_pipeline_demo(
             )
         )
 
+    # Escape threshold: distance beyond which we start treating asteroids with
+    # positive orbital energy relative to the Sun as having escaped the Solar System.
+    escape_distance_au = 2.0 * DEFAULT_HELIOSPHERE_RADIUS_AU
+
     for step_index in range(1, run_config.n_steps):
         for _ in range(integration_substeps):
             sim.integrate(sim.t + integration_dt_yr)
@@ -675,6 +700,33 @@ def run_mars_ejecta_pipeline_demo(
             asteroid_state = asteroid_state_store.get(body_index)
             if not asteroid_state.active:
                 continue
+
+            body = sim.particles[body_index]
+            sun = sim.particles[0]
+
+            # Check escape relative to the Sun: positive orbital energy and
+            # distance beyond twice the nominal heliosphere radius.
+            dx_sun = body.x - sun.x
+            dy_sun = body.y - sun.y
+            dz_sun = body.z - sun.z
+            r_sun_au = sqrt(dx_sun * dx_sun + dy_sun * dy_sun + dz_sun * dz_sun)
+
+            vx_sun = body.vx - sun.vx
+            vy_sun = body.vy - sun.vy
+            vz_sun = body.vz - sun.vz
+            v2_sun = vx_sun * vx_sun + vy_sun * vy_sun + vz_sun * vz_sun
+
+            # In REBOUND units (AU, yr, Msun) G = 4*pi^2 and M_sun ~= 1.
+            energy_sun = 0.5 * v2_sun - 4.0 * pi * pi / max(r_sun_au, 1e-8)
+            if energy_sun > 0.0 and r_sun_au > escape_distance_au:
+                # Mark that the asteroid has escaped the Solar System,
+                # but keep it active so it can still evolve and potentially
+                # be captured by another star or collide with a body.
+                asteroid_state_store.update(
+                    body_index,
+                    escaped_sun=True,
+                )
+
             nearest_index = nearest_star_index(sim, body_index, star_indices or [])
             if nearest_index is None:
                 continue
@@ -690,7 +742,6 @@ def run_mars_ejecta_pipeline_demo(
                 ),
             )
             bio_material = material_config.bio_material
-            body = sim.particles[body_index]
             star = sim.particles[nearest_index]
             dx = body.x - star.x
             dy = body.y - star.y
@@ -844,15 +895,34 @@ def run_mars_ejecta_pipeline_demo(
             # Operujemy na bieżących raportach ciał i stanie asteroid.
             aggregates: dict[str, float | int | None] = {}
 
+            # All asteroid states for this scenario.
+            all_states = [asteroid_state_store.get(idx) for idx in body_indices]
+
             # Active asteroids.
-            active_states = [
-                asteroid_state_store.get(idx)
-                for idx in body_indices
-                if asteroid_state_store.get(idx).active
-            ]
+            active_states = [state for state in all_states if state.active]
 
             asteroid_count = len(active_states)
             aggregates["asteroid_count"] = asteroid_count
+
+            # Counts by high-level status.
+            escaped_and_travelling_count = 0
+            destroyed_count = 0
+            arrived_count = 0
+            for state in all_states:
+                # Escaped from the Solar System but still dynamically active.
+                if state.extra.get("escaped_sun", False):
+                    escaped_and_travelling_count += 1
+                    continue
+                if not state.active:
+                    reason = getattr(state, "termination_reason", None)
+                    if reason in ("entered_effective_hill", "entered_hill_sphere"):
+                        arrived_count += 1
+                    else:
+                        destroyed_count += 1
+
+            aggregates["escaped_and_travelling_count"] = escaped_and_travelling_count
+            aggregates["destroyed_count"] = destroyed_count
+            aggregates["arrived_count"] = arrived_count
 
             # Population fraction (sum over active asteroids).
             total_population_fraction = sum(

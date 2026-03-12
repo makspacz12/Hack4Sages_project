@@ -153,13 +153,17 @@ def _sample_rock_variants_with_sizes(
     rng: np.random.Generator,
 ) -> tuple[list[Rock], np.ndarray]:
     """
-    Sample rock variants and radii with size ranges scaled by reference radius.
+    Sample rock variants and radii.
 
-    - Najpierw normalizujemy warianty skal i ich prawdopodobieństwa.
+    - Najpierw normalizujemy warianty skał i ich prawdopodobieństwa.
     - Następnie dla każdej asteroidy losujemy typ skały z danego rozkładu.
-    - Dla każdego typu skały wyznaczamy zakres promieni na podstawie
-      promienia referencyjnego (rock.radius_m) i globalnych ograniczeń,
-      po czym losujemy promień z rozkładu potęgowego.
+    - Promienie fragmentów losujemy globalnie z rozkładu potęgowego
+      w zakresie [0.01 m, 100 m], niezależnie od typu skały. Typ skały
+      wpływa na własności materiałowe (gęstość, porowatość, radionuklidy),
+      ale nie na typowy rozmiar fragmentu.
+
+    Parametry ``radius_min_m`` i ``radius_max_m`` są pozostawione dla
+    kompatybilności, ale aktualnie nie zmieniają zakresu losowania.
     """
 
     normalized = [_normalize_variant(variant) for variant in rock_variants]
@@ -179,36 +183,21 @@ def _sample_rock_variants_with_sizes(
         p=probabilities,
     )
 
-    radii_m = np.empty(n_asteroids, dtype=float)
+    # Globalne losowanie promieni fragmentów z rozkładu potęgowego
+    # w stałym zakresie [0.01 m, 100 m], wspólnym dla wszystkich typów skał.
+    radii_m = sample_truncated_power_law(
+        0.01,
+        100.0,
+        q_size,
+        n_asteroids,
+        rng,
+    ).astype(float)
+
     sampled_rocks: list[Rock] = []
 
     for idx in range(n_asteroids):
         base_rock = normalized[variant_indices[idx]]
-        ref_radius = base_rock.radius_m or 1.0
-
-        # Zakres promieni skalowany przez promień referencyjny.
-        #  - dolna granica: 1% promienia referencyjnego,
-        #  - górna granica: 20% promienia referencyjnego,
-        #  z dodatkowymi globalnymi ograniczeniami.
-        r_min_scaled = 0.01 * ref_radius
-        r_max_scaled = 0.20 * ref_radius
-
-        local_min = max(radius_min_m, r_min_scaled)
-        local_max = min(radius_max_m, r_max_scaled)
-
-        # Zabezpieczenie na wypadek bardzo małego/dużego ref_radius.
-        if not (local_max > local_min > 0.0):
-            local_min = radius_min_m
-            local_max = radius_max_m
-
-        radius_sample = sample_truncated_power_law(
-            local_min,
-            local_max,
-            q_size,
-            1,
-            rng,
-        )[0]
-        radii_m[idx] = float(radius_sample)
+        radius_sample = float(radii_m[idx])
 
         sampled_rocks.append(
             with_rock_overrides(

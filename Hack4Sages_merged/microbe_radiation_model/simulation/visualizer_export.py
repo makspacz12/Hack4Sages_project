@@ -9,12 +9,15 @@ from typing import Any
 from ..asteroid_state import AsteroidState, AsteroidStateStore
 from ..physics.constants import AU, SOLAR_MASS
 
-# Status for visualizer: static (Sun/planets/stars – not traveling), traveling, destroyed, arrived (future)
+# Status for visualizer: static (Sun/planets/stars – not traveling),
+# traveling, destroyed, escaped_and_travelling, arrived (for asteroids that left
+# the Solar System and/or reached another star).
 STATUS_STATIC = "static"
 STATUS_TRAVELING = "traveling"
 STATUS_DESTROYED = "destroyed"
 STATUS_DESTROYED_COLLIDED_STAR = "destroyed_collided_star"
 STATUS_ARRIVED = "arrived"
+STATUS_ESCAPED_TRAVELLING = "escaped_and_travelling"
 
 
 def build_object_catalog(
@@ -97,6 +100,9 @@ def _object_status(object_type: str, asteroid_state: AsteroidState | None) -> st
     if object_type in ("star", "planet"):
         return STATUS_STATIC
     if object_type == "asteroid" and asteroid_state is not None:
+        # Escaped from the Solar System but still dynamically active.
+        if asteroid_state.extra.get("escaped_sun", False):
+            return STATUS_ESCAPED_TRAVELLING
         if not asteroid_state.active:
             reason = getattr(asteroid_state, "termination_reason", None)
             if reason == "collided_with_star":
