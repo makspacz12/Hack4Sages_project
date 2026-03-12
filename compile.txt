@@ -1,0 +1,35 @@
+URUCHOMIENIE SYMULACJI MARS PIPELINE
+===================================
+
+1. Wejdź do głównego katalogu projektu:
+
+   cd ~/Hack4Sages_project
+
+2. (Jednorazowo) utwórz wirtualne środowisko:
+
+   python3 -m venv .venv
+
+   Jeśli pojawi się błąd o braku venv, doinstaluj:
+
+   sudo apt update
+   sudo apt install python3-venv
+   python3 -m venv .venv
+
+3. Aktywuj wirtualne środowisko:
+
+   source .venv/bin/activate
+
+4. (Jednorazowo) zainstaluj zależności:
+
+   cd ~/Hack4Sages_project/Hack4Sages_merged
+   python -m pip install -r requirements.txt
+
+5. Uruchom pełny marsjański pipeline (impakt + dynamika + erozja + promieniowanie + eksport JSON):
+
+   cd ~/Hack4Sages_project/Hack4Sages_merged
+   python3 -m microbe_radiation_model.demos.run_mars_pipeline
+
+Pliki wyjściowe JSON (do analizy / wizualizacji) pojawiają się w:
+
+   ~/Hack4Sages_project/Hack4Sages_merged/microbe_radiation_model/data/
+

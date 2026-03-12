@@ -503,11 +503,12 @@ def _default_mars_pipeline_run_config() -> SimulationRunConfig:
     from .config import ImpactSimulationConfig, OutputConfig, RadiationPressureConfig
 
     return SimulationRunConfig(
-        # Test configuration: long integration with many ejecta.
-        #  - dt_yr: 100,000 years per output step
-        #  - n_steps: 100 (total ~10 Myr)
-        dt_yr=100_000.0,
-        n_steps=100,
+        # Test configuration: moderate number of ejecta with long integration.
+        #  - dt_yr: 0.025 years per output step (~9.1 dni)
+        #  - n_steps: 2000 (total ~50 lat)
+        #  - n_asteroids: 100
+        dt_yr=0.025,
+        n_steps=2000,
         integration_substeps=10,
         add_test_particle=False,
         radiation_pressure=RadiationPressureConfig(
@@ -524,8 +525,7 @@ def _default_mars_pipeline_run_config() -> SimulationRunConfig:
         ),
         impact=ImpactSimulationConfig(
             enabled=True,
-            # Test configuration: large ejecta population for statistics.
-            n_asteroids=10_000,
+            n_asteroids=100,
         ),
         output=OutputConfig(
             export_json=True,
