@@ -16,6 +16,10 @@ Model rozróżnia dwa regiony:
 
 from __future__ import annotations
 
+import math
+
+from ...physics.constants import SOLAR_LUMINOSITY
+
 COSMIC_BACKGROUND_FLUX = 1.0
 COSMIC_DEEP_SPACE_MULTIPLIER = 1.3
 
@@ -76,3 +80,50 @@ def cosmic_flux_by_region(
         return base_flux
 
     return base_flux * deep_space_multiplier
+
+
+def cosmic_flux_by_star(
+    distance_au: float,
+    luminosity_w: float,
+    base_flux: float = COSMIC_BACKGROUND_FLUX,
+    deep_space_multiplier: float = COSMIC_DEEP_SPACE_MULTIPLIER,
+    transition_width_factor: float = 1.0,
+) -> float:
+    """
+    Zwraca flux GCR z uwzględnieniem rozmiaru heliosfery konkretnej gwiazdy.
+
+    Założenia:
+    - promień heliosfery skaluje się z jasnością gwiazdy jak sqrt(L_star / L_sun),
+      tzn. R_helio = 120 AU * sqrt(L_star / L_sun),
+    - wewnątrz R_helio flux = base_flux,
+    - daleko poza (>= R_helio * (1 + transition_width_factor)) flux = base_flux * deep_space_multiplier,
+    - pomiędzy tymi strefami stosowany jest prosty liniowy ramp.
+    """
+
+    if distance_au < 0:
+        raise ValueError("distance_au must be >= 0")
+    if luminosity_w <= 0:
+        raise ValueError("luminosity_w must be > 0")
+    if transition_width_factor < 0:
+        raise ValueError("transition_width_factor must be >= 0")
+
+    # Jasność w jednostkach słonecznych – zabezpieczenie przed skrajnie małymi wartościami.
+    luminosity_ratio = max(luminosity_w / SOLAR_LUMINOSITY, 1e-3)
+
+    # Skalowanie promienia heliosfery z jasnością.
+    r_helio_au = DEFAULT_HELIOSPHERE_RADIUS_AU * math.sqrt(luminosity_ratio)
+    if r_helio_au <= 0.0:
+        return base_flux
+
+    # Szerokość strefy przejściowej.
+    r_transition_au = r_helio_au * (1.0 + transition_width_factor)
+
+    if distance_au <= r_helio_au:
+        return base_flux
+    if distance_au >= r_transition_au:
+        return base_flux * deep_space_multiplier
+
+    # Liniowe przejście 1.0 -> deep_space_multiplier w strefie przejściowej.
+    t = (distance_au - r_helio_au) / (r_transition_au - r_helio_au)
+    factor = 1.0 + (deep_space_multiplier - 1.0) * t
+    return base_flux * factor

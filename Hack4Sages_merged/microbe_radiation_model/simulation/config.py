@@ -77,7 +77,7 @@ class ImpactSimulationConfig:
     """
 
     enabled: bool = False
-    n_asteroids: int = 100
+    n_asteroids: int = 10
     mars_index: int = 4
     cone_half_angle: float = 60.0
     v_min_kms: float = 5.03

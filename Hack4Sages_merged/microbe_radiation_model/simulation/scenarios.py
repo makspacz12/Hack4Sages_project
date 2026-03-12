@@ -24,7 +24,9 @@ from ..physics.constants import AU, SECONDS_PER_YEAR
 from ..physics.geometry import biological_core_radius
 from ..physics.materials import Material
 from ..physics.stellar_physics import stellar_luminosity_from_solar_mass
-from ..radiation import cosmic_flux_by_region, split_cosmic_flux, stellar_flux
+from ..radiation import cosmic_flux_by_region, cosmic_flux_by_star, split_cosmic_flux, stellar_flux
+from ..radiation.radionuclide_model import radiation_decay_gy_per_year_from_rock
+from ..biology.survival import survival_function
 from ..radiation.exposure_model import ExposureState, update_exposure
 from ..radiation.shielding_model import radiation_at_point_in_rock_with_bio_core
 from ..thermal import equilibrium_temperature_from_flux, temperature_profile_surface_mid_center
@@ -263,10 +265,11 @@ def _build_body_report(
     local_flux: float,
     rock: Rock,
     run_config: SimulationRunConfig,
+    gcr_surface_flux: float,
     gcr_local_flux: float | None = None,
 ) -> tuple[BodyExposureReport, float, object]:
     thermal_state = _estimate_thermal_state(rock=rock, surface_flux=surface_flux, run_config=run_config)
-    gcr_total_flux = cosmic_flux_by_region(distance_au=distance_au)
+    gcr_total_flux = gcr_surface_flux
 
     return (
         BodyExposureReport(
@@ -337,18 +340,29 @@ def _collect_json_output_payloads(
     gcr_total_flux: float,
     gcr_spectrum: object,
 ) -> tuple[dict[str, object], dict[str, object]]:
+    # gcr_total_flux here is the model GCR value at the surface (1.0 inside heliosphere).
+    # For analysis we export a surface dose rate in Gy/year using the 0.194 scaling.
+    gcr_surface_model = gcr_total_flux
+    gcr_surface_dose_gy_per_year = gcr_surface_model * 0.194
+
+    # Gamma: use radionuclide-based dose rate [Gy/year] as a simple gamma proxy.
+    gamma_dose_gy_per_year = radiation_decay_gy_per_year_from_rock(rock)
+
     radiation_record = {
         "time_seconds": time_seconds,
         "uv_surface_flux": body_report.surface_flux,
         "uv_local_flux": body_report.local_flux,
         "uv_cumulative_exposure": body_report.cumulative_exposure,
-        "gcr_total_flux": gcr_total_flux,
+        "gcr_total_flux": gcr_surface_dose_gy_per_year,
         "gcr_proton_flux": getattr(gcr_spectrum, "proton_flux", None),
         "gcr_alpha_flux": getattr(gcr_spectrum, "alpha_flux", None),
         "gcr_hze_flux": getattr(gcr_spectrum, "hze_flux", None),
-        "gcr_surface_flux": gcr_total_flux,
+        "gcr_surface_flux": gcr_surface_dose_gy_per_year,
         "gcr_local_flux": body_report.gcr_local_flux,
-        "context": f"{run_id}_body_{body_report.body_index}",
+        "gamma_surface_flux": gamma_dose_gy_per_year,
+        "gamma_local_flux": gamma_dose_gy_per_year,
+        # Friendlier English label for the body context, used in timeseries/analysis.
+        "context": f"{run_id}_asteroid_{body_report.body_index}",
     }
     rock_record = {
         "rock": rock,
@@ -357,6 +371,7 @@ def _collect_json_output_payloads(
         "time_seconds": time_seconds,
         "uv_local_flux": body_report.local_flux,
         "gcr_local_flux": body_report.gcr_local_flux,
+        "gamma_local_flux": gamma_dose_gy_per_year,
         "cumulative_exposure": body_report.cumulative_exposure,
         "distance_au": body_report.distance_au,
         "nearest_star_index": body_report.nearest_star_index,
@@ -413,6 +428,52 @@ def _build_visualizer_payload(
             "positionScale": run_config.output.visualizer_position_scale,
             "totalFrames": len(frames),
             "playbackFPS": run_config.output.visualizer_playback_fps,
+            "fieldDescriptions": {
+                # Objects
+                "objects.id": "Stable identifier for a simulated object (sun, planet, star or asteroid).",
+                "objects.name": "Human-readable name of the object.",
+                "objects.type": "Object type: 'star', 'planet' or 'asteroid'.",
+                "objects.status": "Object status for visualization: static, traveling, destroyed or arrived.",
+                "objects.visual": "Default visual settings for the object (radius and color in the viewer).",
+                "objects.info": "Additional information fields shown in the UI (mass, radius, rock type, etc.).",
+                # Frames
+                "frames.step": "Simulation step index for this frame.",
+                "frames.time": "Simulation time for this frame [yr].",
+                "frames.positions": "List of object positions in this frame.",
+                "frames.positions.id": "Object identifier matching 'objects.id'.",
+                "frames.positions.x": "X coordinate [AU] in the simulation frame.",
+                "frames.positions.y": "Y coordinate [AU] in the simulation frame.",
+                "frames.positions.z": "Z coordinate [AU] in the simulation frame.",
+                "frames.velocities": "List of object velocities in this frame.",
+                "frames.velocities.id": "Object identifier matching 'objects.id'.",
+                "frames.velocities.vx": "Velocity component vx [AU/yr].",
+                "frames.velocities.vy": "Velocity component vy [AU/yr].",
+                "frames.velocities.vz": "Velocity component vz [AU/yr].",
+                "frames.properties": "Per-object physical properties in this frame.",
+                "frames.properties.id": "Object identifier matching 'objects.id'.",
+                "frames.properties.mass": "Object mass [kg] (physical mass for stars/planets, asteroid mass from state).",
+                "frames.properties.radius": "Object radius [m] (physical radius or asteroid radius).",
+                "frames.properties.beta": "Radiation-pressure beta parameter for the body (dimensionless), if available.",
+                "frames.properties.status": "Object status in this frame (static, traveling, destroyed, arrived).",
+                "frames.properties.termination_reason": "Reason why an asteroid became inactive, if any.",
+                "frames.properties.termination_star_index": "Index of the star that captured/destroyed the asteroid, if applicable.",
+                # Frame-level aggregates (Mars ejecta pipeline)
+                "frames.aggregates": "Frame-level global aggregates over all asteroids.",
+                "frames.aggregates.asteroid_count": "Number of active asteroids in this frame.",
+                "frames.aggregates.total_population_fraction": "Sum of surviving population fractions over all active asteroids.",
+                "frames.aggregates.time_years": "Simulation time for this frame [yr] (duplicate of frames.time for convenience).",
+                "frames.aggregates.uv_local_flux_sum": "Sum of UV flux at microbe locations over all reported bodies [W/m^2].",
+                "frames.aggregates.gcr_local_flux_sum": "Sum of cosmic ray flux at microbe locations over all reported bodies (model units).",
+                "frames.aggregates.gamma_local_flux_sum": "Sum of gamma-ray flux at microbe locations over all reported bodies [W/m^2].",
+                "frames.aggregates.T_surface_K_min": "Minimum surface temperature among reported bodies [K].",
+                "frames.aggregates.T_surface_K_mean": "Mean surface temperature among reported bodies [K].",
+                "frames.aggregates.T_surface_K_max": "Maximum surface temperature among reported bodies [K].",
+                "frames.aggregates.T_center_K_min": "Minimum center temperature among reported bodies [K].",
+                "frames.aggregates.T_center_K_mean": "Mean center temperature among reported bodies [K].",
+                "frames.aggregates.T_center_K_max": "Maximum center temperature among reported bodies [K].",
+                "frames.aggregates.total_erosion_mass_loss_kg": "Total cumulative mass lost to dust erosion across all active asteroids [kg].",
+                "frames.aggregates.total_asteroid_mass_kg": "Total mass of all active asteroids in this frame [kg]."
+            },
         },
         "objects": objects,
         "frames": frames,
@@ -440,9 +501,10 @@ def _default_mars_pipeline_run_config() -> SimulationRunConfig:
             flux_definition="cross_section",
             refresh_interval_steps=1,
         ),
+        # Use ImpactSimulationConfig defaults (including n_asteroids)
+        # so that changing it in config.py is respected.
         impact=ImpactSimulationConfig(
             enabled=True,
-            n_asteroids=100,
         ),
         output=OutputConfig(
             export_json=True,
@@ -650,7 +712,7 @@ def run_mars_ejecta_pipeline_demo(
                 bio_material=bio_material,
                 surface_flux=surface_flux,
             )
-            gcr_surface_flux = cosmic_flux_by_region(distance_au=distance_au)
+            gcr_surface_flux = cosmic_flux_by_star(distance_au=distance_au, luminosity_w=luminosity)
             gcr_shielding_result = radiation_at_point_in_rock_with_bio_core(
                 point=(0.0, 0.0, 0.0),
                 rock_radius=asteroid_state.radius_m,
@@ -680,8 +742,52 @@ def run_mars_ejecta_pipeline_demo(
                 local_flux=shielding_result.local_flux,
                 rock=rock,
                 run_config=run_config,
+                gcr_surface_flux=gcr_surface_flux,
                 gcr_local_flux=gcr_local_flux,
             )
+
+            # Aktualizacja frakcji przetrwałej populacji na podstawie lokalnych warunków.
+            if body_report.hydrolysis_rate_s_inv is not None:
+                # Dawka z rozpadu radionuklidów w skale [Gy/year].
+                radiation_decay_gy_per_year = radiation_decay_gy_per_year_from_rock(rock)
+                # Dawka z promieniowania kosmicznego po ekranowaniu.
+                # Kalibracja: 1.0 modelowego GCR odpowiada 0.194 Gy/year (Mileikowsky et al. 2000).
+                radiation_space_gy_per_year = float(gcr_local_flux) * 0.194
+                # Czas kroku w latach.
+                t_years = dt_s / SECONDS_PER_YEAR
+                # Indywidualny współczynnik wrażliwości radiacyjnej dla tej asteroidy.
+                radiation_surv_coeff = float(
+                    asteroid_state.extra.get("radiation_surv_coeff", 5e-6)
+                )
+                step_survival = survival_function(
+                    radiation_space_gy_per_year=radiation_space_gy_per_year,
+                    radiation_decay_gy_per_year=radiation_decay_gy_per_year,
+                    radiation_surv_coeff=radiation_surv_coeff,
+                    t_years=t_years,
+                    hdna_rate_per_s=body_report.hydrolysis_rate_s_inv,
+                )
+                new_population_fraction = asteroid_state.population_fraction * step_survival
+                asteroid_state_store.update(
+                    body_index,
+                    population_fraction=new_population_fraction,
+                )
+
+            # Cache latest per-asteroid environment and biology in the state
+            # so that the visualizer can expose these per-object properties.
+            env_updates: dict[str, object] = {}
+            env_updates["T_surface_K"] = body_report.surface_temperature_k
+            env_updates["T_center_K"] = body_report.center_temperature_k
+            env_updates["uv_local_flux"] = body_report.local_flux
+            env_updates["gcr_local_flux"] = gcr_local_flux
+            # gamma_local_flux is not yet propagated; keep placeholder 0.0
+            env_updates["gamma_local_flux"] = 0.0
+            env_updates["hydrolysis_rate_s_inv"] = body_report.hydrolysis_rate_s_inv
+            env_updates["radiation_decay_gy_per_year"] = radiation_decay_gy_per_year_from_rock(rock)
+            asteroid_state_store.update(
+                body_index,
+                **env_updates,
+            )
+
             current_body_reports.append(body_report)
 
             metadata_store.set(
@@ -704,11 +810,14 @@ def run_mars_ejecta_pipeline_demo(
                     rock=rock,
                     run_id="mars_ejecta_pipeline",
                     step_index=step_index,
-                    time_seconds=sim.t * SECONDS_PER_YEAR,
+                    time_seconds=sim.t,
                     body_report=body_report,
                     gcr_total_flux=gcr_total_flux,
                     gcr_spectrum=gcr_spectrum,
                 )
+                # Uzupełniamy rekordy o informację biologiczną, jeśli jest dostępna.
+                radiation_record["population_fraction"] = asteroid_state.population_fraction
+                rock_record["population_fraction"] = asteroid_state.population_fraction
                 radiation_records_buffer.append(radiation_record)
                 rock_records_buffer.append(rock_record)
 
@@ -723,15 +832,86 @@ def run_mars_ejecta_pipeline_demo(
         if current_body_reports:
             final_body_reports = current_body_reports
         if run_config.output.export_visualizer_json:
-            visualizer_frames.append(
-                build_frame_payload(
-                    sim,
-                    step_index=step_index,
-                    time_years=sim.t,
-                    object_ids=object_ids,
-                    asteroid_state_store=asteroid_state_store,
-                )
+            frame = build_frame_payload(
+                sim,
+                step_index=step_index,
+                time_years=sim.t,
+                object_ids=object_ids,
+                asteroid_state_store=asteroid_state_store,
             )
+
+            # Per-frame global aggregates for visualization / analytics.
+            # Operujemy na bieżących raportach ciał i stanie asteroid.
+            aggregates: dict[str, float | int | None] = {}
+
+            # Active asteroids.
+            active_states = [
+                asteroid_state_store.get(idx)
+                for idx in body_indices
+                if asteroid_state_store.get(idx).active
+            ]
+
+            asteroid_count = len(active_states)
+            aggregates["asteroid_count"] = asteroid_count
+
+            # Population fraction (sum over active asteroids).
+            total_population_fraction = sum(
+                float(state.population_fraction) for state in active_states
+            )
+            aggregates["total_population_fraction"] = total_population_fraction
+
+            # Time in years (duplicated from frame.time for convenience).
+            aggregates["time_years"] = float(sim.t)
+
+            # Sums of local fluxes over bodies that have reports this step.
+            if current_body_reports:
+                uv_local_sum = sum(
+                    float(r.local_flux or 0.0) for r in current_body_reports
+                )
+                gcr_local_sum = sum(
+                    float(r.gcr_local_flux or 0.0) for r in current_body_reports
+                )
+                # Gamma local flux is not yet propagated; keep placeholder sum = 0.0.
+                gamma_local_sum = 0.0
+
+                aggregates["uv_local_flux_sum"] = uv_local_sum
+                aggregates["gcr_local_flux_sum"] = gcr_local_sum
+                aggregates["gamma_local_flux_sum"] = gamma_local_sum
+
+                # Temperatures: min/mean/max for surface and center.
+                surface_temps = [
+                    float(r.surface_temperature_k)
+                    for r in current_body_reports
+                    if r.surface_temperature_k is not None
+                ]
+                center_temps = [
+                    float(r.center_temperature_k)
+                    for r in current_body_reports
+                    if r.center_temperature_k is not None
+                ]
+
+                if surface_temps:
+                    aggregates["T_surface_K_min"] = min(surface_temps)
+                    aggregates["T_surface_K_mean"] = sum(surface_temps) / len(surface_temps)
+                    aggregates["T_surface_K_max"] = max(surface_temps)
+                if center_temps:
+                    aggregates["T_center_K_min"] = min(center_temps)
+                    aggregates["T_center_K_mean"] = sum(center_temps) / len(center_temps)
+                    aggregates["T_center_K_max"] = max(center_temps)
+
+            # Total erosion mass loss (if available) and total asteroid mass.
+            total_erosion_mass_loss = 0.0
+            for state in active_states:
+                loss = state.extra.get("cumulative_mass_loss_kg")
+                if loss is not None:
+                    total_erosion_mass_loss += float(loss)
+            aggregates["total_erosion_mass_loss_kg"] = total_erosion_mass_loss
+
+            total_asteroid_mass = sum(float(state.mass_kg) for state in active_states)
+            aggregates["total_asteroid_mass_kg"] = total_asteroid_mass
+
+            frame["aggregates"] = aggregates
+            visualizer_frames.append(frame)
 
     sampled_reports = final_body_reports[: min(5, len(final_body_reports))]
     first_body = sampled_reports[0] if sampled_reports else None
@@ -816,6 +996,18 @@ def run_static_radiation_demo(
     state = ExposureState()
     update_exposure(state=state, local_flux=result.local_flux, dt=dt_seconds)
 
+    # GCR: najpierw poziom na powierzchni w zależności od gwiazdy i odległości,
+    # potem tłumienie w skale tym samym prawem Beer-Lamberta co dla UV.
+    gcr_surface_flux = cosmic_flux_by_star(distance_au=distance_au, luminosity_w=luminosity)
+    gcr_result = radiation_at_point_in_rock_with_bio_core(
+        point=(0.0, 0.0, 0.0),
+        rock_radius=material_config.rock_radius,
+        bio_radius=bio_radius,
+        rock_material=material_config.rock_material,
+        bio_material=material_config.bio_material,
+        surface_flux=gcr_surface_flux,
+    )
+
     body_report, gcr_total_flux, gcr_spectrum = _build_body_report(
         body_index=0,
         cumulative_exposure=state.cumulative_exposure,
@@ -825,6 +1017,8 @@ def run_static_radiation_demo(
         local_flux=result.local_flux,
         rock=report_rock,
         run_config=run_config,
+        gcr_surface_flux=gcr_surface_flux,
+        gcr_local_flux=gcr_result.local_flux,
     )
 
     if run_config.output.export_json:
@@ -832,7 +1026,7 @@ def run_static_radiation_demo(
             rock=report_rock,
             run_id="static_radiation_demo",
             step_index=0,
-            time_seconds=dt_seconds,
+            time_seconds=dt_seconds / SECONDS_PER_YEAR,
             body_report=body_report,
             gcr_total_flux=gcr_total_flux,
             gcr_spectrum=gcr_spectrum,
@@ -924,6 +1118,17 @@ def run_connected_demo(
             surface_flux=surface_flux,
         )
 
+        # GCR: analogicznie jak UV – poziom zależny od gwiazdy/odległości i tłumienie w skale.
+        gcr_surface_flux = cosmic_flux_by_star(distance_au=distance_au, luminosity_w=luminosity)
+        gcr_shielding_result = radiation_at_point_in_rock_with_bio_core(
+            point=(0.0, 0.0, 0.0),
+            rock_radius=material_config.rock_radius,
+            bio_radius=bio_radius,
+            rock_material=material_config.rock_material,
+            bio_material=material_config.bio_material,
+            surface_flux=gcr_surface_flux,
+        )
+
         body_report, gcr_total_flux, gcr_spectrum = _build_body_report(
             body_index=body_index,
             cumulative_exposure=state.cumulative_exposure,
@@ -933,6 +1138,8 @@ def run_connected_demo(
             local_flux=shielding_result.local_flux,
             rock=report_rock,
             run_config=run_config,
+            gcr_surface_flux=gcr_surface_flux,
+            gcr_local_flux=gcr_shielding_result.local_flux,
         )
         body_reports.append(body_report)
 

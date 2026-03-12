@@ -56,6 +56,7 @@ class GeneratedAsteroid:
     spin_axis_x: float
     spin_axis_y: float
     spin_axis_z: float
+    radiation_surv_coeff: float
 
 
 @dataclass

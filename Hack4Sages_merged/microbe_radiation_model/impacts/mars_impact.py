@@ -35,12 +35,15 @@ def create_mars_impact(sim, config: ImpactEjectaConfig | None = None) -> ImpactR
     impact_normal_vec = np.asarray(impact_normal, dtype=float)
     impact_normal_vec /= np.linalg.norm(impact_normal_vec)
 
-    radii_m = sample_truncated_power_law(
-        config.radius_min_m,
-        config.radius_max_m,
-        config.q_size,
-        config.n_asteroids,
-        rng,
+    # Losujemy typy skał zgodnie z ich prawdopodobieństwami,
+    # a następnie rozmiary zależnie od rodzaju skały.
+    sampled_rocks, radii_m = _sample_rock_variants_with_sizes(
+        rock_variants=rock_variants,
+        radius_min_m=config.radius_min_m,
+        radius_max_m=config.radius_max_m,
+        q_size=config.q_size,
+        n_asteroids=config.n_asteroids,
+        rng=rng,
     )
     velocities_kms = sample_truncated_power_law(
         config.v_min_kms,
@@ -57,7 +60,6 @@ def create_mars_impact(sim, config: ImpactEjectaConfig | None = None) -> ImpactR
         radii_m = sorted_r[perm]
         velocities_kms = sorted_v[perm]
 
-    sampled_rocks = _sample_rock_variants(rock_variants, radii_m, rng)
     rock_names = [rock.name for rock in sampled_rocks]
     densities = np.array([float(rock.density_kg_m3) for rock in sampled_rocks], dtype=float)
     albedos = np.array([float(rock.albedo) for rock in sampled_rocks], dtype=float)
@@ -100,6 +102,12 @@ def create_mars_impact(sim, config: ImpactEjectaConfig | None = None) -> ImpactR
             vy=vy[idx],
             vz=vz[idx],
         )
+
+        # Random radiation sensitivity coefficient for this asteroid, independent
+        # of its physical properties. Kept small so that survival decays over
+        # Myr timescales rather than in a few steps.
+        radiation_surv_coeff = rng.uniform(1e-6, 1e-5)
+
         asteroids.append(
             GeneratedAsteroid(
                 sim_index=first_idx + idx,
@@ -124,6 +132,8 @@ def create_mars_impact(sim, config: ImpactEjectaConfig | None = None) -> ImpactR
                 spin_axis_x=float(spin_axes[idx, 0]),
                 spin_axis_y=float(spin_axes[idx, 1]),
                 spin_axis_z=float(spin_axes[idx, 2]),
+                # dodatkowa metadana dla modelu przeżywalności
+                radiation_surv_coeff=float(radiation_surv_coeff),
             )
         )
 
@@ -134,22 +144,80 @@ def create_mars_impact(sim, config: ImpactEjectaConfig | None = None) -> ImpactR
     )
 
 
-def _sample_rock_variants(
+def _sample_rock_variants_with_sizes(
     rock_variants: list[Rock | dict],
-    radii_m: np.ndarray,
+    radius_min_m: float,
+    radius_max_m: float,
+    q_size: float,
+    n_asteroids: int,
     rng: np.random.Generator,
-) -> list[Rock]:
+) -> tuple[list[Rock], np.ndarray]:
+    """
+    Sample rock variants and radii with size ranges scaled by reference radius.
+
+    - Najpierw normalizujemy warianty skal i ich prawdopodobieństwa.
+    - Następnie dla każdej asteroidy losujemy typ skały z danego rozkładu.
+    - Dla każdego typu skały wyznaczamy zakres promieni na podstawie
+      promienia referencyjnego (rock.radius_m) i globalnych ograniczeń,
+      po czym losujemy promień z rozkładu potęgowego.
+    """
+
     normalized = [_normalize_variant(variant) for variant in rock_variants]
-    probabilities = np.array([variant.probability if variant.probability is not None else 1.0 for variant in normalized], dtype=float)
+    probabilities = np.array(
+        [
+            v.probability if v.probability is not None else 1.0
+            for v in normalized
+        ],
+        dtype=float,
+    )
     probabilities = probabilities / probabilities.sum()
-    variant_indices = rng.choice(len(normalized), size=len(radii_m), p=probabilities)
-    return [
-        with_rock_overrides(
-            normalized[index],
-            radius_m=float(radii_m[offset]),
+
+    # Losujemy indeks wariantu skały dla każdej asteroidy.
+    variant_indices = rng.choice(
+        len(normalized),
+        size=n_asteroids,
+        p=probabilities,
+    )
+
+    radii_m = np.empty(n_asteroids, dtype=float)
+    sampled_rocks: list[Rock] = []
+
+    for idx in range(n_asteroids):
+        base_rock = normalized[variant_indices[idx]]
+        ref_radius = base_rock.radius_m or 1.0
+
+        # Zakres promieni skalowany przez promień referencyjny.
+        #  - dolna granica: 1% promienia referencyjnego,
+        #  - górna granica: 20% promienia referencyjnego,
+        #  z dodatkowymi globalnymi ograniczeniami.
+        r_min_scaled = 0.01 * ref_radius
+        r_max_scaled = 0.20 * ref_radius
+
+        local_min = max(radius_min_m, r_min_scaled)
+        local_max = min(radius_max_m, r_max_scaled)
+
+        # Zabezpieczenie na wypadek bardzo małego/dużego ref_radius.
+        if not (local_max > local_min > 0.0):
+            local_min = radius_min_m
+            local_max = radius_max_m
+
+        radius_sample = sample_truncated_power_law(
+            local_min,
+            local_max,
+            q_size,
+            1,
+            rng,
+        )[0]
+        radii_m[idx] = float(radius_sample)
+
+        sampled_rocks.append(
+            with_rock_overrides(
+                base_rock,
+                radius_m=float(radius_sample),
+            )
         )
-        for offset, index in enumerate(variant_indices)
-    ]
+
+    return sampled_rocks, radii_m
 
 
 def _normalize_variant(variant: Rock | dict) -> Rock:

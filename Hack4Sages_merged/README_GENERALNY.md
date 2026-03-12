@@ -84,6 +84,44 @@ To jest kanoniczne miejsce danych dla kolegi od wizualizacji.
 - jesli potrzebny jest glowny pipeline: `python3 run.py`
 - jesli potrzebny jest format dla wizualizacji: patrz `microbe_radiation_model/data/*.json`
 
+## Jaki jest cel naukowy i kiedy uznajemy "sukces"
+
+W uproszczeniu model odpowiada na pytanie:
+
+- czy fragment skaly / mała asteroida z potencjalnym ladunkiem biologicznym
+  moze **uciec z ukladu slonecznego i wejsc w skuteczna strefe oddzialywania
+  innej gwiazdy** (niz Slonce).
+
+### Sukces dynamiczny: dotarcie w okolice innej gwiazdy
+
+Za dynamiczny "sukces" uznajemy sytuacje, w ktorej:
+
+- drobina (asteroida / ejecta) przestaje byc aktywna `active=False`,
+- z powodu `termination_reason="entered_effective_hill"`,
+- z przypisanym `termination_star_index` wskazujacym na **gwiazde inna niz Slonce**.
+
+Technicznie dzieje sie to w:
+
+- `microbe_radiation_model/simulation/scenarios.py` – funkcja
+  `_check_asteroid_effective_radii(...)` liczy efektywny promien strefy
+  Hill'a (`R_eff_Hill`) dla kazdej gwiazdy Gaia (poza Sloncem) i zaznacza
+  cialo jako nieaktywne, gdy jego odleglosc od gwiazdy spadnie ponizej
+  tego promienia.
+- `microbe_radiation_model/simulation/visualizer_export.py` – funkcja
+  `_object_status(...)` mapuje `termination_reason` na status wizualizacji:
+  dla `"entered_effective_hill"` (lub `"entered_hill_sphere"`) zwraca
+  `STATUS_ARRIVED`. Dla frontendu oznacza to: **asteroida dotarla w okolice
+  innej gwiazdy**.
+
+Wizualnie:
+
+- obiekty typu gwiazda/planeta maja status `static`,
+- aktywne asteroidy: `traveling`,
+- asteroidy z `termination_reason="collided_with_star"`:
+  `destroyed_collided_star`,
+- asteroidy z `termination_reason="entered_effective_hill"`:
+  `arrived` – to jest nasz sukces dynamiczny.
+
 ## Uwaga
 
 - `pozostalosci/` i `srodowisko.ipynb` zostaly zachowane jako zrodla referencyjne,

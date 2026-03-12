@@ -149,7 +149,8 @@ def build_frame_payload(
                 "vz": float(particle.vz),
             }
         )
-        if object_id.startswith("asteroid_") and asteroid_state is not None:
+        is_asteroid = object_id.startswith("asteroid_") and asteroid_state is not None
+        if is_asteroid:
             status = _object_status("asteroid", asteroid_state)
         else:
             status = STATUS_STATIC
@@ -172,13 +173,39 @@ def build_frame_payload(
             ),
             "status": status,
         }
-        if object_id.startswith("asteroid_") and asteroid_state is not None:
+        if is_asteroid:
             reason = getattr(asteroid_state, "termination_reason", None)
             if reason is not None:
                 prop["termination_reason"] = reason
                 star_idx = asteroid_state.extra.get("termination_star_index")
                 if star_idx is not None:
                     prop["termination_star_index"] = int(star_idx)
+
+            # Asteroid-specific physical and radiation properties for visualization.
+            prop["rock_type"] = asteroid_state.rock_type
+            prop["population_fraction"] = float(asteroid_state.population_fraction)
+            # Radioactive composition (from rock).
+            if asteroid_state.uranium238_ppm is not None:
+                prop["uranium238_ppm"] = float(asteroid_state.uranium238_ppm)
+            if asteroid_state.thorium232_ppm is not None:
+                prop["thorium232_ppm"] = float(asteroid_state.thorium232_ppm)
+            if asteroid_state.potassium_percent is not None:
+                prop["potassium_percent"] = float(asteroid_state.potassium_percent)
+
+            # Latest cached environment and damage drivers from AsteroidState.extra.
+            extra = asteroid_state.extra
+            for key in (
+                "T_surface_K",
+                "T_center_K",
+                "uv_local_flux",
+                "gcr_local_flux",
+                "gamma_local_flux",
+                "hydrolysis_rate_s_inv",
+                "radiation_decay_gy_per_year",
+            ):
+                val = extra.get(key)
+                if val is not None:
+                    prop[key] = float(val)
         properties.append(prop)
 
     return {

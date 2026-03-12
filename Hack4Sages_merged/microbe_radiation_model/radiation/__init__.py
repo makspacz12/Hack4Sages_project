@@ -2,7 +2,7 @@
 Public API for radiation models used across the merged project.
 """
 
-from .cosmic import CosmicRaySpectrum, cosmic_background_flux, cosmic_flux_by_region, split_cosmic_flux
+from .cosmic import CosmicRaySpectrum, cosmic_background_flux, cosmic_flux_by_region, cosmic_flux_by_star, split_cosmic_flux
 from .exposure_model import ExposureState, update_exposure
 from .shielding_model import (
     RadiationPointResult,
@@ -19,6 +19,7 @@ __all__ = [
     "attenuation_factor",
     "cosmic_background_flux",
     "cosmic_flux_by_region",
+    "cosmic_flux_by_star",
     "radiation_at_point_in_rock_with_bio_core",
     "radiation_at_points_in_rock_with_bio_core",
     "relative_flux",

@@ -45,6 +45,9 @@ class RadiationRecord:
     gamma_surface_flux: Optional[float] = None
     gamma_local_flux: Optional[float] = None
 
+    # Biology (optional; filled when survival model is active)
+    population_fraction: Optional[float] = None
+
     # Ogólny opis kontekstu / scenariusza
     context: Optional[str] = None
 
@@ -101,37 +104,22 @@ def _initial_payload() -> Dict[str, Any]:
     return {
         "__description__": {
             # UV
-            "uv_surface_flux": (
-                "Strumień UV na powierzchni skały, zanim przejdzie przez materiał [W/m^2]."
-            ),
-            "uv_local_flux": (
-                "Strumień UV w miejscu, gdzie znajduje się mikroorganizm "
-                "(po przejściu przez skałę) [W/m^2]."
-            ),
-            "uv_cumulative_exposure": (
-                "Całkowita energia UV otrzymana w czasie [J/m^2] (flux * time)."
-            ),
+            "uv_surface_flux": "UV flux at the rock surface before passing through material [W/m^2].",
+            "uv_local_flux": "UV flux at the microbe location after passing through rock [W/m^2].",
+            "uv_cumulative_exposure": "Cumulative UV energy over time [J/m^2] (flux * time).",
             # GCR
-            "gcr_total_flux": (
-                "Całkowity strumień promieniowania kosmicznego (GCR/SEP) w jednostkach modelowych."
-            ),
-            "gcr_proton_flux": "Składowa strumienia GCR przypisana protonom.",
-            "gcr_alpha_flux": "Składowa strumienia GCR przypisana jądrom helu.",
-            "gcr_hze_flux": "Składowa strumienia GCR przypisana ciężkim jonom (HZE).",
-            "gcr_surface_flux": (
-                "Strumień promieniowania kosmicznego na powierzchni skały."
-            ),
-            "gcr_local_flux": (
-                "Strumień promieniowania kosmicznego po przejściu przez skałę "
-                "(w miejscu mikroorganizmu)."
-            ),
+            "gcr_total_flux": "Cosmic ray dose rate at the rock surface [Gy/year] (scaled from model GCR).",
+            "gcr_proton_flux": "GCR flux carried by protons.",
+            "gcr_alpha_flux": "GCR flux carried by helium nuclei.",
+            "gcr_hze_flux": "GCR flux carried by heavy ions (HZE).",
+            "gcr_surface_flux": "Cosmic ray dose rate at the rock surface [Gy/year] (scaled from model GCR).",
+            "gcr_local_flux": "Cosmic ray flux at the microbe location after shielding.",
             # Gamma
-            "gamma_surface_flux": (
-                "Strumień promieniowania gamma na powierzchni skały [W/m^2]."
-            ),
-            "gamma_local_flux": (
-                "Strumień promieniowania gamma w miejscu mikroorganizmu po "
-                "przejściu przez skałę [W/m^2]."
+            "gamma_surface_flux": "Gamma-ray flux at the rock surface [W/m^2].",
+            "gamma_local_flux": "Gamma-ray flux at the microbe location after shielding [W/m^2].",
+            # Biology (optional)
+            "population_fraction": (
+                "Current surviving fraction of the initial microbe population in this body (0–1)."
             ),
         },
         "records": [],
@@ -162,38 +150,38 @@ def _load_payload(path: Path) -> Dict[str, Any]:
 
 def _initial_rock_payload() -> Dict[str, Any]:
     """
-    Domyślna struktura pliku JSON dla podsumowań promieniowania dla skał.
+    Default JSON structure for per-rock radiation summaries.
     """
     return {
         "__description__": {
             "metadata": (
-                "Parametry skały (promień, gęstość, albedo, frakcja wody, porowatość, "
-                "zawartość U/Th/K, itp.)."
+                "Rock parameters (radius, density, albedo, water fraction, porosity, "
+                "U/Th/K content, etc.)."
             ),
             "records": (
-                "Lista rekordów promieniowania dla danej skały, zorganizowana według "
-                "przebiegu symulacji i kroku czasowego."
+                "List of radiation records for this rock type, grouped by simulation run "
+                "and time step."
             ),
             "record_fields": {
-                "run_id": "Identyfikator przebiegu symulacji.",
-                "step_index": "Numer kroku czasowego w danym przebiegu.",
-                "time_seconds": "Czas symulacji [s] w tym kroku.",
-                "uv_local_flux": "Strumień UV w miejscu mikroorganizmu [W/m^2].",
-                "gcr_local_flux": (
-                    "Strumień promieniowania kosmicznego w miejscu mikroorganizmu."
-                ),
-                "gamma_local_flux": (
-                    "Strumień promieniowania gamma w miejscu mikroorganizmu [W/m^2]."
-                ),
+                "run_id": "Simulation run identifier.",
+                "step_index": "Time-step index within the given run.",
+                "time_seconds": "Simulation time [yr] at this step.",
+                "uv_local_flux": "UV flux at the microbe location [W/m^2].",
+                "gcr_local_flux": "Cosmic ray flux at the microbe location.",
+                "gamma_local_flux": "Gamma-ray dose rate at the microbe location [Gy/year].",
                 "cumulative_exposure": (
-                    "Skumulowana ekspozycja w centrum skały [J/m^2] (wszystkie komponenty)."
+                    "Cumulative exposure at the rock center [J/m^2] (all components)."
                 ),
-                "distance_au": "Odległość skały od najbliższej gwiazdy [AU].",
-                "nearest_star_index": "Indeks najbliższej gwiazdy w symulacji.",
-                "T_surface_K": "Temperatura równowagi na powierzchni skały [K].",
-                "T_mid_radius_K": "Temperatura w połowie promienia skały [K].",
-                "T_center_K": "Temperatura w centrum skały (gdzie jest materiał genetyczny) [K].",
-                "hydrolysis_rate_s_inv": "Efektywna szybkość hydrolizy [1/s].",
+                "distance_au": "Distance of the rock from the nearest star [AU].",
+                "nearest_star_index": "Index of the nearest star in the simulation.",
+                "T_surface_K": "Equilibrium temperature at the rock surface [K].",
+                "T_mid_radius_K": "Temperature at half the rock radius [K].",
+                "T_center_K": "Temperature at the rock center (microbe location) [K].",
+                "hydrolysis_rate_s_inv": "Effective hydrolysis rate [1/s].",
+                "population_fraction": (
+                    "Current surviving fraction of the initial microbe population for this "
+                    "rock type (0–1)."
+                ),
             },
         },
         "rocks": {},
@@ -361,6 +349,7 @@ def append_rock_radiation_record(
     T_mid_radius_K: Optional[float] = None,
     T_center_K: Optional[float] = None,
     hydrolysis_rate_s_inv: Optional[float] = None,
+    population_fraction: Optional[float] = None,
 ) -> None:
     """
     Dodaje rekord promieniowania dla konkretnej skały do osobnego pliku JSON.
@@ -409,6 +398,7 @@ def append_rock_radiation_record(
             "T_mid_radius_K": T_mid_radius_K,
             "T_center_K": T_center_K,
             "hydrolysis_rate_s_inv": hydrolysis_rate_s_inv,
+            "population_fraction": population_fraction,
         }
     )
 
@@ -470,6 +460,7 @@ def extend_rock_radiation_records(records_to_add: Sequence[Dict[str, Any]]) -> N
                 "T_mid_radius_K": entry.get("T_mid_radius_K"),
                 "T_center_K": entry.get("T_center_K"),
                 "hydrolysis_rate_s_inv": entry.get("hydrolysis_rate_s_inv"),
+                "population_fraction": entry.get("population_fraction"),
             }
         )
 

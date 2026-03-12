@@ -189,6 +189,9 @@ class AsteroidStateStore:
                     initial_beta=asteroid.beta,
                     current_nearest_star=asteroid.nearest_star,
                     initial_nearest_star=asteroid.nearest_star,
+                    extra={
+                        "radiation_surv_coeff": asteroid.radiation_surv_coeff,
+                    },
                 )
             )
         return store

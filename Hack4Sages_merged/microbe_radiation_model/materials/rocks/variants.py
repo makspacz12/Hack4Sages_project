@@ -1,52 +1,48 @@
-from .types import Rock
+"""
+Domyślne warianty skal używane w symulacjach.
 
-BASALT = Rock(
-    name="basalt",
-    radius_m=0.5,
-    density_kg_m3=3000.0,
-    albedo=0.07,
-    water_mass_fraction=0.005,
-    porosity=0.03,
-    thermal_conductivity_w_mk=2.0,
-    probability=0.50,
-    uranium238_ppm=0.5,
-    thorium232_ppm=1.0,
-    potassium_percent=0.5,
-    notes="Default basalt-like rock."
+Proste warianty z tego modułu zostały zastąpione bogatszym zestawem
+skal bazujących na danych NASA/JPL i literaturze naukowej, zadeklarowanych
+w pliku `rock_variants_from_sources.py`. Zachowujemy jednak krótkie aliasy
+`BASALT`, `CHONDRITE`, `ICE_RICH` dla kompatybilności z istniejącym kodem
+i dokumentacją.
+"""
+
+from .rock_variants_from_sources import (
+    BASALT_VTYPE,
+    CI_CHONDRITE,
+    CM_CHONDRITE,
+    ENSTATITE_CHONDRITE,
+    HYDRATED_SILICATE,
+    ICE_RICH as ICE_RICH_SOURCE,
+    IRON_NICKEL,
+    OLIVINE_DOMINATED,
+    ORGANIC_RICH,
+    ORDINARY_CHONDRITE,
+    RUBBLE_PILE,
+    STONY_IRON,
 )
 
-CHONDRITE = Rock(
-    name="chondrite",
-    radius_m=0.5,
-    density_kg_m3=3500.0,
-    albedo=0.15,
-    water_mass_fraction=0.07,
-    porosity=0.12,
-    thermal_conductivity_w_mk=3.0,
-    probability=0.30,
-    uranium238_ppm=0.02,
-    thorium232_ppm=0.04,
-    potassium_percent=0.08,
-    notes="Default chondritic rock."
-)
+# Aliasowanie nazw historycznych na nowe, bogatsze warianty.
+BASALT = BASALT_VTYPE
+CHONDRITE = ORDINARY_CHONDRITE
+ICE_RICH = ICE_RICH_SOURCE
 
-ICE_RICH = Rock(
-    name="ice_rich",
-    radius_m=0.5,
-    density_kg_m3=1500.0,
-    albedo=0.40,
-    water_mass_fraction=0.35,
-    porosity=0.70,
-    thermal_conductivity_w_mk=2.2,
-    probability=0.20,
-    uranium238_ppm=0.001,
-    thorium232_ppm=0.002,
-    potassium_percent=0.01,
-    notes="Default ice-rich body."
-)
-
+# Kanoniczna lista wariantów skał używana przy generowaniu populacji asteroid
+# (np. w module `impacts.mars_impact`). Wszystkie mają komplet parametrów
+# fizycznych (bez wartości None), więc przechodzą walidację w `_normalize_variant`.
 DEFAULT_ROCK_VARIANTS = [
-    BASALT,
-    CHONDRITE,
-    ICE_RICH,
+    BASALT_VTYPE,
+    CI_CHONDRITE,
+    CM_CHONDRITE,
+    ORDINARY_CHONDRITE,
+    OLIVINE_DOMINATED,
+    ENSTATITE_CHONDRITE,
+    IRON_NICKEL,
+    HYDRATED_SILICATE,
+    ORGANIC_RICH,
+    ICE_RICH_SOURCE,
+    RUBBLE_PILE,
+    STONY_IRON,
 ]
+
