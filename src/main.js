@@ -131,7 +131,7 @@ function onResize(renderer, camera, controls) {
  */
 async function mainReplay(replayUrl) {
   const resp = await fetch(replayUrl);
-  if (!resp.ok) throw new Error(`Cannot load replay: ${resp.statusText}`);
+  if (!resp.ok) throw new Error(`Cannot load replay from "${replayUrl}": ${resp.status} ${resp.statusText}`);
   const simData = await resp.json();
 
   const scene    = createScene();
@@ -695,4 +695,16 @@ async function main() {
 
 main().catch(err => {
   console.error('Failed to initialise Cosmos 3D:', err);
+  // Show a visible error overlay so problems are visible even without DevTools.
+  const box = document.createElement('div');
+  Object.assign(box.style, {
+    position: 'fixed', inset: '0', display: 'flex', flexDirection: 'column',
+    alignItems: 'center', justifyContent: 'center', background: '#0a0a14',
+    color: '#f55', fontFamily: 'monospace', fontSize: '14px', padding: '24px',
+    zIndex: '9999', textAlign: 'center',
+  });
+  box.innerHTML = `<div style="font-size:20px;margin-bottom:12px">⚠ Failed to load simulation</div>
+<div style="color:#aaa;margin-bottom:16px;max-width:600px;word-break:break-all">${String(err)}</div>
+<div style="color:#666;font-size:11px">BASE_URL: ${import.meta.env.BASE_URL}</div>`;
+  document.body.appendChild(box);
 });
