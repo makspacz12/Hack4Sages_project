@@ -1,0 +1,966 @@
+{
+  "meta": {
+    "name": "Three-Body Test Replay",
+    "description": "Star + circular-orbit planet + comet flyby. 20 frames, 0.05 yr/step.",
+    "timeStep": 0.05,
+    "timeUnit": "yr",
+    "positionUnit": "world-units",
+    "positionScale": 1,
+    "massUnit": "kg",
+    "velocityUnit": "world-units/yr",
+    "totalFrames": 20,
+    "playbackFPS": 10
+  },
+  "objects": [
+    {
+      "id": "star",
+      "name": "Alpha Star",
+      "type": "star",
+      "visual": {
+        "radius": 4,
+        "color": "#FFD700",
+        "emissive": true
+      },
+      "info": {
+        "Mass": {
+          "value": 1.989e+30,
+          "unit": "kg"
+        },
+        "Surface temperature": {
+          "value": 5800,
+          "unit": "K"
+        },
+        "Spectral type": {
+          "value": "G2V",
+          "unit": ""
+        }
+      }
+    },
+    {
+      "id": "planet",
+      "name": "Terra",
+      "type": "planet",
+      "visual": {
+        "radius": 1.4,
+        "color": "#3A9EE8",
+        "emissive": false
+      },
+      "info": {
+        "Mass": {
+          "value": 5.972e+24,
+          "unit": "kg"
+        },
+        "Radius": {
+          "value": 6371,
+          "unit": "km"
+        },
+        "Orbit radius": {
+          "value": 30,
+          "unit": "world-units"
+        }
+      }
+    },
+    {
+      "id": "comet",
+      "name": "Comet Hex-7",
+      "type": "comet",
+      "visual": {
+        "radius": 0.6,
+        "color": "#A0FFCC",
+        "emissive": false
+      },
+      "info": {
+        "Mass": {
+          "value": 23000000000000.0,
+          "unit": "kg"
+        },
+        "Tail color": {
+          "value": "#A0FFCC",
+          "unit": ""
+        }
+      }
+    }
+  ],
+  "frames": [
+    {
+      "frame": 0,
+      "time": 0.0,
+      "positions": [
+        {
+          "id": "star",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "planet",
+          "x": 30.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "comet",
+          "x": -60.0,
+          "y": 0.0,
+          "z": 18.0
+        }
+      ],
+      "velocities": [
+        {
+          "id": "star",
+          "vx": 0,
+          "vy": 0,
+          "vz": 0
+        },
+        {
+          "id": "planet",
+          "vx": -0.0,
+          "vy": 0,
+          "vz": 94.2478
+        },
+        {
+          "id": "comet",
+          "vx": 126.3158,
+          "vy": 0,
+          "vz": -21.0526
+        }
+      ]
+    },
+    {
+      "frame": 1,
+      "time": 0.05,
+      "positions": [
+        {
+          "id": "star",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "planet",
+          "x": 29.6307,
+          "y": 0.0,
+          "z": 4.693
+        },
+        {
+          "id": "comet",
+          "x": -53.6842,
+          "y": 0.0,
+          "z": 16.9474
+        }
+      ],
+      "velocities": [
+        {
+          "id": "star",
+          "vx": 0,
+          "vy": 0,
+          "vz": 0
+        },
+        {
+          "id": "planet",
+          "vx": -14.7436,
+          "vy": 0,
+          "vz": 93.0874
+        },
+        {
+          "id": "comet",
+          "vx": 126.3158,
+          "vy": 0,
+          "vz": -21.0526
+        }
+      ]
+    },
+    {
+      "frame": 2,
+      "time": 0.1,
+      "positions": [
+        {
+          "id": "star",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "planet",
+          "x": 28.5317,
+          "y": 0.0,
+          "z": 9.2705
+        },
+        {
+          "id": "comet",
+          "x": -47.3684,
+          "y": 0.0,
+          "z": 15.8947
+        }
+      ],
+      "velocities": [
+        {
+          "id": "star",
+          "vx": 0,
+          "vy": 0,
+          "vz": 0
+        },
+        {
+          "id": "planet",
+          "vx": -29.1242,
+          "vy": 0,
+          "vz": 89.635
+        },
+        {
+          "id": "comet",
+          "vx": 126.3158,
+          "vy": 0,
+          "vz": -21.0526
+        }
+      ]
+    },
+    {
+      "frame": 3,
+      "time": 0.15,
+      "positions": [
+        {
+          "id": "star",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "planet",
+          "x": 26.7302,
+          "y": 0.0,
+          "z": 13.6197
+        },
+        {
+          "id": "comet",
+          "x": -41.0526,
+          "y": 0.0,
+          "z": 14.8421
+        }
+      ],
+      "velocities": [
+        {
+          "id": "star",
+          "vx": 0,
+          "vy": 0,
+          "vz": 0
+        },
+        {
+          "id": "planet",
+          "vx": -42.7876,
+          "vy": 0,
+          "vz": 83.9754
+        },
+        {
+          "id": "comet",
+          "vx": 126.3158,
+          "vy": 0,
+          "vz": -21.0526
+        }
+      ]
+    },
+    {
+      "frame": 4,
+      "time": 0.2,
+      "positions": [
+        {
+          "id": "star",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "planet",
+          "x": 24.2705,
+          "y": 0.0,
+          "z": 17.6336
+        },
+        {
+          "id": "comet",
+          "x": -34.7368,
+          "y": 0.0,
+          "z": 13.7895
+        }
+      ],
+      "velocities": [
+        {
+          "id": "star",
+          "vx": 0,
+          "vy": 0,
+          "vz": 0
+        },
+        {
+          "id": "planet",
+          "vx": -55.3975,
+          "vy": 0,
+          "vz": 76.2481
+        },
+        {
+          "id": "comet",
+          "vx": 126.3158,
+          "vy": 0,
+          "vz": -21.0526
+        }
+      ]
+    },
+    {
+      "frame": 5,
+      "time": 0.25,
+      "positions": [
+        {
+          "id": "star",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "planet",
+          "x": 21.2132,
+          "y": 0.0,
+          "z": 21.2132
+        },
+        {
+          "id": "comet",
+          "x": -28.4211,
+          "y": 0.0,
+          "z": 12.7368
+        }
+      ],
+      "velocities": [
+        {
+          "id": "star",
+          "vx": 0,
+          "vy": 0,
+          "vz": 0
+        },
+        {
+          "id": "planet",
+          "vx": -66.6432,
+          "vy": 0,
+          "vz": 66.6432
+        },
+        {
+          "id": "comet",
+          "vx": 126.3158,
+          "vy": 0,
+          "vz": -21.0526
+        }
+      ]
+    },
+    {
+      "frame": 6,
+      "time": 0.3,
+      "positions": [
+        {
+          "id": "star",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "planet",
+          "x": 17.6336,
+          "y": 0.0,
+          "z": 24.2705
+        },
+        {
+          "id": "comet",
+          "x": -22.1053,
+          "y": 0.0,
+          "z": 11.6842
+        }
+      ],
+      "velocities": [
+        {
+          "id": "star",
+          "vx": 0,
+          "vy": 0,
+          "vz": 0
+        },
+        {
+          "id": "planet",
+          "vx": -76.2481,
+          "vy": 0,
+          "vz": 55.3975
+        },
+        {
+          "id": "comet",
+          "vx": 126.3158,
+          "vy": 0,
+          "vz": -21.0526
+        }
+      ]
+    },
+    {
+      "frame": 7,
+      "time": 0.35,
+      "positions": [
+        {
+          "id": "star",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "planet",
+          "x": 13.6197,
+          "y": 0.0,
+          "z": 26.7302
+        },
+        {
+          "id": "comet",
+          "x": -15.7895,
+          "y": 0.0,
+          "z": 10.6316
+        }
+      ],
+      "velocities": [
+        {
+          "id": "star",
+          "vx": 0,
+          "vy": 0,
+          "vz": 0
+        },
+        {
+          "id": "planet",
+          "vx": -83.9754,
+          "vy": 0,
+          "vz": 42.7876
+        },
+        {
+          "id": "comet",
+          "vx": 126.3158,
+          "vy": 0,
+          "vz": -21.0526
+        }
+      ]
+    },
+    {
+      "frame": 8,
+      "time": 0.4,
+      "positions": [
+        {
+          "id": "star",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "planet",
+          "x": 9.2705,
+          "y": 0.0,
+          "z": 28.5317
+        },
+        {
+          "id": "comet",
+          "x": -9.4737,
+          "y": 0.0,
+          "z": 9.5789
+        }
+      ],
+      "velocities": [
+        {
+          "id": "star",
+          "vx": 0,
+          "vy": 0,
+          "vz": 0
+        },
+        {
+          "id": "planet",
+          "vx": -89.635,
+          "vy": 0,
+          "vz": 29.1242
+        },
+        {
+          "id": "comet",
+          "vx": 126.3158,
+          "vy": 0,
+          "vz": -21.0526
+        }
+      ]
+    },
+    {
+      "frame": 9,
+      "time": 0.45,
+      "positions": [
+        {
+          "id": "star",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "planet",
+          "x": 4.693,
+          "y": 0.0,
+          "z": 29.6307
+        },
+        {
+          "id": "comet",
+          "x": -3.1579,
+          "y": 0.0,
+          "z": 8.5263
+        }
+      ],
+      "velocities": [
+        {
+          "id": "star",
+          "vx": 0,
+          "vy": 0,
+          "vz": 0
+        },
+        {
+          "id": "planet",
+          "vx": -93.0874,
+          "vy": 0,
+          "vz": 14.7436
+        },
+        {
+          "id": "comet",
+          "vx": 126.3158,
+          "vy": 0,
+          "vz": -21.0526
+        }
+      ]
+    },
+    {
+      "frame": 10,
+      "time": 0.5,
+      "positions": [
+        {
+          "id": "star",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "planet",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 30.0
+        },
+        {
+          "id": "comet",
+          "x": 3.1579,
+          "y": 0.0,
+          "z": 7.4737
+        }
+      ],
+      "velocities": [
+        {
+          "id": "star",
+          "vx": 0,
+          "vy": 0,
+          "vz": 0
+        },
+        {
+          "id": "planet",
+          "vx": -94.2478,
+          "vy": 0,
+          "vz": 0.0
+        },
+        {
+          "id": "comet",
+          "vx": 126.3158,
+          "vy": 0,
+          "vz": -21.0526
+        }
+      ]
+    },
+    {
+      "frame": 11,
+      "time": 0.55,
+      "positions": [
+        {
+          "id": "star",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "planet",
+          "x": -4.693,
+          "y": 0.0,
+          "z": 29.6307
+        },
+        {
+          "id": "comet",
+          "x": 9.4737,
+          "y": 0.0,
+          "z": 6.4211
+        }
+      ],
+      "velocities": [
+        {
+          "id": "star",
+          "vx": 0,
+          "vy": 0,
+          "vz": 0
+        },
+        {
+          "id": "planet",
+          "vx": -93.0874,
+          "vy": 0,
+          "vz": -14.7436
+        },
+        {
+          "id": "comet",
+          "vx": 126.3158,
+          "vy": 0,
+          "vz": -21.0526
+        }
+      ]
+    },
+    {
+      "frame": 12,
+      "time": 0.6,
+      "positions": [
+        {
+          "id": "star",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "planet",
+          "x": -9.2705,
+          "y": 0.0,
+          "z": 28.5317
+        },
+        {
+          "id": "comet",
+          "x": 15.7895,
+          "y": 0.0,
+          "z": 5.3684
+        }
+      ],
+      "velocities": [
+        {
+          "id": "star",
+          "vx": 0,
+          "vy": 0,
+          "vz": 0
+        },
+        {
+          "id": "planet",
+          "vx": -89.635,
+          "vy": 0,
+          "vz": -29.1242
+        },
+        {
+          "id": "comet",
+          "vx": 126.3158,
+          "vy": 0,
+          "vz": -21.0526
+        }
+      ]
+    },
+    {
+      "frame": 13,
+      "time": 0.65,
+      "positions": [
+        {
+          "id": "star",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "planet",
+          "x": -13.6197,
+          "y": 0.0,
+          "z": 26.7302
+        },
+        {
+          "id": "comet",
+          "x": 22.1053,
+          "y": 0.0,
+          "z": 4.3158
+        }
+      ],
+      "velocities": [
+        {
+          "id": "star",
+          "vx": 0,
+          "vy": 0,
+          "vz": 0
+        },
+        {
+          "id": "planet",
+          "vx": -83.9754,
+          "vy": 0,
+          "vz": -42.7876
+        },
+        {
+          "id": "comet",
+          "vx": 126.3158,
+          "vy": 0,
+          "vz": -21.0526
+        }
+      ]
+    },
+    {
+      "frame": 14,
+      "time": 0.7,
+      "positions": [
+        {
+          "id": "star",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "planet",
+          "x": -17.6336,
+          "y": 0.0,
+          "z": 24.2705
+        },
+        {
+          "id": "comet",
+          "x": 28.4211,
+          "y": 0.0,
+          "z": 3.2632
+        }
+      ],
+      "velocities": [
+        {
+          "id": "star",
+          "vx": 0,
+          "vy": 0,
+          "vz": 0
+        },
+        {
+          "id": "planet",
+          "vx": -76.2481,
+          "vy": 0,
+          "vz": -55.3975
+        },
+        {
+          "id": "comet",
+          "vx": 126.3158,
+          "vy": 0,
+          "vz": -21.0526
+        }
+      ]
+    },
+    {
+      "frame": 15,
+      "time": 0.75,
+      "positions": [
+        {
+          "id": "star",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "planet",
+          "x": -21.2132,
+          "y": 0.0,
+          "z": 21.2132
+        },
+        {
+          "id": "comet",
+          "x": 34.7368,
+          "y": 0.0,
+          "z": 2.2105
+        }
+      ],
+      "velocities": [
+        {
+          "id": "star",
+          "vx": 0,
+          "vy": 0,
+          "vz": 0
+        },
+        {
+          "id": "planet",
+          "vx": -66.6432,
+          "vy": 0,
+          "vz": -66.6432
+        },
+        {
+          "id": "comet",
+          "vx": 126.3158,
+          "vy": 0,
+          "vz": -21.0526
+        }
+      ]
+    },
+    {
+      "frame": 16,
+      "time": 0.8,
+      "positions": [
+        {
+          "id": "star",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "planet",
+          "x": -24.2705,
+          "y": 0.0,
+          "z": 17.6336
+        },
+        {
+          "id": "comet",
+          "x": 41.0526,
+          "y": 0.0,
+          "z": 1.1579
+        }
+      ],
+      "velocities": [
+        {
+          "id": "star",
+          "vx": 0,
+          "vy": 0,
+          "vz": 0
+        },
+        {
+          "id": "planet",
+          "vx": -55.3975,
+          "vy": 0,
+          "vz": -76.2481
+        },
+        {
+          "id": "comet",
+          "vx": 126.3158,
+          "vy": 0,
+          "vz": -21.0526
+        }
+      ]
+    },
+    {
+      "frame": 17,
+      "time": 0.85,
+      "positions": [
+        {
+          "id": "star",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "planet",
+          "x": -26.7302,
+          "y": 0.0,
+          "z": 13.6197
+        },
+        {
+          "id": "comet",
+          "x": 47.3684,
+          "y": 0.0,
+          "z": 0.1053
+        }
+      ],
+      "velocities": [
+        {
+          "id": "star",
+          "vx": 0,
+          "vy": 0,
+          "vz": 0
+        },
+        {
+          "id": "planet",
+          "vx": -42.7876,
+          "vy": 0,
+          "vz": -83.9754
+        },
+        {
+          "id": "comet",
+          "vx": 126.3158,
+          "vy": 0,
+          "vz": -21.0526
+        }
+      ]
+    },
+    {
+      "frame": 18,
+      "time": 0.9,
+      "positions": [
+        {
+          "id": "star",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "planet",
+          "x": -28.5317,
+          "y": 0.0,
+          "z": 9.2705
+        },
+        {
+          "id": "comet",
+          "x": 53.6842,
+          "y": 0.0,
+          "z": -0.9474
+        }
+      ],
+      "velocities": [
+        {
+          "id": "star",
+          "vx": 0,
+          "vy": 0,
+          "vz": 0
+        },
+        {
+          "id": "planet",
+          "vx": -29.1242,
+          "vy": 0,
+          "vz": -89.635
+        },
+        {
+          "id": "comet",
+          "vx": 126.3158,
+          "vy": 0,
+          "vz": -21.0526
+        }
+      ]
+    },
+    {
+      "frame": 19,
+      "time": 0.95,
+      "positions": [
+        {
+          "id": "star",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "planet",
+          "x": -29.6307,
+          "y": 0.0,
+          "z": 4.693
+        },
+        {
+          "id": "comet",
+          "x": 60.0,
+          "y": 0.0,
+          "z": -2.0
+        }
+      ],
+      "velocities": [
+        {
+          "id": "star",
+          "vx": 0,
+          "vy": 0,
+          "vz": 0
+        },
+        {
+          "id": "planet",
+          "vx": -14.7436,
+          "vy": 0,
+          "vz": -93.0874
+        },
+        {
+          "id": "comet",
+          "vx": 126.3158,
+          "vy": 0,
+          "vz": -21.0526
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Further Details – Cosmos 3D</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #04060f;
+      --surface:   #080c1a;
+      --border:    #1a2540;
+      --accent:    #4a9eff;
+      --accent2:   #fdb813;
+      --text:      #c8d4e8;
+      --muted:     #5a6a88;
+      --heading:   #e8f0ff;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.75;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(1px 1px at 10% 20%, #fff 0%, transparent 100%),
+        radial-gradient(1px 1px at 30% 60%, #aac 0%, transparent 100%),
+        radial-gradient(1px 1px at 55% 15%, #fff 0%, transparent 100%),
+        radial-gradient(1px 1px at 75% 80%, #ccf 0%, transparent 100%),
+        radial-gradient(1px 1px at 90% 40%, #fff 0%, transparent 100%),
+        radial-gradient(1px 1px at 20% 90%, #aaf 0%, transparent 100%),
+        radial-gradient(1px 1px at 65% 50%, #fff 0%, transparent 100%),
+        radial-gradient(1px 1px at 45% 75%, #ccf 0%, transparent 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(4, 6, 15, 0.88);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-title {
+      font-family: monospace;
+      font-size: 15px;
+      color: var(--accent2);
+      letter-spacing: 0.08em;
+      font-weight: bold;
+    }
+
+    .btn-back {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--accent);
+      font-family: monospace;
+      font-size: 13px;
+      padding: 5px 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: border-color .2s, background .2s;
+    }
+    .btn-back:hover {
+      border-color: var(--accent);
+      background: rgba(74, 158, 255, 0.08);
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 60px 40px 100px;
+    }
+
+    .page-tag {
+      font-family: monospace;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 2.4rem;
+      font-weight: 700;
+      color: var(--heading);
+      line-height: 1.2;
+      margin-bottom: 24px;
+    }
+
+    .lead {
+      font-size: 1.15rem;
+      color: #8ba4cc;
+      margin-bottom: 48px;
+      max-width: 640px;
+    }
+
+    h2 {
+      font-size: 1.25rem;
+      color: var(--accent2);
+      font-weight: 600;
+      margin: 48px 0 14px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h3 {
+      font-size: 1.05rem;
+      color: var(--accent);
+      font-weight: 600;
+      margin: 28px 0 10px;
+    }
+
+    p {
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    ul, ol {
+      margin: 12px 0 20px 24px;
+      color: var(--text);
+    }
+
+    li { margin-bottom: 6px; }
+
+    code {
+      font-family: monospace;
+      font-size: 0.88em;
+      background: rgba(74, 158, 255, 0.1);
+      color: #7ec8ff;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    blockquote {
+      border-left: 3px solid var(--accent);
+      margin: 24px 0;
+      padding: 12px 20px;
+      background: rgba(74, 158, 255, 0.05);
+      border-radius: 0 6px 6px 0;
+      color: #8ba4cc;
+      font-style: italic;
+    }
+
+    .formula {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px 24px;
+      font-family: monospace;
+      font-size: 14px;
+      color: #a0d4ff;
+      margin: 20px 0;
+      overflow-x: auto;
+    }
+
+    footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 24px;
+      font-size: 12px;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <span class="header-title">COSMOS 3D &mdash; FURTHER DETAILS</span>
+    <a href="./research.html" class="btn-back">← Back to research</a>
+  </header>
+
+  <main>
+    <p class="page-tag">further details</p>
+    <h1>Further Details</h1>
+    <p class="lead">
+      Content coming soon.
+    </p>
+  </main>
+
+  <footer>
+    Cosmos 3D &mdash; Interstellar Lithopanspermia &mdash; Hack4Sages &mdash; 2026
+  </footer>
+
+</body>
+</html>

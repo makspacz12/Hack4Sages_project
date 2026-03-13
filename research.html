@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Research – Could life travel between solar systems?</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #04060f;
+      --surface:   #080c1a;
+      --border:    #1a2540;
+      --accent:    #4a9eff;
+      --accent2:   #fdb813;
+      --text:      #c8d4e8;
+      --muted:     #5a6a88;
+      --heading:   #e8f0ff;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.75;
+      min-height: 100vh;
+    }
+
+    /* ── starfield ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(1px 1px at 10% 20%, #fff 0%, transparent 100%),
+        radial-gradient(1px 1px at 30% 60%, #aac 0%, transparent 100%),
+        radial-gradient(1px 1px at 55% 15%, #fff 0%, transparent 100%),
+        radial-gradient(1px 1px at 75% 80%, #ccf 0%, transparent 100%),
+        radial-gradient(1px 1px at 90% 40%, #fff 0%, transparent 100%),
+        radial-gradient(1px 1px at 20% 90%, #aaf 0%, transparent 100%),
+        radial-gradient(1px 1px at 65% 50%, #fff 0%, transparent 100%),
+        radial-gradient(1px 1px at 45% 75%, #ccf 0%, transparent 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── layout ── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(4, 6, 15, 0.88);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-title {
+      font-family: monospace;
+      font-size: 15px;
+      color: var(--accent2);
+      letter-spacing: 0.08em;
+      font-weight: bold;
+    }
+
+    .btn-back {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--accent);
+      font-family: monospace;
+      font-size: 13px;
+      padding: 5px 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: border-color .2s, background .2s;
+    }
+    .btn-back:hover {
+      border-color: var(--accent);
+      background: rgba(74, 158, 255, 0.08);
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 60px 40px 100px;
+    }
+
+    /* ── typography ── */
+    .page-tag {
+      font-family: monospace;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 2.4rem;
+      font-weight: 700;
+      color: var(--heading);
+      line-height: 1.2;
+      margin-bottom: 24px;
+    }
+
+    .lead {
+      font-size: 1.15rem;
+      color: #8ba4cc;
+      margin-bottom: 48px;
+      max-width: 640px;
+    }
+
+    h2 {
+      font-size: 1.25rem;
+      color: var(--accent2);
+      font-weight: 600;
+      margin: 48px 0 14px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h3 {
+      font-size: 1.05rem;
+      color: var(--accent);
+      font-weight: 600;
+      margin: 28px 0 10px;
+    }
+
+    p {
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    ul, ol {
+      margin: 12px 0 20px 24px;
+      color: var(--text);
+    }
+
+    li { margin-bottom: 6px; }
+
+    code {
+      font-family: monospace;
+      font-size: 0.88em;
+      background: rgba(74, 158, 255, 0.1);
+      color: #7ec8ff;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    .data-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+
+    .data-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px 20px;
+    }
+
+    .data-card .label {
+      font-size: 11px;
+      font-family: monospace;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .data-card .value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--heading);
+    }
+
+    .data-card .unit {
+      font-size: 12px;
+      color: var(--muted);
+      margin-left: 4px;
+    }
+
+    blockquote {
+      border-left: 3px solid var(--accent);
+      margin: 24px 0;
+      padding: 12px 20px;
+      background: rgba(74, 158, 255, 0.05);
+      border-radius: 0 6px 6px 0;
+      color: #8ba4cc;
+      font-style: italic;
+    }
+
+    .formula {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px 24px;
+      font-family: monospace;
+      font-size: 14px;
+      color: #a0d4ff;
+      margin: 20px 0;
+      overflow-x: auto;
+    }
+
+    .ref-list {
+      list-style: none;
+      margin-left: 0;
+    }
+    .ref-list li {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .ref-list li:last-child { border-bottom: none; }
+    /* ── inline R console ── */
+    .r-console {
+      background: rgba(8, 10, 20, 0.92);
+      border: 1px solid #1e2e4a;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 28px 0;
+      font-family: monospace;
+      font-size: 12px;
+    }
+
+    .r-console-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 14px;
+      background: rgba(0, 20, 50, 0.55);
+      border-bottom: 1px solid #1e2e4a;
+    }
+
+    .r-console-header .r-title {
+      font-weight: bold;
+      color: #6cf;
+      letter-spacing: .05em;
+    }
+
+    .r-console-header .r-hint {
+      font-size: 11px;
+      color: #446;
+    }
+
+    .r-canvas-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .r-canvas-wrap canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .r-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(5, 8, 20, 0.85);
+      color: #6af;
+      font-size: 13px;
+      gap: 10px;
+      text-align: center;
+      padding: 16px;
+    }
+
+    .r-spinner {
+      width: 26px;
+      height: 26px;
+      border: 3px solid #1a3060;
+      border-top-color: #5af;
+      border-radius: 50%;
+      animation: rspin .8s linear infinite;
+    }
+    @keyframes rspin { to { transform: rotate(360deg); } }
+
+    .r-editor {
+      display: none;
+      flex-direction: column;
+      background: rgba(5, 8, 18, 0.97);
+      padding: 10px;
+      border-top: 1px solid #1e2e4a;
+    }
+    .r-editor.open { display: flex; }
+
+    .r-editor textarea {
+      width: 100%;
+      height: 140px;
+      resize: vertical;
+      background: #0a0e1a;
+      color: #bdf;
+      border: 1px solid #2a3860;
+      border-radius: 5px;
+      padding: 8px;
+      font-family: monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      outline: none;
+      box-sizing: border-box;
+    }
+    .r-editor textarea:focus { border-color: #4a7fd0; }
+
+    .r-btn-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      justify-content: flex-end;
+    }
+
+    .r-btn-row button {
+      padding: 4px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: monospace;
+      font-size: 13px;
+      border: 1px solid #3a4860;
+    }
+    .r-btn-run    { background: #0e2a50; color: #7cf; }
+    .r-btn-run:hover { background: #153a70; }
+    .r-btn-cancel { background: #111; color: #778; }
+    .r-btn-cancel:hover { background: #1a1a2a; }
+
+    .r-status {
+      padding: 4px 14px;
+      font-size: 11px;
+      color: #446;
+      border-top: 1px solid #141e30;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .r-status.ok   { color: #4a8; }
+    .r-status.err  { color: #e66; }
+    .r-status.busy { color: #6af; }
+
+    .ref-list .ref-num {
+      color: var(--accent);
+      font-family: monospace;
+      margin-right: 10px;
+    }
+
+    footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 24px;
+      font-size: 12px;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <span class="header-title">COSMOS 3D &mdash; RESEARCH</span>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <a href="./further_details.html" class="btn-back" style="border-color:#fdb813;color:#fdb813;">Further Details →</a>
+      <a href="./index.html" class="btn-back">← Back to simulator</a>
+    </div>
+  </header>
+
+  <main>
+    <p class="page-tag">research &amp; methodology</p>
+    <h1>Could life travel between solar systems?</h1>
+    <p class="lead">
+      A digital twin of interstellar lithopanspermia — integrating simplified
+      gravitational transport modeling with a biologically informed survival function.
+    </p>
+
+    <!-- ─────────────────────────────────────── -->
+    <h2>Introduction</h2>
+    <p>
+      The idea of life spreading through the universe can be traced back to antiquity,
+      later developing into the concept of <strong>lithopanspermia</strong> following
+      the discovery of exoplanets (Mitton, 2022), which hypothesizes that life could
+      be transferred between planetary systems via meteorites.
+    </p>
+    <p>
+      Transfer and capture of potentially life-harboring meteorites have been
+      investigated within our Solar System (Worth et al., 2013), while further
+      analyses indicate that exchange of solid material may be viable even on galactic
+      scales (Ginsburg et al., 2018), strengthening the physical plausibility of
+      lithopanspermia. Moreover, microorganisms such as <em>Bacillus subtilis</em> and
+      <em>Deinococcus radiodurans</em> have demonstrated survival under space conditions
+      on the EXPOSE facility aboard the International Space Station
+      (Horneck et al., 2012; Vaishampayan et al., 2012), including survival while
+      embedded in artificial meteorites (Panitz et al., 2014) and under extreme
+      landing pressures (Zhao et al., 2026).
+    </p>
+    <p>
+      While these findings support individual components of the lithopanspermia
+      hypothesis, namely material transfer and microbial survival, there are currently
+      very few integrative models that combine probabilistic interstellar transport
+      dynamics with trajectory-dependent biological survivability.
+    </p>
+    <p>
+      Our project addresses this gap by developing a digital twin of interstellar
+      lithopanspermia, integrating simplified gravitational transport modeling with
+      a biologically informed survival function. We want to answer the question:
+      <em>what is the probability of inter-system meteorite transfer resulting in
+      viable microbial arrival?</em> Furthermore, could life originate in a planetary
+      system as a consequence of lithopanspermia, and under what probabilistic
+      conditions?
+    </p>
+    <p>
+      By framing survival chances as a probabilistic process rather than a deterministic
+      event, this model enables rapid hypothesis testing and parameter exploration,
+      contributing a versatile conceptual and computational framework to
+      origins-of-life research.
+    </p>
+
+    <!-- ─────────────────────────────────────── -->
+    <h2>Assumptions</h2>
+
+    <h3>Physical</h3>
+    <ul>
+      <li>Ejecta are launched from Mars.</li>
+      <li>Interstellar travel time is the primary driver of accumulated radiation exposure.</li>
+      <li>The meteorite is a sphere with life embedded inside.</li>
+    </ul>
+
+    <h3>Biological</h3>
+    <p>
+      To model viability, we base calculations on <strong>bacterial endospores</strong>,
+      one of the most durable known biological forms. Endospores originate from
+      prokaryotic cells, which represent evolutionarily early and resilient life forms,
+      making them suitable proxies for primitive transferable life. Their durability
+      is attributed primarily to: multilayered protective coats, low core water content
+      and DNA-protection mechanisms.
+    </p>
+    <p>
+      Rather than modeling absolute cell numbers, we model the
+      <strong>fraction of the surviving population (N/N₀)</strong>. This abstraction
+      increases versatility for different data inputs and uses.
+    </p>
+    <p><strong>Factors included in survival modeling function:</strong></p>
+    <ul>
+      <li>Radiation exposure (accumulating over time)</li>
+      <li>Galactic cosmic rays</li>
+      <li>Natural radioactivity within meteorites</li>
+      <li>DNA hydrolysis, temperature-dependent</li>
+    </ul>
+    <p><strong>Factors not explicitly modeled (&amp; rationale):</strong></p>
+    <ul>
+      <li>
+        <strong>Solar UV radiation, diffuse X-rays, solar particles</strong> — minimal
+        shielding is sufficient: a couple of mm blocks UV completely, &lt;0.5 g/cm²
+        blocks diffuse X-rays, ~30 g/cm² blocks solar particles. Meteorite dimensions
+        and microbe placement are therefore modeled assuming sufficient internal shielding.
+      </li>
+      <li>
+        <strong>Vacuum</strong> — vacuum causes desiccation and rapid death (Nussinov &amp;
+        Lysenko, 1983; He et al., 2018). However, meteoroid ejection melts outer layers,
+        which then rapidly solidify in space. This may create sealed internal
+        microenvironments. We assume cargo is located within such protected regions.
+      </li>
+      <li>
+        <strong>Temperature and pressure during launch and landing</strong> — low-shock
+        ejecta capable of preserving biological material have been proposed (Melosh, 1984).
+        We assume all cargo on ejecta is initially viable. For landing, we assume selection
+        already acted upon microbiota during ejection, increasing resilience towards
+        temperature and pressure (von Hegner, 2021). Our primary focus is on inter-system
+        transport probability and survival during travel.
+      </li>
+    </ul>
+
+    <!-- ─────────────────────────────────────── -->
+    <h2>Methodology</h2>
+
+    <h3>Physical</h3>
+    <p>
+      Data for meteorites was taken from <strong>JPL Small Body Database API</strong>.
+      We outlined 12 types of meteorites: basalt, 3 types of chondrite, olivine,
+      enstatite, iron-nickel, hydrated silicate, organic rich, ice rich, rubble pile,
+      stony-iron.
+    </p>
+    <p>
+      The physical subsystem models simplified ejecta trajectories in a restricted
+      N-body environment representing our solar system, interstellar space, and the
+      target stellar system. Parameters explored include:
+    </p>
+    <ul>
+      <li>Ejection velocity</li>
+      <li>Travel time</li>
+      <li>Distance between systems</li>
+      <li>Capture probability</li>
+    </ul>
+    <p>
+      The output of this module is a <strong>probability distribution of travel times
+      and arrival likelihood</strong>, which directly informs biological survival modeling.
+    </p>
+
+    <h3>Biological Component — Surviving Fraction Function</h3>
+    <p>
+      We model survival fraction using a time-dependent exponential decay function
+      consistent with a Weibull-type survival approach:
+    </p>
+    <div class="formula">
+      N/N₀ = e<sup>−(b · D<sub>rad</sub> + C · K<sub>hyd</sub>) · t</sup>
+    </div>
+    <p>Where:</p>
+    <ul>
+      <li><code>b</code> = radiation sensitivity coefficient</li>
+      <li><code>D<sub>rad</sub></code> = cumulative radiation dose (space + internal decay)</li>
+      <li><code>C</code> = hydrolysis sensitivity coefficient</li>
+      <li><code>K<sub>hyd</sub></code> = temperature-dependent hydrolysis rate</li>
+      <li><code>t</code> = time since ejection</li>
+    </ul>
+    <p><strong>Effect of radiation on survival</strong></p>
+    <p>
+      To estimate microbial radiation vulnerability, we used published datasets on
+      <em>Bacillus subtilis</em> and <em>Deinococcus radiodurans</em>
+      (Mileikowsky et al., 2000). Linear regression (y = a + bx) was applied to
+      determine coefficient <code>b</code>, assuming a = 0 (no radiation → no
+      radiation-induced mortality). The resulting range: <strong>b ∈ [0.15, 0.5]</strong>.
+      It further allows for parameter exploration and sensitivity analysis rather than
+      a single deterministic value.
+    </p>
+    <p><strong>Effect of hydrolysis on survival</strong></p>
+    <p>
+      Assuming release of 0.1% of DNA bases allows survival of 30% of bacteria:
+    </p>
+    <div class="formula">
+      S(t) = e<sup>−(C · K · t)</sup><br>
+      C = −ln(S) / (K · t)<br>
+      For our case: C = −ln(0.3) / (0.001 · 1200)
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <h2>Results</h2>
+    <p>
+      The interactive simulation visualises the output of the physical transport
+      module. Explore ejection trajectories, travel times, and per-frame survival
+      fractions in the main simulator view.
+    </p>
+
+    <!-- ─────────────────────────────────────── -->
+    <h2>Limitations</h2>
+
+    <h3>1. Simplified Gravitational Dynamics</h3>
+    <p>
+      The transport model uses a restricted N-body approximation and simplified
+      ballistic trajectories. It does not incorporate full galactic dynamics, stellar
+      cluster evolution, detailed gravitational perturbations from passing stars, or
+      interactions with interstellar medium drag. Travel times and capture probabilities
+      should be interpreted as <strong>order-of-magnitude estimates</strong>.
+    </p>
+
+    <h3>2. Abstract Representation of Stellar Systems</h3>
+    <p>
+      The digital twin represents two generic stellar systems rather than specific
+      observed systems. While this increases generalizability, results reflect
+      parameter-space exploration rather than case-specific modeling.
+    </p>
+
+    <h3>3. Biological Proxy Assumptions</h3>
+    <p>
+      The model assumes endospores as representative transferable life forms. This
+      excludes non-spore-forming extremophiles, assumes Earth-like biochemistry, and
+      does not account for unknown extraterrestrial life chemistries. Survival
+      coefficients are derived from laboratory-based datasets under controlled conditions.
+    </p>
+
+    <h3>4. Survival Function Simplifications</h3>
+    <p>
+      The survival model assumes continuous exponential decay, linear radiation-dose
+      relationships, and uniform shielding. In reality, radiation damage may be
+      nonlinear, shielding heterogeneous, and DNA repair mechanisms may alter survival
+      curves. Synergistic effects between radiation and hydrolysis are not modeled.
+    </p>
+
+    <h3>5. Exclusion of Certain Environmental Factors</h3>
+    <p>
+      The model does not simulate vacuum-induced molecular degradation over extreme
+      timescales, micrometeoroid erosion, chemical alteration in the interstellar
+      medium, or detailed thermal cycling. These factors may further reduce survival
+      probabilities.
+    </p>
+
+    <h3>6. No Modeling of Post-Arrival Colonization</h3>
+    <p>
+      The model evaluates viable arrival, not successful colonization or abiogenesis
+      initiation. It estimates <em>transfer probability</em>, not probability of
+      life emergence.
+    </p>
+
+    <h3>7. Uncertainty in Long-Timescale Extrapolation</h3>
+    <p>
+      Empirical microbial survival data are extrapolated far beyond laboratory-tested
+      timescales. Interstellar travel may span millions of years, introducing
+      uncertainty when extending experimentally derived decay parameters.
+    </p>
+
+    <h3>Conceptual Limitation</h3>
+    <blockquote>
+      Most importantly, the model remains probabilistic and exploratory. It does not
+      claim to demonstrate that lithopanspermia occurs, but rather quantifies the
+      parameter space under which it may remain non-zero. This limitation is also a
+      strength: the digital twin is designed as a hypothesis-testing framework, not
+      a deterministic predictive tool.
+    </blockquote>
+
+    <!-- ─────────────────────────────────────── -->
+    <h2>Bibliography</h2>
+    <ul class="ref-list">
+      <li>Ginsburg, I., Lingam, M., &amp; Loeb, A. (2018). Galactic Panspermia. <em>The Astrophysical Journal</em>, 868(1), L12. <a href="https://doi.org/10.3847/2041-8213/aaef2d" target="_blank" style="color:var(--accent)">doi:10.3847/2041-8213/aaef2d</a></li>
+      <li>He, L. et al. (2018). Single-cell analysis reveals individual spore responses to simulated space vacuum. <em>Npj Microgravity</em>, 4(1). <a href="https://doi.org/10.1038/s41526-018-0059-7" target="_blank" style="color:var(--accent)">doi:10.1038/s41526-018-0059-7</a></li>
+      <li>Horneck, G. et al. (2012). Resistance of Bacterial Endospores to Outer Space for Planetary Protection Purposes. <em>Astrobiology</em>, 12(5), 445–456. <a href="https://doi.org/10.1089/ast.2011.0737" target="_blank" style="color:var(--accent)">doi:10.1089/ast.2011.0737</a></li>
+      <li>Melosh, H. J. (1984). Impact ejection, spallation, and the origin of meteorites. <em>Icarus</em>, 59(2), 234–260. <a href="https://doi.org/10.1016/0019-1035(84)90026-5" target="_blank" style="color:var(--accent)">doi:10.1016/0019-1035(84)90026-5</a></li>
+      <li>Mileikowsky, C. et al. (2000). Natural Transfer of Viable Microbes in Space 1. From Mars to Earth and Earth to Mars. <em>Icarus</em>, 145(2), 391–427. <a href="https://doi.org/10.1006/icar.1999.6317" target="_blank" style="color:var(--accent)">doi:10.1006/icar.1999.6317</a></li>
+      <li>Mitton, S. (2022). A Short History of Panspermia from Antiquity Through the Mid-1970s. <em>Astrobiology</em>, 22(12), 1379–1391. <a href="https://doi.org/10.1089/ast.2022.0032" target="_blank" style="color:var(--accent)">doi:10.1089/ast.2022.0032</a></li>
+      <li>Nussinov, M. D., &amp; Lysenko, S. V. (1983). Cosmic vacuum prevents radiopanspermia. <em>Origins of Life</em>, 13(2), 153–164. <a href="https://doi.org/10.1007/bf00928893" target="_blank" style="color:var(--accent)">doi:10.1007/bf00928893</a></li>
+      <li>Panitz, C. et al. (2014). The SPORES experiment of the EXPOSE-R mission: <em>Bacillus subtilis</em> spores in artificial meteorites. <em>International Journal of Astrobiology</em>, 14(1), 105–114. <a href="https://doi.org/10.1017/s1473550414000251" target="_blank" style="color:var(--accent)">doi:10.1017/s1473550414000251</a></li>
+      <li>Vaishampayan, P. A. et al. (2012). Survival of <em>Bacillus pumilus</em> Spores for a Prolonged Period of Time in Real Space Conditions. <em>Astrobiology</em>, 12(5), 487–497. <a href="https://doi.org/10.1089/ast.2011.0738" target="_blank" style="color:var(--accent)">doi:10.1089/ast.2011.0738</a></li>
+      <li>von Hegner, I. (2021). Evolutionary Processes Transpiring in the Stages of Lithopanspermia. <em>Acta Biotheoretica</em>, 69(4), 783–798. <a href="https://doi.org/10.1007/s10441-021-09411-5" target="_blank" style="color:var(--accent)">doi:10.1007/s10441-021-09411-5</a></li>
+      <li>Worth, R. J., Sigurdsson, S., &amp; House, C. H. (2013). Seeding Life on the Moons of the Outer Planets via Lithopanspermia. <em>Astrobiology</em>, 13(12), 1155–1165. <a href="https://doi.org/10.1089/ast.2013.1028" target="_blank" style="color:var(--accent)">doi:10.1089/ast.2013.1028</a></li>
+      <li>Zhao, L. et al. (2026). Extremophile survives the transient pressures associated with impact-induced ejection from Mars. <em>PNAS Nexus</em>, 5(3). <a href="https://doi.org/10.1093/pnasnexus/pgag018" target="_blank" style="color:var(--accent)">doi:10.1093/pnasnexus/pgag018</a></li>
+    </ul>
+  </main>
+
+  <footer>
+    Cosmos 3D &mdash; Interstellar Lithopanspermia &mdash; Hack4Sages &mdash; 2026
+  </footer>
+
+  <script type="module">
+    // ── WebR inline R console for research.html ──────────────────────────
+    const DEFAULT_CODE = `# Prawo Keplera: T^2 ~ a^3
+# Dane planet Układu Słonecznego (a w AU, T w latach)
+planets <- c("Merkury","Wenus","Ziemia","Mars","Jowisz","Saturn","Uran","Neptun")
+a <- c(0.387, 0.723, 1.000, 1.524, 5.203, 9.537, 19.19, 30.07)   # AU
+T <- c(0.241, 0.615, 1.000, 1.881, 11.86, 29.46, 84.01, 164.8)   # lata
+
+par(bg="#080c1a", col.axis="#8ba4cc", col.lab="#c8d4e8",
+    col.main="#e8f0ff", fg="#2a3860")
+
+plot(log10(a), log10(T),
+     pch=21, bg="#4a9eff", col="white", cex=1.6,
+     main="Prawo Keplera III: log(T) vs log(a)",
+     xlab="log\u2081\u2080(a)  [AU]",
+     ylab="log\u2081\u2080(T)  [lata]",
+     xlim=c(-0.5, 1.6))
+
+# linia regresji
+fit <- lm(log10(T) ~ log10(a))
+abline(fit, col="#fdb813", lwd=2)
+
+# etykiety
+text(log10(a), log10(T), planets, pos=4, cex=0.75, col="#8ba4cc")
+
+legend("topleft",
+       legend=sprintf("nachylenie = %.3f", coef(fit)[2]),
+       col="#fdb813", lwd=2, bty="n", text.col="#c8d4e8")`;
+
+    const canvasEl  = document.getElementById('r-canvas');
+    const wrap      = document.getElementById('r-canvas-wrap');
+    const overlay   = document.getElementById('r-overlay');
+    const editorEl  = document.getElementById('r-editor');
+    const textarea  = document.getElementById('r-code');
+    const runBtn    = document.getElementById('r-run');
+    const cancelBtn = document.getElementById('r-cancel');
+    const statusEl  = document.getElementById('r-status');
+
+    const CW = canvasEl.width;
+    const CH = canvasEl.height;
+    textarea.value = DEFAULT_CODE;
+
+    let _webr    = null;
+    let _shelter = null;
+    let currentCode = DEFAULT_CODE;
+
+    function setStatus(msg, cls = '') {
+      statusEl.className   = 'r-status ' + cls;
+      statusEl.textContent = msg;
+    }
+
+    function openEditor() {
+      textarea.value = currentCode;
+      editorEl.classList.add('open');
+      setTimeout(() => textarea.focus(), 30);
+    }
+
+    function closeEditor() {
+      editorEl.classList.remove('open');
+    }
+
+    async function getWebR() {
+      if (_webr) return _webr;
+      const { WebR } = await import('https://webr.r-wasm.org/v0.4.2/webr.mjs');
+      _webr = new WebR({ baseUrl: 'https://webr.r-wasm.org/v0.4.2/' });
+      await _webr.init();
+      _shelter = await new _webr.Shelter();
+      return _webr;
+    }
+
+    async function runCode(code) {
+      await getWebR();
+      const capture = await _shelter.captureR(code, {
+        captureGraphics: { width: CW, height: CH, bg: '#080c1a' },
+      });
+      const text = (capture.output ?? [])
+        .filter(m => ['stdout','stderr','message'].includes(m.type))
+        .map(m => String(m.data))
+        .join('\n').trim();
+      return { images: capture.images ?? [], text };
+    }
+
+    function escHtml(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    async function execute(code) {
+      closeEditor();
+      currentCode = code;
+      overlay.style.display = 'flex';
+      overlay.innerHTML = '<div class="r-spinner"></div><span>Obliczanie…</span>';
+      setStatus('Uruchamianie…', 'busy');
+      try {
+        const result = await runCode(code);
+        if (result.images.length > 0) {
+          const ctx = canvasEl.getContext('2d');
+          ctx.clearRect(0, 0, CW, CH);
+          ctx.drawImage(result.images.at(-1), 0, 0, CW, CH);
+          overlay.style.display = 'none';
+          setStatus('✓ OK', 'ok');
+        } else {
+          overlay.style.display = 'flex';
+          const msg = result.text || '(brak wykresu)';
+          overlay.innerHTML = `<pre style="color:#bdf;font-size:12px;white-space:pre-wrap;text-align:left;max-height:${CH-24}px;overflow:auto;width:100%;padding:0 16px">${escHtml(msg)}</pre>`;
+          setStatus(result.text ? 'Wyjście tekstowe' : 'Brak wykresu', result.text ? '' : 'err');
+        }
+      } catch (err) {
+        overlay.style.display = 'flex';
+        overlay.innerHTML = `<span style="color:#e66">${escHtml(String(err.message ?? err))}</span>`;
+        setStatus(String(err.message ?? err).slice(0, 120), 'err');
+      }
+    }
+
+    // ── events ──
+    wrap.addEventListener('dblclick', openEditor);
+    runBtn.addEventListener('click', () => execute(textarea.value));
+    cancelBtn.addEventListener('click', closeEditor);
+    textarea.addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); execute(textarea.value); }
+      if (e.key === 'Escape') { e.preventDefault(); closeEditor(); }
+      e.stopPropagation();
+    });
+
+    // ── boot ──
+    (async () => {
+      try {
+        setStatus('Ładowanie WebR (R/WASM)…', 'busy');
+        await getWebR();
+        setStatus('Uruchamianie domyślnego kodu…', 'busy');
+        await execute(DEFAULT_CODE);
+      } catch (err) {
+        overlay.style.display = 'flex';
+        overlay.innerHTML = `<span style="color:#e66">Błąd WebR:<br>${escHtml(String(err.message ?? err))}</span>`;
+        setStatus('Błąd inicjalizacji WebR', 'err');
+      }
+    })();
+  </script>
+
+</body>
+</html>
