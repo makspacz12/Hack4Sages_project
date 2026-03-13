@@ -3,6 +3,7 @@
 A 3D interactive visualizer exploring the probability of life travelling between solar systems via meteorites (lithopanspermia). Built with Three.js, Vite, and WebR.
 
 ---
+Check it out here: https://makspacz12.github.io/Hack4Sages_project/
 
 ## Quick Start
 
