@@ -1,3 +1,9 @@
+Here you can check our website with a simple simulation loaded 🚀
+https://makspacz12.github.io/Hack4Sages_project/
+
+
+
+
 Most origins-of-life research focuses on how life emerges locally within a single environment. An alternative view asks whether biological material can be redistributed between planetary systems through natural astrophysical processes.
 The lithopanspermia hypothesis suggests that microorganisms embedded in rocky ejecta from impact events could survive interstellar travel. Although uncertain, the idea is grounded in known physics: ejecta can escape planetary systems, persist on interstellar trajectories, and experience radiation-driven decay that can be modeled probabilistically.
 Project Idea
