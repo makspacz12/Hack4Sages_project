@@ -40,7 +40,14 @@ import { createRollState, tickCameraRoll } from './cameraRoll.js';
 /** Colour of the trail for the currently followed object – bright yellow-white. */
 const FOLLOW_COLOR = '#ffffa0';
 
-const DATA_URL = '/data/solar_system.json';
+const APP_BASE_URL = import.meta.env.BASE_URL;
+
+/** Build URL relative to Vite base path (works locally and on GitHub Pages). */
+function withBase(path) {
+  return `${APP_BASE_URL}${String(path).replace(/^\/+/, '')}`;
+}
+
+const DATA_URL = withBase('data/solar_system.json');
 
 /** Build parent-id → Three.js Group lookup for attaching moons etc. */
 function buildParentMap(nodes) {
@@ -120,7 +127,7 @@ function onResize(renderer, camera, controls) {
 
 /**
  * Replay mode – loads simulation JSON and plays it frame-by-frame.
- * Activated by adding ?replay=/data/test_replay.json to the URL.
+ * Activated by adding ?replay=data/test_replay.json to the URL.
  */
 async function mainReplay(replayUrl) {
   const resp = await fetch(replayUrl);
@@ -430,7 +437,7 @@ async function mainReplay(replayUrl) {
 async function main() {
   // ── Mode detection ───────────────────────────────────────────────────────
   // Default: replay mode with solar_simulation.json
-  // ?replay=/path/to/file.json → custom simulation file
+  // ?replay=path/to/file.json → custom simulation file
   // ?live → original orbital-mechanics solar system
   const params     = new URLSearchParams(location.search);
   const customFile = params.get('replay');
@@ -440,7 +447,9 @@ async function main() {
   createRConsole().mount();
 
   if (!liveMode) {
-    const replayUrl = customFile ?? '/data/cosmos_visualizer_simulation.json';
+    const replayUrl = customFile
+      ? (/^https?:\/\//i.test(customFile) ? customFile : withBase(customFile))
+      : withBase('data/cosmos_visualizer_simulation.json');
     await mainReplay(replayUrl);
     return;
   }
