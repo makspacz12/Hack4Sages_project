@@ -20,13 +20,14 @@ All three are declared as Vite build inputs in `vite.config.js`.
 ```bash
 npm install
 npm run dev        # http://localhost:3000, opens automatically
-npm test           # 245 Vitest tests across 15 files
+npm test           # 263 Vitest tests across 16 files
 npm run build      # production build into dist/
 npm run preview    # serve the built dist/
 ```
 
 The dev server sets `Cross-Origin-Opener-Policy` and `Cross-Origin-Embedder-Policy`
-because the R console (`src/rConsole.js`) runs WebR, which needs `SharedArrayBuffer`.
+because the R console embedded in `research.html` runs WebR, which needs
+`SharedArrayBuffer`.
 
 ## Data contract
 
@@ -66,7 +67,7 @@ index.html?replay=data/test_replay.json
 | Simulation playback | `replayController.js`, `replayUI.js`, `animator.js`, `physics.js`, `physicsSync.js` |
 | Asteroid swarm | `asteroidManager.js`, `asteroidUI.js` |
 | Interaction | `picker.js`, `focusController.js`, `objectSearch.js`, `objectSearchLogic.js`, `infoPanel.js` |
-| Science overlays | `uvRadiation.js`, `rConsole.js` |
+| Science overlays | `uvRadiation.js`, `survivalChart.js` |
 | Data | `dataLoader.js` |
 | Entry point | `main.js` |
 
@@ -78,6 +79,26 @@ site root during development and under `/Hack4Sages_project/` on GitHub Pages.
 `tests/` holds one Vitest file per module for the logic that can be tested without a
 browser — geometry construction, replay interpolation, search, camera roll, data loading,
 UV shells, the info panel. `vitest.config.js` runs them in the `node` environment.
+
+## The survival chart
+
+The panel in the bottom-left corner is not decoration - it plots the simulation that is
+on screen. `survivalChart.js` reads `population_fraction` (N/N0, the surviving microbial
+fraction) out of each replay frame and grows the curve as the animation plays:
+
+- one faint line per fragment, so you can see the swarm spread out,
+- the swarm mean in orange, with a marker at the current frame,
+- a y axis scaled to the data rather than a fixed 0-1, because survival typically stays
+  within a fraction of a percent of 1.0 over a short run and a fixed axis would render
+  that as a flat line,
+- a readout of the current time, swarm mean, worst fragment and fragment count.
+
+`population_fraction` is written by
+`model/microbe_radiation_model/simulation/scenarios.py`, which evaluates the survival
+function each step. A replay without that field shows an empty chart and says so.
+
+The data preparation is a pure function, `buildSurvivalSeries()`, covered by
+`tests/survivalChart.test.js`.
 
 ## Backlog
 

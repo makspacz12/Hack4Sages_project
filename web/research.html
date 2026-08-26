@@ -645,11 +645,11 @@
 
   <script type="module">
     // ── WebR inline R console for research.html ──────────────────────────
-    const DEFAULT_CODE = `# Prawo Keplera: T^2 ~ a^3
-# Dane planet Układu Słonecznego (a w AU, T w latach)
-planets <- c("Merkury","Wenus","Ziemia","Mars","Jowisz","Saturn","Uran","Neptun")
+    const DEFAULT_CODE = `# Kepler's third law: T^2 ~ a^3
+# Solar System planets (a in AU, T in years)
+planets <- c("Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune")
 a <- c(0.387, 0.723, 1.000, 1.524, 5.203, 9.537, 19.19, 30.07)   # AU
-T <- c(0.241, 0.615, 1.000, 1.881, 11.86, 29.46, 84.01, 164.8)   # lata
+T <- c(0.241, 0.615, 1.000, 1.881, 11.86, 29.46, 84.01, 164.8)   # years
 
 par(bg="#080c1a", col.axis="#8ba4cc", col.lab="#c8d4e8",
     col.main="#e8f0ff", fg="#2a3860")
@@ -745,9 +745,9 @@ legend("topleft",
           setStatus('✓ OK', 'ok');
         } else {
           overlay.style.display = 'flex';
-          const msg = result.text || '(brak wykresu)';
+          const msg = result.text || '(no plot)';
           overlay.innerHTML = `<pre style="color:#bdf;font-size:12px;white-space:pre-wrap;text-align:left;max-height:${CH-24}px;overflow:auto;width:100%;padding:0 16px">${escHtml(msg)}</pre>`;
-          setStatus(result.text ? 'Wyjście tekstowe' : 'Brak wykresu', result.text ? '' : 'err');
+          setStatus(result.text ? 'Text output' : 'No plot', result.text ? '' : 'err');
         }
       } catch (err) {
         overlay.style.display = 'flex';
@@ -769,14 +769,14 @@ legend("topleft",
     // ── boot ──
     (async () => {
       try {
-        setStatus('Ładowanie WebR (R/WASM)…', 'busy');
+        setStatus('Loading WebR (R/WASM)…', 'busy');
         await getWebR();
-        setStatus('Uruchamianie domyślnego kodu…', 'busy');
+        setStatus('Running the default code…', 'busy');
         await execute(DEFAULT_CODE);
       } catch (err) {
         overlay.style.display = 'flex';
-        overlay.innerHTML = `<span style="color:#e66">Błąd WebR:<br>${escHtml(String(err.message ?? err))}</span>`;
-        setStatus('Błąd inicjalizacji WebR', 'err');
+        overlay.innerHTML = `<span style="color:#e66">WebR error:<br>${escHtml(String(err.message ?? err))}</span>`;
+        setStatus('WebR init error', 'err');
       }
     })();
   </script>

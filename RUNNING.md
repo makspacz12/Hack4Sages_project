@@ -83,7 +83,7 @@ them to be present locally instead.
 cd web
 npm install
 npm run dev        # http://localhost:3000
-npm test           # 245 Vitest tests
+npm test           # 263 Vitest tests
 npm run build      # production build into dist/
 npm run preview    # serve the built output
 ```
