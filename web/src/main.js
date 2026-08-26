@@ -32,7 +32,6 @@ import {
 } from './replayController.js';
 import { initReplayUI } from './replayUI.js';
 import { createInfoPanel } from './infoPanel.js';
-import { createSurvivalChart } from './survivalChart.js';
 import { createUVShells, setUVVisible, tickUVAnimation, updateHeatForNodes } from './uvRadiation.js';
 import { createObjectSearch } from './objectSearch.js';
 import { createRollState, tickCameraRoll } from './cameraRoll.js';
@@ -245,10 +244,6 @@ async function mainReplay(replayUrl) {
   const posUnit  = simData.meta?.positionUnit ?? '';
   const infoPanel = createInfoPanel();
 
-  // Live survival plot, driven by this replay's own population_fraction data.
-  const survivalChart = createSurvivalChart().mount();
-  survivalChart.setData(simData.frames ?? [], simData.meta);
-
   /** Return { positions, velocities } for the current frame. */
   const curFrame = () => ctrl.frames?.[ctrl.currentFrame] ?? {};
 
@@ -372,7 +367,6 @@ async function mainReplay(replayUrl) {
     rebuildReplayTrails();   // scrubbing: rebuild trail from data, not live positions
     const { positions, velocities, properties } = curFrame();
     infoPanel.updateFrame(positions, velocities, properties, posUnit);
-    survivalChart.update(ctrl.currentFrame);
   }, {
     onUVToggle: (enabled) => {
       uvEnabled = enabled;
@@ -423,7 +417,6 @@ async function mainReplay(replayUrl) {
           refreshUI(ctrl);
           const { positions, velocities, properties } = curFrame();
           infoPanel.updateFrame(positions, velocities, properties, posUnit);
-          survivalChart.update(ctrl.currentFrame);
           rebuildReplayTrails();
         }
       } else if (frameChanged) {
@@ -431,7 +424,6 @@ async function mainReplay(replayUrl) {
         refreshUI(ctrl);
         const { positions, velocities, properties } = curFrame();
         infoPanel.updateFrame(positions, velocities, properties, posUnit);
-        survivalChart.update(ctrl.currentFrame);
         rebuildReplayTrails();
       }
       updateFocus(focusCtrl, camera, controls);

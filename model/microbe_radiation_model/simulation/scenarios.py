@@ -504,8 +504,8 @@ def _default_mars_pipeline_run_config() -> SimulationRunConfig:
 
     return SimulationRunConfig(
         # Test configuration: moderate number of ejecta with long integration.
-        #  - dt_yr: 0.025 years per output step (~9.1 dni)
-        #  - n_steps: 2000 (total ~50 lat)
+        #  - dt_yr: 0.025 years per output step (~9.1 days)
+        #  - n_steps: 2000 (total ~50 years)
         #  - n_asteroids: 100
         dt_yr=0.025,
         n_steps=2000,
