@@ -75,5 +75,200 @@
         }
       ]
     }
+  },
+  "provenance": {
+    "schema_version": "1.0",
+    "generated_utc": "2026-08-26T20:18:28+00:00",
+    "scenario": "mars_ejecta_pipeline",
+    "seed": 1164711760,
+    "source": {
+      "available": true,
+      "commit": "932f74c24b6bf61a63dfd1d627f2224d4362cf2b",
+      "commit_short": "932f74c24b6b",
+      "branch": "main",
+      "dirty": true,
+      "describe": "932f74c2-dirty"
+    },
+    "environment": {
+      "python": "3.14.5",
+      "implementation": "CPython",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "machine": "AMD64",
+      "packages": {
+        "rebound": "5.1.1",
+        "reboundx": null,
+        "numpy": "2.4.6",
+        "scipy": "1.18.0",
+        "astropy": "8.0.1",
+        "spiceypy": null
+      }
+    },
+    "parameters": {
+      "material": {
+        "rock_radius": 0.5,
+        "bio_mass_fraction": 0.01,
+        "rock_material": {
+          "name": "basalt_vtype",
+          "density": 3460.0,
+          "k": 0.01
+        },
+        "bio_material": {
+          "name": "bio",
+          "density": 1100.0,
+          "k": 0.02
+        },
+        "rock_thermal_conductivity_w_mk": 2.0
+      },
+      "run": {
+        "dt_yr": 0.05,
+        "n_steps": 6,
+        "integration_substeps": 5,
+        "add_test_particle": false,
+        "gaia": {
+          "mode": "csv",
+          "csv_path": "nearest_50_gaia.csv",
+          "csv_cwd": null,
+          "top_n": 50,
+          "overwrite_csv": true,
+          "main_table": "gaiadr3.gaia_source",
+          "reference_time_utc": "2026-01-01T00:00:00"
+        },
+        "solar_system": {
+          "mode": "simple_builtin",
+          "observation_time_utc": "2026-01-01T00:00:00",
+          "kernel_dir": "kernels",
+          "download_kernels": true,
+          "use_planets": true,
+          "use_cache": true,
+          "cache_path": "microbe_radiation_model/data/solar_system_horizons_cache.json"
+        },
+        "barycenter": {
+          "enabled": false
+        },
+        "radiation_pressure": {
+          "enabled": false,
+          "dynamic_refresh": true,
+          "refresh_interval_steps": 1
+        },
+        "dust_erosion": {
+          "enabled": true,
+          "dust_mass_flux_kg_m2_s": 1e-12,
+          "excavation_yield": 10.0,
+          "flux_definition": "cross_section",
+          "refresh_interval_steps": 1,
+          "distance_flux_exponent": 0.0,
+          "reference_distance_au": 1.0,
+          "minimum_distance_au": 0.1,
+          "porosity_yield_coeff": 1.0,
+          "hydrolysis_yield_coeff": 0.25,
+          "hydrolysis_reference_rate_s_inv": 0.01,
+          "hydrolysis_rate_cap": 2.0
+        },
+        "impact": {
+          "enabled": true,
+          "n_asteroids": 4,
+          "mars_index": 4,
+          "cone_half_angle": 60.0,
+          "v_min_kms": 5.03,
+          "v_max_kms": 20.0,
+          "alpha_v": 2.5,
+          "radius_min_m": 0.001,
+          "radius_max_m": 5.0,
+          "q_size": 2.0,
+          "size_velocity_corr": true,
+          "spin_period_range": [
+            2.0,
+            20.0
+          ],
+          "obliquity_range": [
+            0.0,
+            180.0
+          ],
+          "seed": 1164711760
+        },
+        "thermal": {
+          "enabled": true,
+          "compute_internal_profile": true
+        },
+        "hydrolysis": {
+          "enabled": true
+        },
+        "output": {
+          "export_json": true,
+          "export_visualizer_json": true,
+          "visualizer_output_path": "cosmos_visualizer_simulation.json",
+          "visualizer_name": "Hack4Sages Mars ejecta simulation",
+          "visualizer_description": "Solar System plus nearby Gaia stars and Mars ejecta propagated with REBOUND.",
+          "visualizer_playback_fps": 30,
+          "visualizer_position_scale": 60.0,
+          "export_star_uv_profile": true,
+          "star_profile_distances_au": [
+            0.1,
+            0.5,
+            1.0,
+            2.0,
+            5.0,
+            10.0
+          ]
+        }
+      }
+    },
+    "parameters_sha256": "be865edb463426d42165b12a1ba099af5f5870df5075d470856a30a8796b2402",
+    "reproduce": "python -m microbe_radiation_model --asteroids 4 --years 0.3 --dt 0.05 --substeps 5 --seed 1164711760 --v-min 5.03 --v-max 20 --cone-angle 60 --fragment-radius 0.5 --bio-fraction 0.01 --dust-flux 1e-12 --no-radiation-pressure",
+    "coefficients_under_audit": {
+      "note": "These coefficients are not settled. Trends and relative comparisons in this file are meaningful; absolute doses and survival fractions are provisional.",
+      "unresolved_count": 4,
+      "entries": {
+        "gamma_dose_coefficients": {
+          "values_gy_per_year_per_ppm": {
+            "k40": 0.093,
+            "th232": 0.084,
+            "u238": 0.3,
+            "u235": 1.81
+          },
+          "module": "radiation.radionuclide_model.gamma",
+          "status": "unresolved",
+          "issue": "Uncited. For basalt these give 46.6 Gy/yr against 1.07e-3 Gy/yr computed from activity times decay-chain energy in an infinite medium - a factor of ~4.4e4, reaching ~6.2e5 across the catalog. The K-40 term supplies 99.8% of the inflated total."
+        },
+        "hydrolysis": {
+          "pre_exponential_s_inv": 1000000000000.0,
+          "activation_energy_j_mol": 60000.0,
+          "freezing_cutoff_k": 273.15,
+          "module": "chemistry.constants",
+          "status": "unresolved",
+          "issue": "A=1e12 1/s with Ea=60 kJ/mol gives 3.08e1 1/s at 298 K, a 23 ms DNA half-life, against a measured depurination rate near 3e-11 1/s (~700 yr). Ea near 130 kJ/mol reproduces the literature."
+        },
+        "radiation_survival_coefficient": {
+          "default_value": 5e-06,
+          "documented_range": [
+            0.15,
+            0.5
+          ],
+          "fitted_range": [
+            0.157,
+            0.441
+          ],
+          "module": "simulation.scenarios",
+          "status": "unresolved",
+          "issue": "The default is five orders of magnitude below the range its own docstring gives, and below the slopes fitted in analysis/radiation_to_survival.R from Mileikowsky et al. (2000). It very nearly cancels the inflated gamma dose above, so the two must be corrected together or not at all.",
+          "source_of_range": "Mileikowsky, C. et al. (2000), Icarus 145(2), 391-427, doi:10.1006/icar.1999.6317"
+        },
+        "cosmic_ray_attenuation": {
+          "module": "radiation.shielding_model",
+          "status": "unresolved",
+          "issue": "Galactic cosmic rays are attenuated with the photon mass attenuation coefficient. Charged particles have an attenuation depth near 100 g/cm^2, roughly ten times larger, which changes the dose reaching a 0.5 m fragment's core by about 4e4."
+        }
+      }
+    },
+    "field_notes": {
+      "seed": "Resolved before the run; there is no unseeded run.",
+      "parameters_sha256": "Equal digests mean identical inputs.",
+      "source.dirty": "True means the working tree had uncommitted changes.",
+      "reproduce": "Run this to regenerate the file."
+    },
+    "scenario_details": {
+      "frames": 6,
+      "objects": 63
+    }
   }
 }

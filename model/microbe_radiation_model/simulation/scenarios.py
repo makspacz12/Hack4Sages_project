@@ -4,7 +4,7 @@ Ready-made demo scenarios and console output formatting.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from importlib.util import find_spec
 from math import pi, sqrt
 from typing import Callable, List, Optional
@@ -16,6 +16,7 @@ from ..data_store import (
     extend_radiation_records,
     extend_rock_radiation_records,
     write_star_uv_profile,
+    stamp_provenance,
     write_visualizer_simulation,
 )
 from ..internal_heat.model import heat_production_from_rock
@@ -32,6 +33,7 @@ from ..radiation import (
     split_cosmic_flux,
     stellar_flux,
 )
+from ..provenance import build_provenance, resolve_seed
 from ..radiation.radionuclide_model import radiation_decay_gy_per_year_from_rock
 from ..biology.survival import survival_function
 from ..radiation.exposure_model import ExposureState, update_exposure
@@ -413,6 +415,7 @@ def _build_visualizer_payload(
     planet_names: list[str],
     n_permanent: int,
     asteroid_state_store: object | None,
+    material_config: SimulationMaterialConfig,
     run_config: SimulationRunConfig,
     frames: list[dict[str, object]],
 ) -> dict[str, object]:
@@ -425,6 +428,12 @@ def _build_visualizer_payload(
         asteroid_state_store=asteroid_state_store,
     )
     return {
+        "provenance": build_provenance(
+            material_config,
+            run_config,
+            scenario="mars_ejecta_pipeline",
+            extra={"frames": len(frames), "objects": len(objects)},
+        ),
         "meta": {
             "name": run_config.output.visualizer_name,
             "description": run_config.output.visualizer_description,
@@ -568,6 +577,14 @@ def run_mars_ejecta_pipeline_demo(
 
     material_config = material_config or default_material_config()
     run_config = run_config or _default_mars_pipeline_run_config()
+
+    # Resolve the seed before anything samples from it. A run whose seed is
+    # None cannot be repeated, and recording "seed: null" only documents that
+    # fact; drawing one here makes every run reproducible by construction.
+    run_config = replace(
+        run_config,
+        impact=replace(run_config.impact, seed=resolve_seed(run_config.impact.seed)),
+    )
 
     build_result = build_simulation(
         gaia_csv_path=run_config.gaia_csv_path,
@@ -1028,9 +1045,14 @@ def run_mars_ejecta_pipeline_demo(
             planet_names=solar_system_bodies,
             n_permanent=n_permanent,
             asteroid_state_store=asteroid_state_store,
+            material_config=material_config,
             run_config=run_config,
             frames=visualizer_frames,
         )
+        # The record exports are appended to during the run, so they can only
+        # be stamped here - at the end, when every record in them belongs to
+        # this configuration.
+        stamp_provenance(visualizer_payload["provenance"])
         visualizer_export_path = str(
             write_visualizer_simulation(
                 visualizer_payload,

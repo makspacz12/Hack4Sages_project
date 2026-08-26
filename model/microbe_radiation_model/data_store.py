@@ -11,7 +11,7 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any, Dict, Iterable, List, Optional, Sequence
 
 from .materials.rocks import Rock
 from .physics.stellar_physics import stellar_luminosity_from_solar_mass
@@ -529,6 +529,47 @@ def write_star_uv_profile(
         json.dump(payload, f, ensure_ascii=False, indent=2)
 
 
+def stamp_provenance(block: Dict[str, Any], *, filenames: Iterable[str] | None = None) -> list[Path]:
+    """
+    Write a provenance block into the top level of each data file.
+
+    The record files are appended to incrementally, record by record, so the
+    block cannot be written when the file is created - it is stamped once at
+    the end of a run, when the configuration that produced every record in the
+    file is known. Files that do not exist are skipped rather than created
+    empty.
+
+    @param block      the provenance dictionary, from provenance.build_provenance
+    @param filenames  which files in the data directory to stamp; default is all
+                      three record exports
+    @returns          the paths actually stamped
+    """
+    if filenames is None:
+        filenames = (
+            "gamma_radiation_timeseries.json",
+            "rock_radiation_summary.json",
+            "star_uv_profile.json",
+        )
+
+    stamped: list[Path] = []
+    for name in filenames:
+        path = _ensure_data_dir() / name
+        if not path.exists():
+            continue
+        try:
+            with path.open(encoding="utf-8") as handle:
+                payload = json.load(handle)
+        except (OSError, json.JSONDecodeError):
+            continue
+        if not isinstance(payload, dict):
+            continue
+        payload["provenance"] = block
+        with path.open("w", encoding="utf-8") as handle:
+            json.dump(payload, handle, ensure_ascii=False, indent=2)
+        stamped.append(path)
+    return stamped
+
+
 def write_visualizer_simulation(
     payload: Dict[str, Any],
     *,
@@ -552,6 +593,7 @@ __all__ = [
     "extend_rock_radiation_records",
     "load_rock_radiation_summary",
     "write_star_uv_profile",
+    "stamp_provenance",
     "write_visualizer_simulation",
 ]
 
