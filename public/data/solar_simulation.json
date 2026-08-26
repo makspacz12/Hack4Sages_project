@@ -1,0 +1,2436 @@
+{
+  "_comment": "Solar System simulation data for Cosmos 3D Visualizer. Positions in visualizer world-units (same scale as solar_system.json). timeStep=0.1 years per frame.",
+  "meta": {
+    "name": "Solar System – 10-frame replay",
+    "description": "8 planets + 7 moons orbiting with Keplerian circular orbits. Generated from solar_system.json orbital parameters.",
+    "timeStep": 0.1,
+    "timeUnit": "yr",
+    "positionUnit": "world-units",
+    "positionScale": 1,
+    "_positionScale_comment": "Positions are already in visualizer world-units (no scaling needed).",
+    "massUnit": "kg",
+    "velocityUnit": "world-units/yr",
+    "totalFrames": 10,
+    "playbackFPS": 10
+  },
+  "objects": [
+    {
+      "id": "sun",
+      "name": "Sun",
+      "type": "star",
+      "visual": {
+        "radius": 5,
+        "color": "#FDB813",
+        "emissive": true
+      },
+      "info": {
+        "Mass": {
+          "value": 1.989e+30,
+          "unit": "kg"
+        },
+        "Radius": {
+          "value": 695700,
+          "unit": "km"
+        },
+        "Surface temperature": {
+          "value": 5778,
+          "unit": "K"
+        },
+        "Luminosity": {
+          "value": 3.828e+26,
+          "unit": "W"
+        },
+        "Spectral type": {
+          "value": "G2V",
+          "unit": ""
+        },
+        "Age": {
+          "value": 4600000000.0,
+          "unit": "yr"
+        }
+      }
+    },
+    {
+      "id": "mercury",
+      "name": "Mercury",
+      "type": "planet",
+      "visual": {
+        "radius": 0.35,
+        "color": "#B5B5B5",
+        "emissive": false
+      },
+      "info": {
+        "Mass": {
+          "value": 3.3e+23,
+          "unit": "kg"
+        },
+        "Radius": {
+          "value": 2439.7,
+          "unit": "km"
+        },
+        "Density": {
+          "value": 5427,
+          "unit": "kg/m3"
+        },
+        "Surface gravity": {
+          "value": 3.7,
+          "unit": "m/s2"
+        },
+        "Orbital period": {
+          "value": 88,
+          "unit": "days"
+        },
+        "Moons": {
+          "value": 0,
+          "unit": ""
+        }
+      }
+    },
+    {
+      "id": "venus",
+      "name": "Venus",
+      "type": "planet",
+      "visual": {
+        "radius": 0.87,
+        "color": "#E8C07D",
+        "emissive": false
+      },
+      "info": {
+        "Mass": {
+          "value": 4.87e+24,
+          "unit": "kg"
+        },
+        "Radius": {
+          "value": 6051.8,
+          "unit": "km"
+        },
+        "Density": {
+          "value": 5243,
+          "unit": "kg/m3"
+        },
+        "Surface gravity": {
+          "value": 8.87,
+          "unit": "m/s2"
+        },
+        "Surface temperature": {
+          "value": 737,
+          "unit": "K"
+        },
+        "Atmosphere": {
+          "value": "CO2 96.5%",
+          "unit": ""
+        }
+      }
+    },
+    {
+      "id": "earth",
+      "name": "Earth",
+      "type": "planet",
+      "visual": {
+        "radius": 0.92,
+        "color": "#2E86AB",
+        "emissive": false
+      },
+      "info": {
+        "Mass": {
+          "value": 5.972e+24,
+          "unit": "kg"
+        },
+        "Radius": {
+          "value": 6371,
+          "unit": "km"
+        },
+        "Density": {
+          "value": 5514,
+          "unit": "kg/m3"
+        },
+        "Surface gravity": {
+          "value": 9.807,
+          "unit": "m/s2"
+        },
+        "Orbital period": {
+          "value": 365.25,
+          "unit": "days"
+        },
+        "Moons": {
+          "value": 1,
+          "unit": ""
+        }
+      }
+    },
+    {
+      "id": "moon",
+      "name": "Moon",
+      "type": "moon",
+      "visual": {
+        "radius": 0.25,
+        "color": "#AAAAAA",
+        "emissive": false
+      },
+      "info": {
+        "Mass": {
+          "value": 7.342e+22,
+          "unit": "kg"
+        },
+        "Radius": {
+          "value": 1737.4,
+          "unit": "km"
+        },
+        "Density": {
+          "value": 3346,
+          "unit": "kg/m3"
+        },
+        "Surface gravity": {
+          "value": 1.62,
+          "unit": "m/s2"
+        },
+        "Orbital period": {
+          "value": 27.3,
+          "unit": "days"
+        },
+        "Distance from Earth": {
+          "value": 384400,
+          "unit": "km"
+        }
+      }
+    },
+    {
+      "id": "mars",
+      "name": "Mars",
+      "type": "planet",
+      "visual": {
+        "radius": 0.5,
+        "color": "#C1440E",
+        "emissive": false
+      },
+      "info": {
+        "Mass": {
+          "value": 6.39e+23,
+          "unit": "kg"
+        },
+        "Radius": {
+          "value": 3389.5,
+          "unit": "km"
+        },
+        "Density": {
+          "value": 3933,
+          "unit": "kg/m3"
+        },
+        "Surface gravity": {
+          "value": 3.72,
+          "unit": "m/s2"
+        },
+        "Orbital period": {
+          "value": 687,
+          "unit": "days"
+        },
+        "Moons": {
+          "value": 2,
+          "unit": ""
+        }
+      }
+    },
+    {
+      "id": "phobos",
+      "name": "Phobos",
+      "type": "moon",
+      "visual": {
+        "radius": 0.08,
+        "color": "#8B7355",
+        "emissive": false
+      },
+      "info": {
+        "Mass": {
+          "value": 1.066e+16,
+          "unit": "kg"
+        },
+        "Mean radius": {
+          "value": 11.267,
+          "unit": "km"
+        },
+        "Density": {
+          "value": 1876,
+          "unit": "kg/m3"
+        },
+        "Orbital period": {
+          "value": 0.319,
+          "unit": "days"
+        },
+        "Surface gravity": {
+          "value": 0.0057,
+          "unit": "m/s2"
+        }
+      }
+    },
+    {
+      "id": "jupiter",
+      "name": "Jupiter",
+      "type": "planet",
+      "visual": {
+        "radius": 2.8,
+        "color": "#C88B3A",
+        "emissive": false
+      },
+      "info": {
+        "Mass": {
+          "value": 1.898e+27,
+          "unit": "kg"
+        },
+        "Radius": {
+          "value": 69911,
+          "unit": "km"
+        },
+        "Density": {
+          "value": 1326,
+          "unit": "kg/m3"
+        },
+        "Surface gravity": {
+          "value": 24.79,
+          "unit": "m/s2"
+        },
+        "Orbital period": {
+          "value": 4332.6,
+          "unit": "days"
+        },
+        "Moons": {
+          "value": 95,
+          "unit": ""
+        }
+      }
+    },
+    {
+      "id": "io",
+      "name": "Io",
+      "type": "moon",
+      "visual": {
+        "radius": 0.26,
+        "color": "#FFD700",
+        "emissive": false
+      },
+      "info": {
+        "Mass": {
+          "value": 8.932e+22,
+          "unit": "kg"
+        },
+        "Radius": {
+          "value": 1821.6,
+          "unit": "km"
+        },
+        "Density": {
+          "value": 3528,
+          "unit": "kg/m3"
+        },
+        "Surface gravity": {
+          "value": 1.796,
+          "unit": "m/s2"
+        },
+        "Volcanic bodies": {
+          "value": 400,
+          "unit": ""
+        },
+        "Orbital period": {
+          "value": 1.769,
+          "unit": "days"
+        }
+      }
+    },
+    {
+      "id": "europa",
+      "name": "Europa",
+      "type": "moon",
+      "visual": {
+        "radius": 0.22,
+        "color": "#C2B280",
+        "emissive": false
+      },
+      "info": {
+        "Mass": {
+          "value": 4.8e+22,
+          "unit": "kg"
+        },
+        "Radius": {
+          "value": 1560.8,
+          "unit": "km"
+        },
+        "Density": {
+          "value": 3013,
+          "unit": "kg/m3"
+        },
+        "Surface gravity": {
+          "value": 1.315,
+          "unit": "m/s2"
+        },
+        "Ocean depth": {
+          "value": 100,
+          "unit": "km"
+        },
+        "Orbital period": {
+          "value": 3.551,
+          "unit": "days"
+        }
+      }
+    },
+    {
+      "id": "saturn",
+      "name": "Saturn",
+      "type": "planet",
+      "visual": {
+        "radius": 2.3,
+        "color": "#E4D191",
+        "emissive": false
+      },
+      "info": {
+        "Mass": {
+          "value": 5.683e+26,
+          "unit": "kg"
+        },
+        "Radius": {
+          "value": 58232,
+          "unit": "km"
+        },
+        "Density": {
+          "value": 687,
+          "unit": "kg/m3"
+        },
+        "Surface gravity": {
+          "value": 10.44,
+          "unit": "m/s2"
+        },
+        "Orbital period": {
+          "value": 10759,
+          "unit": "days"
+        },
+        "Ring span": {
+          "value": 282000,
+          "unit": "km"
+        }
+      }
+    },
+    {
+      "id": "titan",
+      "name": "Titan",
+      "type": "moon",
+      "visual": {
+        "radius": 0.37,
+        "color": "#E8B04B",
+        "emissive": false
+      },
+      "info": {
+        "Mass": {
+          "value": 1.345e+23,
+          "unit": "kg"
+        },
+        "Radius": {
+          "value": 2574.7,
+          "unit": "km"
+        },
+        "Density": {
+          "value": 1882,
+          "unit": "kg/m3"
+        },
+        "Surface gravity": {
+          "value": 1.352,
+          "unit": "m/s2"
+        },
+        "Atmosphere": {
+          "value": "N2 98.4%",
+          "unit": ""
+        },
+        "Orbital period": {
+          "value": 15.95,
+          "unit": "days"
+        }
+      }
+    },
+    {
+      "id": "uranus",
+      "name": "Uranus",
+      "type": "planet",
+      "visual": {
+        "radius": 1.6,
+        "color": "#7DE8E8",
+        "emissive": false
+      },
+      "info": {
+        "Mass": {
+          "value": 8.681e+25,
+          "unit": "kg"
+        },
+        "Radius": {
+          "value": 25362,
+          "unit": "km"
+        },
+        "Density": {
+          "value": 1271,
+          "unit": "kg/m3"
+        },
+        "Surface gravity": {
+          "value": 8.69,
+          "unit": "m/s2"
+        },
+        "Axial tilt": {
+          "value": 97.77,
+          "unit": "deg"
+        },
+        "Orbital period": {
+          "value": 30589,
+          "unit": "days"
+        }
+      }
+    },
+    {
+      "id": "neptune",
+      "name": "Neptune",
+      "type": "planet",
+      "visual": {
+        "radius": 1.55,
+        "color": "#3F54BA",
+        "emissive": false
+      },
+      "info": {
+        "Mass": {
+          "value": 1.024e+26,
+          "unit": "kg"
+        },
+        "Radius": {
+          "value": 24622,
+          "unit": "km"
+        },
+        "Density": {
+          "value": 1638,
+          "unit": "kg/m3"
+        },
+        "Surface gravity": {
+          "value": 11.15,
+          "unit": "m/s2"
+        },
+        "Wind speed": {
+          "value": 2100,
+          "unit": "km/h"
+        },
+        "Orbital period": {
+          "value": 60182,
+          "unit": "days"
+        }
+      }
+    },
+    {
+      "id": "triton",
+      "name": "Triton",
+      "type": "moon",
+      "visual": {
+        "radius": 0.2,
+        "color": "#C8D8E8",
+        "emissive": false
+      },
+      "info": {
+        "Mass": {
+          "value": 2.139e+22,
+          "unit": "kg"
+        },
+        "Radius": {
+          "value": 1353.4,
+          "unit": "km"
+        },
+        "Density": {
+          "value": 2061,
+          "unit": "kg/m3"
+        },
+        "Surface gravity": {
+          "value": 0.779,
+          "unit": "m/s2"
+        },
+        "Orbit": {
+          "value": "retrograde",
+          "unit": ""
+        },
+        "Orbital period": {
+          "value": 5.877,
+          "unit": "days"
+        }
+      }
+    }
+  ],
+  "frames": [
+    {
+      "step": 0,
+      "time": 0.0,
+      "positions": [
+        {
+          "id": "sun",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "mercury",
+          "x": 14.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "venus",
+          "x": 20.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "earth",
+          "x": 28.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "moon",
+          "x": 30.5,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "mars",
+          "x": 38.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "phobos",
+          "x": 39.2,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "jupiter",
+          "x": 62.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "io",
+          "x": 66.5,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "europa",
+          "x": 68.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "saturn",
+          "x": 90.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "titan",
+          "x": 97.5,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "uranus",
+          "x": 120.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "neptune",
+          "x": 150.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "triton",
+          "x": 154.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      ],
+      "velocities": [
+        {
+          "id": "sun",
+          "vx": 0.0,
+          "vy": 0.0,
+          "vz": 0.0
+        },
+        {
+          "id": "mercury",
+          "vx": -0.0,
+          "vy": 0.0,
+          "vz": 366.51914
+        },
+        {
+          "id": "venus",
+          "vx": -0.0,
+          "vy": 0.0,
+          "vz": 202.6834
+        },
+        {
+          "id": "earth",
+          "vx": -0.0,
+          "vy": 0.0,
+          "vz": 175.92919
+        },
+        {
+          "id": "moon",
+          "vx": -0.0,
+          "vy": 0.0,
+          "vz": 385.3687
+        },
+        {
+          "id": "mars",
+          "vx": -0.0,
+          "vy": 0.0,
+          "vz": 127.00055
+        },
+        {
+          "id": "phobos",
+          "vx": -0.0,
+          "vy": 0.0,
+          "vz": 964.75859
+        },
+        {
+          "id": "jupiter",
+          "vx": -0.0,
+          "vy": 0.0,
+          "vz": 32.84633
+        },
+        {
+          "id": "io",
+          "vx": -0.0,
+          "vy": 0.0,
+          "vz": 5923.33256
+        },
+        {
+          "id": "europa",
+          "vx": -0.0,
+          "vy": 0.0,
+          "vz": 3919.35271
+        },
+        {
+          "id": "saturn",
+          "vx": -0.0,
+          "vy": 0.0,
+          "vz": 19.19507
+        },
+        {
+          "id": "titan",
+          "vx": -0.0,
+          "vy": 0.0,
+          "vz": 1115.09948
+        },
+        {
+          "id": "uranus",
+          "vx": -0.0,
+          "vy": 0.0,
+          "vz": 8.97491
+        },
+        {
+          "id": "neptune",
+          "vx": -0.0,
+          "vy": 0.0,
+          "vz": 5.71892
+        },
+        {
+          "id": "triton",
+          "vx": -0.0,
+          "vy": 0.0,
+          "vz": -1565.07741
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "time": 0.1,
+      "positions": [
+        {
+          "id": "sun",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "mercury",
+          "x": -12.1244,
+          "y": 0.0,
+          "z": 7.0
+        },
+        {
+          "id": "venus",
+          "x": 10.5793,
+          "y": 0.0,
+          "z": 16.9729
+        },
+        {
+          "id": "earth",
+          "x": 22.6525,
+          "y": 0.0,
+          "z": 16.458
+        },
+        {
+          "id": "moon",
+          "x": 21.4025,
+          "y": 0.0,
+          "z": 18.6231
+        },
+        {
+          "id": "mars",
+          "x": 35.8974,
+          "y": 0.0,
+          "z": 12.4649
+        },
+        {
+          "id": "phobos",
+          "x": 36.8167,
+          "y": 0.0,
+          "z": 13.2362
+        },
+        {
+          "id": "jupiter",
+          "x": 61.913,
+          "y": 0.0,
+          "z": 3.2831
+        },
+        {
+          "id": "io",
+          "x": 64.163,
+          "y": 0.0,
+          "z": -0.614
+        },
+        {
+          "id": "europa",
+          "x": 59.7296,
+          "y": 0.0,
+          "z": 8.8717
+        },
+        {
+          "id": "saturn",
+          "x": 89.9795,
+          "y": 0.0,
+          "z": 1.9194
+        },
+        {
+          "id": "titan",
+          "x": 86.5502,
+          "y": 0.0,
+          "z": 8.5895
+        },
+        {
+          "id": "uranus",
+          "x": 119.9966,
+          "y": 0.0,
+          "z": 0.8975
+        },
+        {
+          "id": "neptune",
+          "x": 149.9989,
+          "y": 0.0,
+          "z": 0.5719
+        },
+        {
+          "id": "triton",
+          "x": 149.9989,
+          "y": 0.0,
+          "z": -3.4281
+        }
+      ],
+      "velocities": [
+        {
+          "id": "sun",
+          "vx": 0.0,
+          "vy": 0.0,
+          "vz": 0.0
+        },
+        {
+          "id": "mercury",
+          "vx": -183.25957,
+          "vy": 0.0,
+          "vz": -317.41489
+        },
+        {
+          "id": "venus",
+          "vx": -172.0061,
+          "vy": 0.0,
+          "vz": 107.21222
+        },
+        {
+          "id": "earth",
+          "vx": -103.40858,
+          "vy": 0.0,
+          "vz": 142.3297
+        },
+        {
+          "id": "moon",
+          "vx": -284.78852,
+          "vy": 0.0,
+          "vz": 37.60994
+        },
+        {
+          "id": "mars",
+          "vx": -41.65934,
+          "vy": 0.0,
+          "vz": 119.9735
+        },
+        {
+          "id": "phobos",
+          "vx": -580.15983,
+          "vy": 0.0,
+          "vz": 761.73339
+        },
+        {
+          "id": "jupiter",
+          "vx": -1.73932,
+          "vy": 0.0,
+          "vz": 32.80025
+        },
+        {
+          "id": "io",
+          "vx": 5099.57139,
+          "vy": 0.0,
+          "vz": 2978.04336
+        },
+        {
+          "id": "europa",
+          "vx": -3621.77164,
+          "vy": 0.0,
+          "vz": -1381.51861
+        },
+        {
+          "id": "saturn",
+          "vx": -0.40936,
+          "vy": 0.0,
+          "vz": 19.1907
+        },
+        {
+          "id": "titan",
+          "vx": -975.04335,
+          "vy": 0.0,
+          "vz": -481.90318
+        },
+        {
+          "id": "uranus",
+          "vx": -0.06712,
+          "vy": 0.0,
+          "vz": 8.97466
+        },
+        {
+          "id": "neptune",
+          "vx": -0.0218,
+          "vy": 0.0,
+          "vz": 5.71888
+        },
+        {
+          "id": "triton",
+          "vx": -1570.81813,
+          "vy": 0.0,
+          "vz": 5.71888
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "time": 0.2,
+      "positions": [
+        {
+          "id": "sun",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "mercury",
+          "x": 7.0,
+          "y": 0.0,
+          "z": -12.1244
+        },
+        {
+          "id": "venus",
+          "x": -8.8079,
+          "y": 0.0,
+          "z": 17.9561
+        },
+        {
+          "id": "earth",
+          "x": 8.6525,
+          "y": 0.0,
+          "z": 26.6296
+        },
+        {
+          "id": "moon",
+          "x": 7.4025,
+          "y": 0.0,
+          "z": 24.4645
+        },
+        {
+          "id": "mars",
+          "x": 29.8224,
+          "y": 0.0,
+          "z": 23.5505
+        },
+        {
+          "id": "phobos",
+          "x": 30.0308,
+          "y": 0.0,
+          "z": 24.7323
+        },
+        {
+          "id": "jupiter",
+          "x": 61.6523,
+          "y": 0.0,
+          "z": 6.557
+        },
+        {
+          "id": "io",
+          "x": 59.4023,
+          "y": 0.0,
+          "z": 2.6599
+        },
+        {
+          "id": "europa",
+          "x": 57.2414,
+          "y": 0.0,
+          "z": 2.4895
+        },
+        {
+          "id": "saturn",
+          "x": 89.9181,
+          "y": 0.0,
+          "z": 3.8378
+        },
+        {
+          "id": "titan",
+          "x": 85.5542,
+          "y": 0.0,
+          "z": -2.2619
+        },
+        {
+          "id": "uranus",
+          "x": 119.9866,
+          "y": 0.0,
+          "z": 1.7949
+        },
+        {
+          "id": "neptune",
+          "x": 149.9956,
+          "y": 0.0,
+          "z": 1.1438
+        },
+        {
+          "id": "triton",
+          "x": 145.9956,
+          "y": 0.0,
+          "z": 1.1438
+        }
+      ],
+      "velocities": [
+        {
+          "id": "sun",
+          "vx": 0.0,
+          "vy": 0.0,
+          "vz": 0.0
+        },
+        {
+          "id": "mercury",
+          "vx": 317.41489,
+          "vy": 0.0,
+          "vz": 183.25957
+        },
+        {
+          "id": "venus",
+          "vx": -181.97007,
+          "vy": 0.0,
+          "vz": -89.26058
+        },
+        {
+          "id": "earth",
+          "vx": -167.3186,
+          "vy": 0.0,
+          "vz": 54.36511
+        },
+        {
+          "id": "moon",
+          "vx": 14.06134,
+          "vy": 0.0,
+          "vz": -50.35465
+        },
+        {
+          "id": "mars",
+          "vx": -78.70858,
+          "vy": 0.0,
+          "vz": 99.66996
+        },
+        {
+          "id": "phobos",
+          "vx": -903.73919,
+          "vy": 0.0,
+          "vz": 245.14512
+        },
+        {
+          "id": "jupiter",
+          "vx": -3.47375,
+          "vy": 0.0,
+          "vz": 32.66213
+        },
+        {
+          "id": "io",
+          "vx": 5097.83696,
+          "vy": 0.0,
+          "vz": -2912.58098
+        },
+        {
+          "id": "europa",
+          "vx": 2631.22151,
+          "vy": 0.0,
+          "vz": -2824.48902
+        },
+        {
+          "id": "saturn",
+          "vx": -0.81853,
+          "vy": 0.0,
+          "vz": 19.17761
+        },
+        {
+          "id": "titan",
+          "vx": 890.46929,
+          "vy": 0.0,
+          "vz": -618.48414
+        },
+        {
+          "id": "uranus",
+          "vx": -0.13424,
+          "vy": 0.0,
+          "vz": 8.97391
+        },
+        {
+          "id": "neptune",
+          "vx": -0.04361,
+          "vy": 0.0,
+          "vz": 5.71875
+        },
+        {
+          "id": "triton",
+          "vx": -0.04361,
+          "vy": 0.0,
+          "vz": 1576.51508
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "time": 0.3,
+      "positions": [
+        {
+          "id": "sun",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "mercury",
+          "x": -0.0,
+          "y": 0.0,
+          "z": 14.0
+        },
+        {
+          "id": "venus",
+          "x": -19.8974,
+          "y": 0.0,
+          "z": 2.0234
+        },
+        {
+          "id": "earth",
+          "x": -8.6525,
+          "y": 0.0,
+          "z": 26.6296
+        },
+        {
+          "id": "moon",
+          "x": -6.1525,
+          "y": 0.0,
+          "z": 26.6296
+        },
+        {
+          "id": "mars",
+          "x": 20.4471,
+          "y": 0.0,
+          "z": 32.0299
+        },
+        {
+          "id": "phobos",
+          "x": 19.8471,
+          "y": 0.0,
+          "z": 33.0691
+        },
+        {
+          "id": "jupiter",
+          "x": 61.2186,
+          "y": 0.0,
+          "z": 9.8125
+        },
+        {
+          "id": "io",
+          "x": 56.7186,
+          "y": 0.0,
+          "z": 9.8125
+        },
+        {
+          "id": "europa",
+          "x": 66.6123,
+          "y": 0.0,
+          "z": 7.1842
+        },
+        {
+          "id": "saturn",
+          "x": 89.8158,
+          "y": 0.0,
+          "z": 5.7546
+        },
+        {
+          "id": "titan",
+          "x": 97.2359,
+          "y": 0.0,
+          "z": 4.6626
+        },
+        {
+          "id": "uranus",
+          "x": 119.9698,
+          "y": 0.0,
+          "z": 2.6922
+        },
+        {
+          "id": "neptune",
+          "x": 149.9902,
+          "y": 0.0,
+          "z": 1.7156
+        },
+        {
+          "id": "triton",
+          "x": 149.9902,
+          "y": 0.0,
+          "z": 5.7156
+        }
+      ],
+      "velocities": [
+        {
+          "id": "sun",
+          "vx": 0.0,
+          "vy": 0.0,
+          "vz": 0.0
+        },
+        {
+          "id": "mercury",
+          "vx": -366.51914,
+          "vy": 0.0,
+          "vz": -0.0
+        },
+        {
+          "id": "venus",
+          "vx": -20.50514,
+          "vy": 0.0,
+          "vz": -201.64349
+        },
+        {
+          "id": "earth",
+          "vx": -167.3186,
+          "vy": 0.0,
+          "vz": -54.36511
+        },
+        {
+          "id": "moon",
+          "vx": -167.3186,
+          "vy": 0.0,
+          "vz": 155.0744
+        },
+        {
+          "id": "mars",
+          "vx": -107.04779,
+          "vy": 0.0,
+          "vz": 68.33676
+        },
+        {
+          "id": "phobos",
+          "vx": -832.56754,
+          "vy": 0.0,
+          "vz": -350.54226
+        },
+        {
+          "id": "jupiter",
+          "vx": -5.19844,
+          "vy": 0.0,
+          "vz": 32.43236
+        },
+        {
+          "id": "io",
+          "vx": -5.19844,
+          "vy": 0.0,
+          "vz": -5858.05387
+        },
+        {
+          "id": "europa",
+          "vx": 1697.27665,
+          "vy": 0.0,
+          "vz": 3526.21403
+        },
+        {
+          "id": "saturn",
+          "vx": -1.22733,
+          "vy": 0.0,
+          "vz": 19.15579
+        },
+        {
+          "id": "titan",
+          "vx": 158.33763,
+          "vy": 0.0,
+          "vz": 1103.38155
+        },
+        {
+          "id": "uranus",
+          "vx": -0.20136,
+          "vy": 0.0,
+          "vz": 8.97265
+        },
+        {
+          "id": "neptune",
+          "vx": -0.06541,
+          "vy": 0.0,
+          "vz": 5.71854
+        },
+        {
+          "id": "triton",
+          "vx": 1570.73092,
+          "vy": 0.0,
+          "vz": 5.71854
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "time": 0.4,
+      "positions": [
+        {
+          "id": "sun",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "mercury",
+          "x": -7.0,
+          "y": 0.0,
+          "z": -12.1244
+        },
+        {
+          "id": "venus",
+          "x": -12.2421,
+          "y": 0.0,
+          "z": -15.8155
+        },
+        {
+          "id": "earth",
+          "x": -22.6525,
+          "y": 0.0,
+          "z": 16.458
+        },
+        {
+          "id": "moon",
+          "x": -23.9025,
+          "y": 0.0,
+          "z": 18.6231
+        },
+        {
+          "id": "mars",
+          "x": 8.8092,
+          "y": 0.0,
+          "z": 36.9648
+        },
+        {
+          "id": "phobos",
+          "x": 7.6816,
+          "y": 0.0,
+          "z": 37.3752
+        },
+        {
+          "id": "jupiter",
+          "x": 60.6131,
+          "y": 0.0,
+          "z": 13.0404
+        },
+        {
+          "id": "io",
+          "x": 58.3631,
+          "y": 0.0,
+          "z": 16.9375
+        },
+        {
+          "id": "europa",
+          "x": 61.0984,
+          "y": 0.0,
+          "z": 19.0207
+        },
+        {
+          "id": "saturn",
+          "x": 89.6727,
+          "y": 0.0,
+          "z": 7.6687
+        },
+        {
+          "id": "titan",
+          "x": 87.2511,
+          "y": 0.0,
+          "z": 14.767
+        },
+        {
+          "id": "uranus",
+          "x": 119.9463,
+          "y": 0.0,
+          "z": 3.5894
+        },
+        {
+          "id": "neptune",
+          "x": 149.9826,
+          "y": 0.0,
+          "z": 2.2875
+        },
+        {
+          "id": "triton",
+          "x": 153.9826,
+          "y": 0.0,
+          "z": 2.2875
+        }
+      ],
+      "velocities": [
+        {
+          "id": "sun",
+          "vx": 0.0,
+          "vy": 0.0,
+          "vz": 0.0
+        },
+        {
+          "id": "mercury",
+          "vx": 317.41489,
+          "vy": 0.0,
+          "vz": -183.25957
+        },
+        {
+          "id": "venus",
+          "vx": 160.27711,
+          "vy": 0.0,
+          "vz": -124.06372
+        },
+        {
+          "id": "earth",
+          "vx": -103.40858,
+          "vy": 0.0,
+          "vz": -142.3297
+        },
+        {
+          "id": "moon",
+          "vx": -284.78852,
+          "vy": 0.0,
+          "vz": -247.04946
+        },
+        {
+          "id": "mars",
+          "vx": -123.54089,
+          "vy": 0.0,
+          "vz": 29.44129
+        },
+        {
+          "id": "phobos",
+          "vx": -410.07102,
+          "vy": 0.0,
+          "vz": -757.79376
+        },
+        {
+          "id": "jupiter",
+          "vx": -6.90855,
+          "vy": 0.0,
+          "vz": 32.11158
+        },
+        {
+          "id": "io",
+          "vx": -5108.21926,
+          "vy": 0.0,
+          "vz": -2913.13153
+        },
+        {
+          "id": "europa",
+          "vx": -3880.68199,
+          "vy": 0.0,
+          "vz": 346.45393
+        },
+        {
+          "id": "saturn",
+          "vx": -1.63557,
+          "vy": 0.0,
+          "vz": 19.12526
+        },
+        {
+          "id": "titan",
+          "vx": -1038.8431,
+          "vy": 0.0,
+          "vz": -334.7208
+        },
+        {
+          "id": "uranus",
+          "vx": -0.26846,
+          "vy": 0.0,
+          "vz": 8.97089
+        },
+        {
+          "id": "neptune",
+          "vx": -0.08721,
+          "vy": 0.0,
+          "vz": 5.71825
+        },
+        {
+          "id": "triton",
+          "vx": -0.08721,
+          "vy": 0.0,
+          "vz": -1565.07808
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "time": 0.5,
+      "positions": [
+        {
+          "id": "sun",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "mercury",
+          "x": 12.1244,
+          "y": 0.0,
+          "z": 7.0
+        },
+        {
+          "id": "venus",
+          "x": 6.9461,
+          "y": 0.0,
+          "z": -18.755
+        },
+        {
+          "id": "earth",
+          "x": -28.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "moon",
+          "x": -29.25,
+          "y": 0.0,
+          "z": -2.1651
+        },
+        {
+          "id": "mars",
+          "x": -3.8036,
+          "y": 0.0,
+          "z": 37.8092
+        },
+        {
+          "id": "phobos",
+          "x": -4.9312,
+          "y": 0.0,
+          "z": 37.3988
+        },
+        {
+          "id": "jupiter",
+          "x": 59.8375,
+          "y": 0.0,
+          "z": 16.2318
+        },
+        {
+          "id": "io",
+          "x": 62.0875,
+          "y": 0.0,
+          "z": 20.1289
+        },
+        {
+          "id": "europa",
+          "x": 54.0906,
+          "y": 0.0,
+          "z": 14.5075
+        },
+        {
+          "id": "saturn",
+          "x": 89.4887,
+          "y": 0.0,
+          "z": 9.5794
+        },
+        {
+          "id": "titan",
+          "x": 84.2831,
+          "y": 0.0,
+          "z": 4.1801
+        },
+        {
+          "id": "uranus",
+          "x": 119.9161,
+          "y": 0.0,
+          "z": 4.4864
+        },
+        {
+          "id": "neptune",
+          "x": 149.9727,
+          "y": 0.0,
+          "z": 2.8593
+        },
+        {
+          "id": "triton",
+          "x": 149.9727,
+          "y": 0.0,
+          "z": -1.1407
+        }
+      ],
+      "velocities": [
+        {
+          "id": "sun",
+          "vx": 0.0,
+          "vy": 0.0,
+          "vz": 0.0
+        },
+        {
+          "id": "mercury",
+          "vx": -183.25957,
+          "vy": 0.0,
+          "vz": 317.41489
+        },
+        {
+          "id": "venus",
+          "vx": 190.06679,
+          "vy": 0.0,
+          "vz": 70.39301
+        },
+        {
+          "id": "earth",
+          "vx": -0.0,
+          "vy": 0.0,
+          "vz": -175.92919
+        },
+        {
+          "id": "moon",
+          "vx": 181.37994,
+          "vy": 0.0,
+          "vz": -280.64895
+        },
+        {
+          "id": "mars",
+          "vx": -126.36273,
+          "vy": 0.0,
+          "vz": -12.71221
+        },
+        {
+          "id": "phobos",
+          "vx": 160.1674,
+          "vy": 0.0,
+          "vz": -799.94726
+        },
+        {
+          "id": "jupiter",
+          "vx": -8.59926,
+          "vy": 0.0,
+          "vz": 31.7007
+        },
+        {
+          "id": "io",
+          "vx": -5109.90997,
+          "vy": 0.0,
+          "vz": 2976.94381
+        },
+        {
+          "id": "europa",
+          "vx": 1108.29621,
+          "vy": 0.0,
+          "vz": -3690.86244
+        },
+        {
+          "id": "saturn",
+          "vx": -2.04307,
+          "vy": 0.0,
+          "vz": 19.08603
+        },
+        {
+          "id": "titan",
+          "vx": 786.90232,
+          "vy": 0.0,
+          "vz": -741.55294
+        },
+        {
+          "id": "uranus",
+          "vx": -0.33554,
+          "vy": 0.0,
+          "vz": 8.96864
+        },
+        {
+          "id": "neptune",
+          "vx": -0.10901,
+          "vy": 0.0,
+          "vz": 5.71788
+        },
+        {
+          "id": "triton",
+          "vx": -1570.90534,
+          "vy": 0.0,
+          "vz": 5.71788
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "time": 0.6,
+      "positions": [
+        {
+          "id": "sun",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "mercury",
+          "x": -14.0,
+          "y": 0.0,
+          "z": -0.0
+        },
+        {
+          "id": "venus",
+          "x": 19.5906,
+          "y": 0.0,
+          "z": -4.026
+        },
+        {
+          "id": "earth",
+          "x": -22.6525,
+          "y": 0.0,
+          "z": -16.458
+        },
+        {
+          "id": "moon",
+          "x": -20.1525,
+          "y": 0.0,
+          "z": -16.458
+        },
+        {
+          "id": "mars",
+          "x": -15.9955,
+          "y": 0.0,
+          "z": 34.4695
+        },
+        {
+          "id": "phobos",
+          "x": -16.5955,
+          "y": 0.0,
+          "z": 33.4303
+        },
+        {
+          "id": "jupiter",
+          "x": 58.894,
+          "y": 0.0,
+          "z": 19.3776
+        },
+        {
+          "id": "io",
+          "x": 63.394,
+          "y": 0.0,
+          "z": 19.3776
+        },
+        {
+          "id": "europa",
+          "x": 62.5914,
+          "y": 0.0,
+          "z": 14.6522
+        },
+        {
+          "id": "saturn",
+          "x": 89.2641,
+          "y": 0.0,
+          "z": 11.4856
+        },
+        {
+          "id": "titan",
+          "x": 96.4461,
+          "y": 0.0,
+          "z": 9.3249
+        },
+        {
+          "id": "uranus",
+          "x": 119.8792,
+          "y": 0.0,
+          "z": 5.3831
+        },
+        {
+          "id": "neptune",
+          "x": 149.9608,
+          "y": 0.0,
+          "z": 3.4311
+        },
+        {
+          "id": "triton",
+          "x": 145.9608,
+          "y": 0.0,
+          "z": 3.4311
+        }
+      ],
+      "velocities": [
+        {
+          "id": "sun",
+          "vx": 0.0,
+          "vy": 0.0,
+          "vz": 0.0
+        },
+        {
+          "id": "mercury",
+          "vx": 0.0,
+          "vy": 0.0,
+          "vz": -366.51914
+        },
+        {
+          "id": "venus",
+          "vx": 40.79987,
+          "vy": 0.0,
+          "vz": 198.53446
+        },
+        {
+          "id": "earth",
+          "vx": 103.40858,
+          "vy": 0.0,
+          "vz": -142.3297
+        },
+        {
+          "id": "moon",
+          "vx": 103.40858,
+          "vy": 0.0,
+          "vz": 67.10981
+        },
+        {
+          "id": "mars",
+          "vx": -115.20105,
+          "vy": 0.0,
+          "vz": -53.45895
+        },
+        {
+          "id": "phobos",
+          "vx": 610.3187,
+          "vy": 0.0,
+          "vz": -472.33797
+        },
+        {
+          "id": "jupiter",
+          "vx": -10.26585,
+          "vy": 0.0,
+          "vz": 31.20086
+        },
+        {
+          "id": "io",
+          "vx": -10.26585,
+          "vy": 0.0,
+          "vz": 5921.68709
+        },
+        {
+          "id": "europa",
+          "vx": 3050.62004,
+          "vy": 0.0,
+          "vz": 2426.17672
+        },
+        {
+          "id": "saturn",
+          "vx": -2.44964,
+          "vy": 0.0,
+          "vz": 19.03812
+        },
+        {
+          "id": "titan",
+          "vx": 313.27943,
+          "vy": 0.0,
+          "vz": 1068.47684
+        },
+        {
+          "id": "uranus",
+          "vx": -0.40261,
+          "vy": 0.0,
+          "vz": 8.96588
+        },
+        {
+          "id": "neptune",
+          "vx": -0.13081,
+          "vy": 0.0,
+          "vz": 5.71742
+        },
+        {
+          "id": "triton",
+          "vx": -0.13081,
+          "vy": 0.0,
+          "vz": 1576.51375
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "time": 0.7,
+      "positions": [
+        {
+          "id": "sun",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "mercury",
+          "x": 12.1244,
+          "y": 0.0,
+          "z": -7.0
+        },
+        {
+          "id": "venus",
+          "x": 13.7793,
+          "y": 0.0,
+          "z": 14.4959
+        },
+        {
+          "id": "earth",
+          "x": -8.6525,
+          "y": 0.0,
+          "z": -26.6296
+        },
+        {
+          "id": "moon",
+          "x": -9.9025,
+          "y": 0.0,
+          "z": -24.4645
+        },
+        {
+          "id": "mars",
+          "x": -26.4173,
+          "y": 0.0,
+          "z": 27.3153
+        },
+        {
+          "id": "phobos",
+          "x": -26.2089,
+          "y": 0.0,
+          "z": 26.1335
+        },
+        {
+          "id": "jupiter",
+          "x": 57.7853,
+          "y": 0.0,
+          "z": 22.469
+        },
+        {
+          "id": "io",
+          "x": 60.0353,
+          "y": 0.0,
+          "z": 18.5719
+        },
+        {
+          "id": "europa",
+          "x": 60.8412,
+          "y": 0.0,
+          "z": 27.6325
+        },
+        {
+          "id": "saturn",
+          "x": 88.9989,
+          "y": 0.0,
+          "z": 13.3867
+        },
+        {
+          "id": "titan",
+          "x": 87.6366,
+          "y": 0.0,
+          "z": 20.7619
+        },
+        {
+          "id": "uranus",
+          "x": 119.8356,
+          "y": 0.0,
+          "z": 6.2796
+        },
+        {
+          "id": "neptune",
+          "x": 149.9466,
+          "y": 0.0,
+          "z": 4.0028
+        },
+        {
+          "id": "triton",
+          "x": 149.9466,
+          "y": 0.0,
+          "z": 8.0028
+        }
+      ],
+      "velocities": [
+        {
+          "id": "sun",
+          "vx": 0.0,
+          "vy": 0.0,
+          "vz": 0.0
+        },
+        {
+          "id": "mercury",
+          "vx": 183.25957,
+          "vy": 0.0,
+          "vz": 317.41489
+        },
+        {
+          "id": "venus",
+          "vx": -146.90346,
+          "vy": 0.0,
+          "vz": 139.64216
+        },
+        {
+          "id": "earth",
+          "vx": 167.3186,
+          "vy": 0.0,
+          "vz": -54.36511
+        },
+        {
+          "id": "moon",
+          "vx": -14.06134,
+          "vy": 0.0,
+          "vz": -159.08487
+        },
+        {
+          "id": "mars",
+          "vx": -91.29101,
+          "vy": 0.0,
+          "vz": -88.28982
+        },
+        {
+          "id": "phobos",
+          "vx": 733.7396,
+          "vy": 0.0,
+          "vz": 57.18534
+        },
+        {
+          "id": "jupiter",
+          "vx": -11.90363,
+          "vy": 0.0,
+          "vz": 30.61348
+        },
+        {
+          "id": "io",
+          "vx": 5089.40708,
+          "vy": 0.0,
+          "vz": 2975.85659
+        },
+        {
+          "id": "europa",
+          "vx": -3356.54208,
+          "vy": 0.0,
+          "vz": 2010.08954
+        },
+        {
+          "id": "saturn",
+          "vx": -2.85509,
+          "vy": 0.0,
+          "vz": 18.98154
+        },
+        {
+          "id": "titan",
+          "vx": -1080.52988,
+          "vy": 0.0,
+          "vz": -180.07509
+        },
+        {
+          "id": "uranus",
+          "vx": -0.46965,
+          "vy": 0.0,
+          "vz": 8.96261
+        },
+        {
+          "id": "neptune",
+          "vx": -0.15261,
+          "vy": 0.0,
+          "vz": 5.71688
+        },
+        {
+          "id": "triton",
+          "vx": 1570.64372,
+          "vy": 0.0,
+          "vz": 5.71688
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "time": 0.8,
+      "positions": [
+        {
+          "id": "sun",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "mercury",
+          "x": -7.0,
+          "y": 0.0,
+          "z": 12.1244
+        },
+        {
+          "id": "venus",
+          "x": -5.0131,
+          "y": 0.0,
+          "z": 19.3615
+        },
+        {
+          "id": "earth",
+          "x": 8.6525,
+          "y": 0.0,
+          "z": -26.6296
+        },
+        {
+          "id": "moon",
+          "x": 7.4025,
+          "y": 0.0,
+          "z": -28.7947
+        },
+        {
+          "id": "mars",
+          "x": -33.9157,
+          "y": 0.0,
+          "z": 17.1384
+        },
+        {
+          "id": "phobos",
+          "x": -32.9964,
+          "y": 0.0,
+          "z": 16.3671
+        },
+        {
+          "id": "jupiter",
+          "x": 56.5144,
+          "y": 0.0,
+          "z": 25.4974
+        },
+        {
+          "id": "io",
+          "x": 54.2644,
+          "y": 0.0,
+          "z": 21.6003
+        },
+        {
+          "id": "europa",
+          "x": 50.5929,
+          "y": 0.0,
+          "z": 26.4648
+        },
+        {
+          "id": "saturn",
+          "x": 88.6931,
+          "y": 0.0,
+          "z": 15.2817
+        },
+        {
+          "id": "titan",
+          "x": 82.7569,
+          "y": 0.0,
+          "z": 10.6979
+        },
+        {
+          "id": "uranus",
+          "x": 119.7853,
+          "y": 0.0,
+          "z": 7.1756
+        },
+        {
+          "id": "neptune",
+          "x": 149.9302,
+          "y": 0.0,
+          "z": 4.5744
+        },
+        {
+          "id": "triton",
+          "x": 153.9302,
+          "y": 0.0,
+          "z": 4.5744
+        }
+      ],
+      "velocities": [
+        {
+          "id": "sun",
+          "vx": 0.0,
+          "vy": 0.0,
+          "vz": 0.0
+        },
+        {
+          "id": "mercury",
+          "vx": -317.41489,
+          "vy": 0.0,
+          "vz": -183.25957
+        },
+        {
+          "id": "venus",
+          "vx": -196.21316,
+          "vy": 0.0,
+          "vz": -50.80311
+        },
+        {
+          "id": "earth",
+          "vx": 167.3186,
+          "vy": 0.0,
+          "vz": 54.36511
+        },
+        {
+          "id": "moon",
+          "vx": 348.69854,
+          "vy": 0.0,
+          "vz": -50.35465
+        },
+        {
+          "id": "mars",
+          "vx": -57.27854,
+          "vy": 0.0,
+          "vz": -113.35039
+        },
+        {
+          "id": "phobos",
+          "vx": 481.22195,
+          "vy": 0.0,
+          "vz": 528.4095
+        },
+        {
+          "id": "jupiter",
+          "vx": -13.50801,
+          "vy": 0.0,
+          "vz": 29.94019
+        },
+        {
+          "id": "io",
+          "vx": 5087.8027,
+          "vy": 0.0,
+          "vz": -2915.30292
+        },
+        {
+          "id": "europa",
+          "vx": -640.13301,
+          "vy": 0.0,
+          "vz": -3805.71789
+        },
+        {
+          "id": "saturn",
+          "vx": -3.25925,
+          "vy": 0.0,
+          "vz": 18.91634
+        },
+        {
+          "id": "titan",
+          "vx": 666.52872,
+          "vy": 0.0,
+          "vz": -848.48816
+        },
+        {
+          "id": "uranus",
+          "vx": -0.53667,
+          "vy": 0.0,
+          "vz": 8.95885
+        },
+        {
+          "id": "neptune",
+          "vx": -0.17441,
+          "vy": 0.0,
+          "vz": 5.71626
+        },
+        {
+          "id": "triton",
+          "vx": -0.17441,
+          "vy": 0.0,
+          "vz": -1565.08007
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "time": 0.9,
+      "positions": [
+        {
+          "id": "sun",
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        {
+          "id": "mercury",
+          "x": 0.0,
+          "y": 0.0,
+          "z": -14.0
+        },
+        {
+          "id": "venus",
+          "x": -19.0828,
+          "y": 0.0,
+          "z": 5.9873
+        },
+        {
+          "id": "earth",
+          "x": 22.6525,
+          "y": 0.0,
+          "z": -16.458
+        },
+        {
+          "id": "moon",
+          "x": 25.1525,
+          "y": 0.0,
+          "z": -16.458
+        },
+        {
+          "id": "mars",
+          "x": -37.6609,
+          "y": 0.0,
+          "z": 5.0649
+        },
+        {
+          "id": "phobos",
+          "x": -36.4609,
+          "y": 0.0,
+          "z": 5.0649
+        },
+        {
+          "id": "jupiter",
+          "x": 55.085,
+          "y": 0.0,
+          "z": 28.4543
+        },
+        {
+          "id": "io",
+          "x": 50.585,
+          "y": 0.0,
+          "z": 28.4543
+        },
+        {
+          "id": "europa",
+          "x": 56.3388,
+          "y": 0.0,
+          "z": 22.5868
+        },
+        {
+          "id": "saturn",
+          "x": 88.3471,
+          "y": 0.0,
+          "z": 17.1697
+        },
+        {
+          "id": "titan",
+          "x": 95.138,
+          "y": 0.0,
+          "z": 13.9863
+        },
+        {
+          "id": "uranus",
+          "x": 119.7282,
+          "y": 0.0,
+          "z": 8.0713
+        },
+        {
+          "id": "neptune",
+          "x": 149.9117,
+          "y": 0.0,
+          "z": 5.146
+        },
+        {
+          "id": "triton",
+          "x": 149.9117,
+          "y": 0.0,
+          "z": 1.146
+        }
+      ],
+      "velocities": [
+        {
+          "id": "sun",
+          "vx": 0.0,
+          "vy": 0.0,
+          "vz": 0.0
+        },
+        {
+          "id": "mercury",
+          "vx": 366.51914,
+          "vy": 0.0,
+          "vz": 0.0
+        },
+        {
+          "id": "venus",
+          "vx": -60.67593,
+          "vy": 0.0,
+          "vz": -193.38819
+        },
+        {
+          "id": "earth",
+          "vx": 103.40858,
+          "vy": 0.0,
+          "vz": 142.3297
+        },
+        {
+          "id": "moon",
+          "vx": 103.40858,
+          "vy": 0.0,
+          "vz": 351.76921
+        },
+        {
+          "id": "mars",
+          "vx": -16.92752,
+          "vy": 0.0,
+          "vz": -125.86739
+        },
+        {
+          "id": "phobos",
+          "vx": -16.92752,
+          "vy": 0.0,
+          "vz": 711.89065
+        },
+        {
+          "id": "jupiter",
+          "vx": -15.07449,
+          "vy": 0.0,
+          "vz": 29.18289
+        },
+        {
+          "id": "io",
+          "vx": -15.07449,
+          "vy": 0.0,
+          "vz": -5861.30334
+        },
+        {
+          "id": "europa",
+          "vx": 3785.62782,
+          "vy": 0.0,
+          "vz": 841.33666
+        },
+        {
+          "id": "saturn",
+          "vx": -3.66192,
+          "vy": 0.0,
+          "vz": 18.84253
+        },
+        {
+          "id": "titan",
+          "vx": 461.50205,
+          "vy": 0.0,
+          "vz": 1011.12725
+        },
+        {
+          "id": "uranus",
+          "vx": -0.60366,
+          "vy": 0.0,
+          "vz": 8.95459
+        },
+        {
+          "id": "neptune",
+          "vx": -0.1962,
+          "vy": 0.0,
+          "vz": 5.71555
+        },
+        {
+          "id": "triton",
+          "vx": -1570.99253,
+          "vy": 0.0,
+          "vz": 5.71555
+        }
+      ]
+    }
+  ]
+}
