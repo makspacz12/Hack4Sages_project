@@ -810,8 +810,17 @@ def run_mars_ejecta_pipeline_demo(
                 #
                 # AUDIT WARNING - the default 5e-6 is five orders of magnitude
                 # below the 0.15-0.5 range documented in
-                # biology/survival.py::survival_function. It appears to have been
-                # tuned to offset the inflated gamma dose coefficients (see
+                # biology/survival.py::survival_function.
+                #
+                # That documented range is the sourced one: analysis/
+                # radiation_to_survival.R regresses kill frequency against dose
+                # rate for four organisms using Mileikowsky et al. (2000), and
+                # the slopes are 0.157 (B. subtilis spores), 0.401, 0.441
+                # (D. radiodurans) and 0.362 [1/Gy]. So 5e-6 is the value that
+                # needs explaining, not the docstring.
+                #
+                # The most likely explanation is that it was tuned to offset the
+                # inflated gamma dose coefficients (see
                 # radiation/radionuclide_model/gamma.py). The two errors very
                 # nearly cancel - 46.6 Gy/yr x 5e-6 = 2.3e-4 /yr versus a
                 # first-principles 1.07e-3 Gy/yr x 0.3 = 3.2e-4 /yr - so the

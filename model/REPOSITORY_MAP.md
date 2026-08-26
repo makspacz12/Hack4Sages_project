@@ -1,6 +1,6 @@
 # Repository map
 
-What each top-level item in `Hack4Sages_merged/` is for, and which parts are the
+What each top-level item in `model/` is for, and which parts are the
 canonical runtime versus reference material.
 
 ## Top level

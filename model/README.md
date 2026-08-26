@@ -1,7 +1,9 @@
-# Hack4Sages_merged
+# model
 
-The Python side of the lithopanspermia digital twin. This directory is the merged
-result of two branches developed in parallel:
+The Python side of the lithopanspermia digital twin: orbital transport, radiation,
+thermal and chemical state, and the microbial survival function.
+
+It is the merged result of two branches that were developed in parallel:
 
 - the `Hack4Sages_project` line contributed the orbital and dynamical layer —
   REBOUND, Mars ejecta, radiation pressure and dust erosion;
@@ -48,7 +50,8 @@ python -m microbe_radiation_model.demos.run_mars_impact_demo   # Mars ejecta
 python -m microbe_radiation_model.demos.run_mars_pipeline      # full pipeline + JSON export
 ```
 
-The complete command table is in [../RUNNING.md](../RUNNING.md).
+The complete command table is in [../RUNNING.md](../RUNNING.md), and the script that
+feeds the output into the 3D visualizer is `../tools/export_simulation_to_web.py`.
 
 ## Practical notes
 
