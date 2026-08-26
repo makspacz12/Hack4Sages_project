@@ -32,6 +32,9 @@ dist-ssr/
 .vite/
 coverage/
 
+# Browser-automation scratch output
+.playwright-mcp/
+
 # Editors and OS
 .vscode/
 .idea/
