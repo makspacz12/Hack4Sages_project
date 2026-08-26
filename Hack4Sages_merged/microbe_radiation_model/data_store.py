@@ -1,9 +1,9 @@
 """
-Prosty magazyn danych czasowych i podsumowań (UV / GCR / gamma, skały, gwiazdy).
+Simple store for time series and summaries (UV / GCR / gamma, rocks, stars).
 
-Ten moduł jest centralnym miejscem zapisu danych w formacie JSON, tak aby
-różne podmoduły (radiation, chemistry, simulation) mogły z niego korzystać,
-nie mieszając logiki IO z fizyką.
+This module is the single place where JSON is written, so that the various
+sub-packages (radiation, chemistry, simulation) can share it without mixing
+IO logic into the physics.
 """
 
 from __future__ import annotations
@@ -21,9 +21,10 @@ from .radiation.stellar import stellar_flux_at_au
 @dataclass
 class RadiationRecord:
     """
-    Jeden punkt czasowy dla pól promieniowania.
-    Wszystkie komponenty poza czasem i kontekstem są opcjonalne, żeby można było
-    stopniowo uzupełniać model.
+    A single time sample of the radiation fields.
+
+    Every component except time and context is optional, so the model can be
+    filled in incrementally.
     """
 
     time_seconds: float
@@ -51,13 +52,13 @@ class RadiationRecord:
     # Biology (optional; filled when survival model is active)
     population_fraction: Optional[float] = None
 
-    # Ogólny opis kontekstu / scenariusza
+    # Free-form description of the context / scenario
     context: Optional[str] = None
 
 
 def _root_dir() -> Path:
     """
-    Katalog główny pakietu microbe_radiation_model.
+    Root directory of the microbe_radiation_model package.
     """
     return Path(__file__).resolve().parent
 
@@ -70,21 +71,21 @@ def _ensure_data_dir() -> Path:
 
 def _data_file_path() -> Path:
     """
-    Ścieżka do pliku JSON z globalnymi rekordami promieniowania.
+    Path to the JSON file holding the global radiation records.
     """
     return _ensure_data_dir() / "gamma_radiation_timeseries.json"
 
 
 def _rock_data_file_path() -> Path:
     """
-    Ścieżka do pliku JSON z podsumowaniami promieniowania dla typów skał.
+    Path to the JSON file holding per-rock-type radiation summaries.
     """
     return _ensure_data_dir() / "rock_radiation_summary.json"
 
 
 def _star_uv_file_path() -> Path:
     """
-    Ścieżka do pliku z profilami UV dla gwiazd.
+    Path to the file holding stellar UV profiles.
     """
     return _ensure_data_dir() / "star_uv_profile.json"
 
@@ -102,7 +103,7 @@ def _visualizer_file_path(filename: str = "cosmos_visualizer_simulation.json") -
 
 def _initial_payload() -> Dict[str, Any]:
     """
-    Domyślna struktura pliku JSON przy pierwszym zapisie.
+    Default JSON structure used on first write.
     """
     return {
         "__description__": {
@@ -133,7 +134,7 @@ def _initial_payload() -> Dict[str, Any]:
 
 def _load_payload(path: Path) -> Dict[str, Any]:
     """
-    Wczytuje istniejący plik JSON lub tworzy pustą strukturę.
+    Load the existing JSON file, or create an empty structure.
     """
     if not path.exists():
         return _initial_payload()
@@ -195,7 +196,7 @@ def _initial_rock_payload() -> Dict[str, Any]:
 
 def _load_rock_payload(path: Path) -> Dict[str, Any]:
     """
-    Wczytuje istniejący plik z podsumowaniami skał lub tworzy nową strukturę.
+    Load the existing rock-summary file, or create a new structure.
     """
     default_payload = _initial_rock_payload()
     if not path.exists():
@@ -226,25 +227,25 @@ def _load_rock_payload(path: Path) -> Dict[str, Any]:
 
 def _initial_star_uv_payload() -> Dict[str, Any]:
     """
-    Domyślna struktura pliku JSON dla profili UV gwiazd.
+    Default JSON structure for stellar UV profiles.
     """
     return {
         "__description__": {
             "stars": (
-                "Słownik gwiazd; klucz to nazwa, wartość zawiera metadane i profil UV."
+                "Dictionary of stars; the key is the name, the value holds metadata and the UV profile."
             ),
             "star_fields": {
                 "name": "Nazwa gwiazdy (np. 'Sun').",
-                "mass_solar": "Masa gwiazdy w jednostkach masy Słońca [M_sun].",
-                "luminosity_W": "Jasność gwiazdy [W].",
+                "mass_solar": "Stellar mass in solar masses [M_sun].",
+                "luminosity_W": "Stellar luminosity [W].",
                 "uv_profile": (
-                    "Lista punktów (distance_au, uv_surface_flux) opisujących "
-                    "strumień UV na różnych odległościach od gwiazdy."
+                    "List of (distance_au, uv_surface_flux) points describing the "
+                    "UV flux at different distances from the star."
                 ),
             },
             "profile_fields": {
-                "distance_au": "Odległość od gwiazdy [AU].",
-                "uv_surface_flux": "Strumień UV na tej odległości [W/m^2].",
+                "distance_au": "Distance from the star [AU].",
+                "uv_surface_flux": "UV flux at that distance [W/m^2].",
             },
         },
         "stars": {},
@@ -253,7 +254,7 @@ def _initial_star_uv_payload() -> Dict[str, Any]:
 
 def _load_star_uv_payload(path: Path) -> Dict[str, Any]:
     """
-    Wczytuje plik z profilami UV gwiazd lub tworzy nową strukturę.
+    Load the stellar UV profile file, or create a new structure.
     """
     if not path.exists():
         return _initial_star_uv_payload()
@@ -359,7 +360,7 @@ def append_rock_radiation_record(
     population_fraction: Optional[float] = None,
 ) -> None:
     """
-    Dodaje rekord promieniowania dla konkretnej skały do osobnego pliku JSON.
+    Append a radiation record for one rock type to its own JSON file.
     """
     path = _rock_data_file_path()
     payload = _load_rock_payload(path)
@@ -477,7 +478,7 @@ def extend_rock_radiation_records(records_to_add: Sequence[Dict[str, Any]]) -> N
 
 def load_rock_radiation_summary() -> Dict[str, Any]:
     """
-    Wczytuje cały plik z podsumowaniami promieniowania dla skał.
+    Load the whole per-rock radiation summary file.
     """
     path = _rock_data_file_path()
     return _load_rock_payload(path)
@@ -490,10 +491,10 @@ def write_star_uv_profile(
     distances_au: Sequence[float],
 ) -> None:
     """
-    Zapisuje (lub aktualizuje) profil UV dla podanej gwiazdy.
+    Write (or update) the UV profile for a given star.
 
-    Dla każdej odległości z ``distances_au`` liczy strumień UV na powierzchni
-    i zapisuje jako listę punktów (distance_au, uv_surface_flux).
+    For each distance in ``distances_au`` compute the surface UV flux and store
+    it as a list of (distance_au, uv_surface_flux) points.
     """
     if mass_solar <= 0.0:
         raise ValueError("mass_solar must be positive.")

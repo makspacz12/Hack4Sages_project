@@ -1,7 +1,7 @@
 """
 Project runner for the active simulation pipeline.
 
-This script does not depend on `srodowisko.ipynb`.
+This script does not depend on `environment.ipynb`.
 """
 
 from microbe_radiation_model.demos.console import configure_utf8_output

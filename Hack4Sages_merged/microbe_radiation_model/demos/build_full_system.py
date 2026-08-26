@@ -22,11 +22,11 @@ def main() -> None:
         solar_system_config=SolarSystemBuildConfig(mode="full_ephemeris", use_planets=True),
         barycenter_config=BarycenterConfig(enabled=True),
     )
-    print("=== Zbudowano pełny układ ===")
-    print(f"Liczba cząstek: {result.sim.N}")
+    print("=== Full system built ===")
+    print(f"Particle count: {result.sim.N}")
     print(f"Planety: {', '.join(result.solar_system_bodies) if result.solar_system_bodies else 'brak'}")
-    print(f"Liczba źródeł gwiazdowych: {len(result.star_indices)}")
-    print(f"Liczba ciał stałych: {result.n_permanent}")
+    print(f"Stellar sources: {len(result.star_indices)}")
+    print(f"Permanent bodies: {result.n_permanent}")
 
 
 if __name__ == "__main__":

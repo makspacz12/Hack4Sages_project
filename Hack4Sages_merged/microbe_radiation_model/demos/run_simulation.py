@@ -1,5 +1,5 @@
 """
-Punkt wejścia uruchamiający pełny pipeline na domyślnych ustawieniach.
+Entry point running the full pipeline with default settings.
 """
 
 import sys
@@ -14,7 +14,7 @@ from microbe_radiation_model.simulation.scenarios import format_demo_report, run
 
 def main() -> None:
     """
-    Uruchamia domyślne demo i wypisuje wyniki w konsoli.
+    Run the default demo and print the results to the console.
     """
 
     configure_utf8_output()

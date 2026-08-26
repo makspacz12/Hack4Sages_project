@@ -1,8 +1,8 @@
 """
-Główne demo projektu.
+Main project demo.
 
-Najpierw pokazuje szybki test zależności gwiazda -> strumień, a następnie
-uruchamia spójny scenariusz z katalogu ``simulation``.
+First runs a quick star -> flux check, then runs the coherent scenario from
+the ``simulation`` package.
 """
 
 import sys
@@ -19,7 +19,7 @@ from microbe_radiation_model.simulation.scenarios import format_demo_report, run
 
 def main() -> None:
     """
-    Uruchamia szybki przegląd podstawowych obliczeń i domyślny scenariusz demo.
+    Run a quick overview of the base calculations and the default demo scenario.
     """
 
     configure_utf8_output()
@@ -30,9 +30,9 @@ def main() -> None:
 
     print("=== Szybki test promieniowania gwiazdy ===")
     print(f"Masa gwiazdy: {star_mass_solar} M_sun")
-    print(f"Jasność: {luminosity:.3e} W")
-    print(f"Strumień w 1 AU: {flux_1au:.3e} W/m^2")
-    print(f"Strumień w 2 AU: {flux_2au:.3e} W/m^2")
+    print(f"Luminosity: {luminosity:.3e} W")
+    print(f"Flux at 1 AU: {flux_1au:.3e} W/m^2")
+    print(f"Flux at 2 AU: {flux_2au:.3e} W/m^2")
     print()
     print(format_demo_report(run_connected_demo()))
 

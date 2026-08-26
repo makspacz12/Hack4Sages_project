@@ -1,5 +1,5 @@
 """
-Pomocnicze konfiguracje dla scenariuszy uruchomieniowych.
+Helper configuration objects for the run scenarios.
 """
 
 from __future__ import annotations
@@ -41,13 +41,19 @@ except ImportError:
 @dataclass(frozen=True)
 class SimulationMaterialConfig:
     """
-    Zestaw parametrów materiałowych i geometrycznych dla śledzonego obiektu.
+    Material and geometric parameters for the tracked object.
     """
 
     rock_radius: float
     bio_mass_fraction: float
     rock_material: Material
     bio_material: Material
+    # Thermal conductivity of the rock [W/(m*K)].
+    #
+    # Kept separate from `rock_material.k`, which is the Beer-Lambert MASS
+    # ATTENUATION coefficient [m^2/kg]. The two are different physical
+    # quantities and must never be assigned from one another.
+    rock_thermal_conductivity_w_mk: float = 2.0
 
 
 @dataclass(frozen=True)
@@ -159,20 +165,65 @@ class SimulationRunConfig:
         return self.solar_system.use_planets
 
 
-def default_material_config() -> SimulationMaterialConfig:
+# Default radius of a simulated ejecta fragment [m].
+#
+# This is deliberately NOT taken from the rock catalog. A `Rock` built by
+# `rock_variants_from_sources` carries `radius_m` of the *reference body* it was
+# measured on (for `basalt_vtype` that is asteroid 4 Vesta, 261 385 m), which is
+# five orders of magnitude larger than the fragments `ImpactSimulationConfig`
+# samples (0.001-5 m). Using the catalog radius here shields the biological core
+# completely and makes the whole radiation-to-biology chain report zeros.
+DEFAULT_FRAGMENT_RADIUS_M: float = 0.5
+
+# Beer-Lambert MASS ATTENUATION coefficient of the rock [m^2/kg].
+#
+# This is `Material.k`, used as `exp(-k * rho * x)` in `radiation/shielding_model.py`.
+# It is NOT thermal conductivity - assigning `Rock.thermal_conductivity_w_mk`
+# (2.0 W/(m*K) for basalt) here attenuates a 0.5 m fragment by exp(-3460), which
+# rounds to exactly zero flux at the biological core.
+DEFAULT_ROCK_ATTENUATION_K_M2_KG: float = 0.01
+
+# Fallback thermal conductivity when the rock variant does not define one [W/(m*K)].
+DEFAULT_ROCK_THERMAL_CONDUCTIVITY_W_MK: float = 2.0
+
+
+def default_material_config(
+    rock_radius_m: float | None = None,
+) -> SimulationMaterialConfig:
     """
-    Zwraca domyślny zestaw materiałów używany w obecnych demach.
+    Return the default material set used by the current demos.
+
+    Parameters
+    ----------
+    rock_radius_m : float, optional
+        Radius of the simulated ejecta fragment [m]. Defaults to
+        `DEFAULT_FRAGMENT_RADIUS_M`. Material properties (density, thermal
+        conductivity) still come from the first entry of `DEFAULT_ROCK_VARIANTS`;
+        only the geometry is decoupled from the catalog.
+
+    Notes
+    -----
+    `rock_material.k` is the Beer-Lambert mass attenuation coefficient [m^2/kg].
+    The rock's thermal conductivity [W/(m*K)] is carried separately in
+    `SimulationMaterialConfig.rock_thermal_conductivity_w_mk`.
     """
 
-    domyslna_skala = DEFAULT_ROCK_VARIANTS[0]
-    rock_k = 0.01
+    default_rock_variant = DEFAULT_ROCK_VARIANTS[0]
+    rock_attenuation_k = DEFAULT_ROCK_ATTENUATION_K_M2_KG
+    rock_thermal_conductivity = DEFAULT_ROCK_THERMAL_CONDUCTIVITY_W_MK
 
-    if isinstance(domyslna_skala, dict):
-        rock_name = str(domyslna_skala["name"])
-        rock_density = float(domyslna_skala["density"])
-        rock_radius = 0.5
+    if rock_radius_m is None:
+        rock_radius = DEFAULT_FRAGMENT_RADIUS_M
+    elif rock_radius_m <= 0.0:
+        raise ValueError("rock_radius_m must be positive.")
     else:
-        rock = domyslna_skala
+        rock_radius = float(rock_radius_m)
+
+    if isinstance(default_rock_variant, dict):
+        rock_name = str(default_rock_variant["name"])
+        rock_density = float(default_rock_variant["density"])
+    else:
+        rock = default_rock_variant
         if not isinstance(rock, Rock):
             raise TypeError(
                 "DEFAULT_ROCK_VARIANTS should contain Rock objects "
@@ -182,12 +233,13 @@ def default_material_config() -> SimulationMaterialConfig:
             raise ValueError(f"Rock '{rock.name}' is missing density_kg_m3.")
         rock_name = rock.name
         rock_density = rock.density_kg_m3
-        rock_radius = rock.radius_m if rock.radius_m is not None else 0.5
-        rock_k = rock.thermal_conductivity_w_mk if rock.thermal_conductivity_w_mk is not None else 0.01
+        if rock.thermal_conductivity_w_mk is not None:
+            rock_thermal_conductivity = rock.thermal_conductivity_w_mk
 
     return SimulationMaterialConfig(
         rock_radius=rock_radius,
         bio_mass_fraction=0.01,
-        rock_material=Material(name=rock_name, density=rock_density, k=rock_k),
+        rock_material=Material(name=rock_name, density=rock_density, k=rock_attenuation_k),
         bio_material=Material(name="bio", density=1100.0, k=0.02),
+        rock_thermal_conductivity_w_mk=rock_thermal_conductivity,
     )

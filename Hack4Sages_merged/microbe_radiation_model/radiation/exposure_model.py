@@ -1,5 +1,5 @@
 """
-Śledzenie skumulowanej ekspozycji na promieniowanie w czasie.
+Tracking of cumulative radiation exposure over time.
 """
 
 from dataclasses import dataclass
@@ -8,7 +8,7 @@ from dataclasses import dataclass
 @dataclass
 class ExposureState:
     """
-    Stan skumulowanej ekspozycji dla jednego śledzonego ciała.
+    Cumulative exposure state for a single tracked body.
     """
 
     cumulative_exposure: float = 0.0
@@ -16,7 +16,7 @@ class ExposureState:
 
 def update_exposure(state: ExposureState, local_flux: float, dt: float) -> None:
     """
-    Aktualizuje skumulowaną ekspozycję na podstawie lokalnego strumienia i kroku czasu.
+    Update the cumulative exposure from the local flux and the time step.
     """
     if dt < 0:
         raise ValueError("dt must be non-negative")

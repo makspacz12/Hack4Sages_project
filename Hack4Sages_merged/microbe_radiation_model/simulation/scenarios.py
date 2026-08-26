@@ -1,5 +1,5 @@
 """
-Gotowe scenariusze demo i formatowanie wyników do konsoli.
+Ready-made demo scenarios and console output formatting.
 """
 
 from __future__ import annotations
@@ -155,7 +155,7 @@ def _check_asteroid_effective_radii(
 @dataclass(frozen=True)
 class BodyExposureReport:
     """
-    Zwięzły raport ekspozycji i środowiska dla jednego śledzonego ciała.
+    Compact exposure and environment report for a single tracked body.
     """
 
     body_index: int
@@ -206,7 +206,7 @@ def _resolve_report_rock(material_config: SimulationMaterialConfig) -> Rock:
         name=material_config.rock_material.name,
         radius_m=material_config.rock_radius,
         density_kg_m3=material_config.rock_material.density,
-        thermal_conductivity_w_mk=material_config.rock_material.k,
+        thermal_conductivity_w_mk=material_config.rock_thermal_conductivity_w_mk,
     )
 
 
@@ -547,7 +547,7 @@ def run_mars_ejecta_pipeline_demo(
         return SimulationReport(
             mode="mars_ejecta_pipeline",
             used_rebound=False,
-            message="REBOUND nie jest dostępny, więc scenariusz marsjański nie może zostać uruchomiony.",
+            message="REBOUND is not available, so the Mars scenario cannot be run.",
         )
 
     from ..erosion import apply_dust_erosion_step
@@ -622,7 +622,7 @@ def run_mars_ejecta_pipeline_demo(
             )
             pressure_active = True
         except ImportError:
-            pressure_note = "REBOUNDx nie jest dostępny, więc ciśnienie promieniowania nie zostało podpięte."
+            pressure_note = "REBOUNDx is not available, so radiation pressure was not attached."
 
     output_dt_yr = run_config.dt_yr
     integration_substeps = max(1, run_config.integration_substeps)
@@ -732,14 +732,14 @@ def run_mars_ejecta_pipeline_demo(
                 continue
 
             rock = asteroid_state.to_rock()
+            # `Material.k` is the Beer-Lambert mass attenuation coefficient
+            # [m^2/kg]. It must not be filled from the asteroid's thermal
+            # conductivity [W/(m*K)] - those are different quantities, and doing
+            # so drives the shielded flux to exactly zero.
             rock_material = Material(
                 name=rock.name,
                 density=asteroid_state.density_kg_m3,
-                k=(
-                    asteroid_state.thermal_conductivity_w_mk
-                    if asteroid_state.thermal_conductivity_w_mk is not None
-                    else material_config.rock_material.k
-                ),
+                k=material_config.rock_material.k,
             )
             bio_material = material_config.bio_material
             star = sim.particles[nearest_index]
@@ -797,16 +797,26 @@ def run_mars_ejecta_pipeline_demo(
                 gcr_local_flux=gcr_local_flux,
             )
 
-            # Aktualizacja frakcji przetrwałej populacji na podstawie lokalnych warunków.
+            # Update the surviving population fraction from the local conditions.
             if body_report.hydrolysis_rate_s_inv is not None:
-                # Dawka z rozpadu radionuklidów w skale [Gy/year].
+                # Dose from radionuclide decay inside the rock [Gy/year].
                 radiation_decay_gy_per_year = radiation_decay_gy_per_year_from_rock(rock)
-                # Dawka z promieniowania kosmicznego po ekranowaniu.
-                # Kalibracja: 1.0 modelowego GCR odpowiada 0.194 Gy/year (Mileikowsky et al. 2000).
+                # Cosmic ray dose after shielding.
+                # Calibration: 1.0 model GCR unit = 0.194 Gy/year (Mileikowsky et al. 2000).
                 radiation_space_gy_per_year = float(gcr_local_flux) * 0.194
-                # Czas kroku w latach.
+                # Step duration in years.
                 t_years = dt_s / SECONDS_PER_YEAR
-                # Indywidualny współczynnik wrażliwości radiacyjnej dla tej asteroidy.
+                # Per-asteroid radiation sensitivity coefficient.
+                #
+                # AUDIT WARNING - the default 5e-6 is five orders of magnitude
+                # below the 0.15-0.5 range documented in
+                # biology/survival.py::survival_function. It appears to have been
+                # tuned to offset the inflated gamma dose coefficients (see
+                # radiation/radionuclide_model/gamma.py). The two errors very
+                # nearly cancel - 46.6 Gy/yr x 5e-6 = 2.3e-4 /yr versus a
+                # first-principles 1.07e-3 Gy/yr x 0.3 = 3.2e-4 /yr - so the
+                # final numbers look reasonable for the wrong reason. Fix both
+                # together, never one alone.
                 radiation_surv_coeff = float(
                     asteroid_state.extra.get("radiation_surv_coeff", 5e-6)
                 )
@@ -866,7 +876,7 @@ def run_mars_ejecta_pipeline_demo(
                     gcr_total_flux=gcr_total_flux,
                     gcr_spectrum=gcr_spectrum,
                 )
-                # Uzupełniamy rekordy o informację biologiczną, jeśli jest dostępna.
+                # Add the biological information to the records when available.
                 radiation_record["population_fraction"] = asteroid_state.population_fraction
                 rock_record["population_fraction"] = asteroid_state.population_fraction
                 radiation_records_buffer.append(radiation_record)
@@ -892,7 +902,7 @@ def run_mars_ejecta_pipeline_demo(
             )
 
             # Per-frame global aggregates for visualization / analytics.
-            # Operujemy na bieżących raportach ciał i stanie asteroid.
+            # Work on the current body reports and asteroid state.
             aggregates: dict[str, float | int | None] = {}
 
             # All asteroid states for this scenario.
@@ -1005,14 +1015,14 @@ def run_mars_ejecta_pipeline_demo(
             )
         )
     message = (
-        f"Uruchomiono scenariusz marsjański dla {len(body_indices)} asteroid i "
-        f"wyeksportowano {run_config.n_steps} stanów co {run_config.dt_yr:.3f} roku "
-        f"(krok wewnętrzny {integration_dt_yr:.3f} roku)."
+        f"Ran the Mars scenario for {len(body_indices)} asteroids and exported "
+        f"{run_config.n_steps} states every {run_config.dt_yr:.3f} yr "
+        f"(inner step {integration_dt_yr:.3f} yr)."
     )
     if pressure_note:
         message = f"{message} {pressure_note}"
     elif pressure_active:
-        message = f"{message} Ciśnienie promieniowania przez REBOUNDx było aktywne."
+        message = f"{message} Radiation pressure via REBOUNDx was active."
 
     return SimulationReport(
         mode="mars_ejecta_pipeline",
@@ -1037,7 +1047,7 @@ def run_static_radiation_demo(
     run_config: Optional[SimulationRunConfig] = None,
 ) -> SimulationReport:
     """
-    Uruchamia statyczne demo całego łańcucha promieniowania bez REBOUND.
+    Run the static demo of the whole radiation chain without REBOUND.
     """
 
     material_config = material_config or default_material_config()
@@ -1066,8 +1076,8 @@ def run_static_radiation_demo(
     state = ExposureState()
     update_exposure(state=state, local_flux=result.local_flux, dt=dt_seconds)
 
-    # GCR: najpierw poziom na powierzchni w zależności od gwiazdy i odległości,
-    # potem tłumienie w skale tym samym prawem Beer-Lamberta co dla UV.
+    # GCR: first the surface level as a function of star and distance, then
+    # attenuation in the rock using the same Beer-Lambert law as for UV.
     gcr_surface_flux = cosmic_flux_by_star(distance_au=distance_au, luminosity_w=luminosity)
     gcr_result = radiation_at_point_in_rock_with_bio_core(
         point=(0.0, 0.0, 0.0),
@@ -1111,7 +1121,7 @@ def run_static_radiation_demo(
     return SimulationReport(
         mode="static_radiation",
         used_rebound=False,
-        message="REBOUND nie jest dostępny, więc pokazuję kompletny pipeline promieniowania bez dynamiki orbitalnej.",
+        message="REBOUND is not available; showing the full radiation pipeline without orbital dynamics.",
         body_reports=[body_report],
         distance_au=distance_au,
         surface_flux=surface_flux,
@@ -1126,7 +1136,7 @@ def run_connected_demo(
     run_config: Optional[SimulationRunConfig] = None,
 ) -> SimulationReport:
     """
-    Uruchamia pełne demo; jeśli REBOUND nie jest zainstalowany, przechodzi na tryb statyczny.
+    Run the full demo; falls back to static mode when REBOUND is not installed.
     """
 
     run_config = run_config or SimulationRunConfig()
@@ -1188,7 +1198,7 @@ def run_connected_demo(
             surface_flux=surface_flux,
         )
 
-        # GCR: analogicznie jak UV – poziom zależny od gwiazdy/odległości i tłumienie w skale.
+        # GCR: same as UV - level depends on star and distance, then rock attenuation.
         gcr_surface_flux = cosmic_flux_by_star(distance_au=distance_au, luminosity_w=luminosity)
         gcr_shielding_result = radiation_at_point_in_rock_with_bio_core(
             point=(0.0, 0.0, 0.0),
@@ -1236,7 +1246,7 @@ def run_connected_demo(
     return SimulationReport(
         mode="rebound_pipeline",
         used_rebound=True,
-        message="Uruchomiono połączony pipeline REBOUND, promieniowania, temperatury i hydrolyzy.",
+        message="Ran the connected REBOUND, radiation, temperature and hydrolysis pipeline.",
         body_reports=body_reports,
         distance_au=first_body.distance_au if first_body is not None else None,
         surface_flux=first_body.surface_flux if first_body is not None else None,
@@ -1249,47 +1259,47 @@ def run_connected_demo(
 
 def format_demo_report(report: SimulationReport) -> str:
     """
-    Zamienia raport scenariusza na czytelny tekst do konsoli.
+    Render a scenario report as readable console text.
     """
 
     lines = [
-        "=== Raport demo ===",
-        f"Tryb: {report.mode}",
+        "=== Demo report ===",
+        f"Mode: {report.mode}",
         report.message,
     ]
 
     if report.distance_au is not None:
-        lines.append(f"Odległość od gwiazdy: {report.distance_au:.3f} AU")
+        lines.append(f"Distance to star: {report.distance_au:.3f} AU")
     if report.surface_flux is not None:
-        lines.append(f"Strumień na powierzchni skały: {report.surface_flux:.3e} W/m^2")
+        lines.append(f"Flux at rock surface: {report.surface_flux:.3e} W/m^2")
     if report.local_flux is not None:
-        lines.append(f"Strumień w centrum biologicznym: {report.local_flux:.3e} W/m^2")
+        lines.append(f"Flux at biological core: {report.local_flux:.3e} W/m^2")
     if report.dt_seconds is not None:
-        lines.append(f"Krok czasu ekspozycji: {report.dt_seconds:.1f} s")
+        lines.append(f"Exposure time step: {report.dt_seconds:.1f} s")
     if report.total_time_years is not None:
-        lines.append(f"Czas końcowy symulacji: {report.total_time_years:.6f} roku")
+        lines.append(f"Final simulation time: {report.total_time_years:.6f} yr")
     if report.permanent_bodies is not None:
-        lines.append(f"Liczba ciał stałych w symulacji: {report.permanent_bodies}")
+        lines.append(f"Permanent bodies in simulation: {report.permanent_bodies}")
     if report.json_exported:
-        lines.append("Eksport JSON: włączony")
+        lines.append("JSON export: enabled")
     if report.visualizer_export_path is not None:
-        lines.append(f"Eksport wizualizacji: {report.visualizer_export_path}")
+        lines.append(f"Visualizer export: {report.visualizer_export_path}")
 
     if report.body_reports:
         for body_report in report.body_reports:
             lines.append(
-                f"Ciało {body_report.body_index}: ekspozycja skumulowana = "
+                f"Body {body_report.body_index}: cumulative exposure = "
                 f"{body_report.cumulative_exposure:.3e} J/m^2"
             )
             if body_report.nearest_star_index is not None:
-                lines.append(f"  Najbliższa gwiazda: {body_report.nearest_star_index}")
+                lines.append(f"  Nearest star: {body_report.nearest_star_index}")
             if body_report.distance_au is not None:
-                lines.append(f"  Odległość: {body_report.distance_au:.3f} AU")
+                lines.append(f"  Distance: {body_report.distance_au:.3f} AU")
             if body_report.center_temperature_k is not None:
-                lines.append(f"  Temperatura centrum: {body_report.center_temperature_k:.2f} K")
+                lines.append(f"  Centre temperature: {body_report.center_temperature_k:.2f} K")
             if body_report.hydrolysis_rate_s_inv is not None:
-                lines.append(f"  Hydroliza: {body_report.hydrolysis_rate_s_inv:.3e} 1/s")
+                lines.append(f"  Hydrolysis rate: {body_report.hydrolysis_rate_s_inv:.3e} 1/s")
     else:
-        lines.append("Brak ciał śledzonych w tym scenariuszu.")
+        lines.append("No bodies tracked in this scenario.")
 
     return "\n".join(lines)

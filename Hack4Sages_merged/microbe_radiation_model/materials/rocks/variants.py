@@ -1,11 +1,11 @@
 """
-Domyślne warianty skal używane w symulacjach.
+Default rock variants used in the simulations.
 
-Proste warianty z tego modułu zostały zastąpione bogatszym zestawem
-skal bazujących na danych NASA/JPL i literaturze naukowej, zadeklarowanych
-w pliku `rock_variants_from_sources.py`. Zachowujemy jednak krótkie aliasy
-`BASALT`, `CHONDRITE`, `ICE_RICH` dla kompatybilności z istniejącym kodem
-i dokumentacją.
+The simple variants in this module were superseded by a richer set of rocks
+based on NASA/JPL data and the scientific literature, declared in
+`rock_variants_from_sources.py`. The short aliases `BASALT`, `CHONDRITE` and
+`ICE_RICH` are kept for compatibility with existing code and documentation.
+
 """
 
 from .rock_variants_from_sources import (
@@ -28,9 +28,9 @@ BASALT = BASALT_VTYPE
 CHONDRITE = ORDINARY_CHONDRITE
 ICE_RICH = ICE_RICH_SOURCE
 
-# Kanoniczna lista wariantów skał używana przy generowaniu populacji asteroid
-# (np. w module `impacts.mars_impact`). Wszystkie mają komplet parametrów
-# fizycznych (bez wartości None), więc przechodzą walidację w `_normalize_variant`.
+# Canonical list of rock variants used when generating asteroid populations
+# (for example in `impacts.mars_impact`). All of them carry a complete set of
+# physical parameters (no None values), so they pass `_normalize_variant`.
 DEFAULT_ROCK_VARIANTS = [
     BASALT_VTYPE,
     CI_CHONDRITE,

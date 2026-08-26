@@ -1,23 +1,23 @@
 """
-Modele temperatury powierzchni skały.
+Rock surface temperature models.
 
-Pierwszy krok: temperatura równowagi radiacyjnej od zewnętrznego promieniowania
-gwiazdowego (UV / całkowity strumień), bez atmosfery i bez wewnętrznego
+First step: radiative equilibrium temperature from external stellar radiation
+(UV / total flux), with no atmosphere and no internal heating.
 ogrzewania.
 
-Wzór:
+Formula:
 
     T = ((1 - A) * L_star / (16 * pi * sigma * d^2))^(1/4)
 
-ale w praktyce korzystamy z faktu, że:
+but in practice we use the fact that:
 
     F_star = L_star / (4 * pi * d^2)
 
-więc:
+so:
 
     T = ((1 - A) * F_star / (4 * sigma))^(1/4)
 
-co pozwala nam używać już policzonego strumienia powierzchniowego (flux),
+which lets us reuse an already computed surface flux without duplicating the
 bez duplikowania logiki z modulu `radiation.stellar`.
 """
 
@@ -29,7 +29,7 @@ from ..physics.stellar_physics import stellar_luminosity_from_solar_mass
 from ..radiation import stellar_flux_at_au
 
 
-# Stała Stefana–Boltzmanna [W·m^-2·K^-4]
+# Stefan-Boltzmann constant [W*m^-2*K^-4]
 STEFAN_BOLTZMANN_W_M2_K4: float = 5.670374419e-8
 
 
@@ -38,23 +38,23 @@ def equilibrium_temperature_from_flux(
     albedo: float = 0.0,
 ) -> float:
     """
-    Temperatura równowagi radiacyjnej powierzchni skały z danego strumienia.
+    Radiative equilibrium temperature of the rock surface for a given flux.
 
     Parametry
     ----------
     surface_flux_w_m2 : float
-        Strumień promieniowania docierający do powierzchni skały [W/m^2].
-        Może to być:
-        - całkowity strumień od gwiazdy (wynik `stellar_flux` / `stellar_flux_at_au`),
-        - lub tylko komponent UV, jeśli modelujesz osobno.
-    albedo : float, domyślnie 0.0
-        Albedo skały (0..1). 0 oznacza idealnego pochłaniacza,
-        1 oznacza całkowite odbicie.
+        Radiation flux reaching the rock surface [W/m^2].
+        This can be either:
+        - the total stellar flux (from `stellar_flux` / `stellar_flux_at_au`), or
+        - only the UV component, if modelled separately.
+    albedo : float, default 0.0
+        Rock albedo (0..1). 0 means a perfect absorber,
+        1 means total reflection.
 
-    Zwraca
+    Returns
     -------
     float
-        Temperatura równowagi powierzchni skały w Kelvinach [K].
+        Equilibrium temperature of the rock surface in kelvin [K].
     """
     if surface_flux_w_m2 < 0.0:
         raise ValueError("surface_flux_w_m2 must be >= 0.")
@@ -77,15 +77,15 @@ def equilibrium_temperature_from_star(
     surface_flux_override_w_m2: Optional[float] = None,
 ) -> float:
     """
-    Temperatura równowagi radiacyjnej od gwiazdy o zadanej masie na zadanej odległości.
+    Radiative equilibrium temperature for a star of given mass at a given distance.
 
-    Ta funkcja jest tylko wygodnym wrapperem:
+    This function is just a convenience wrapper:
     - korzysta z fizyki gwiazdy (`stellar_luminosity_from_solar_mass`)
-    - korzysta z istniejącego modelu strumienia (`stellar_flux_at_au`)
+    - reuses the existing flux model (`stellar_flux_at_au`)
     - NIE duplikuje logiki promieniowania.
 
-    Jeśli podasz `surface_flux_override_w_m2`, funkcja pominie krok liczenia
-    fluxu z masy/odległości i użyje tego fluxu bezpośrednio.
+    If `surface_flux_override_w_m2` is given, the function skips computing the
+    flux from mass/distance and uses that flux directly.
     """
     if surface_flux_override_w_m2 is not None:
         return equilibrium_temperature_from_flux(

@@ -1,14 +1,14 @@
 """
-Uproszczony skład galaktycznego promieniowania kosmicznego (GCR).
+Simplified composition of galactic cosmic radiation (GCR).
 
-GCR składa się głównie z:
+GCR consists mainly of:
 
-- protonów
-- jąder helu
-- ciężkich jonów (HZE)
+- protons
+- helium nuclei
+- heavy ions (HZE)
 
-Ten moduł dostarcza prosty model podziału całkowitego fluxu GCR
-na jego główne komponenty.
+This module provides a simple model splitting the total GCR flux into its
+main components.
 """
 
 from __future__ import annotations
@@ -18,16 +18,16 @@ from dataclasses import dataclass
 @dataclass
 class CosmicRaySpectrum:
     """
-    Reprezentuje skład promieniowania kosmicznego.
+    Represents the composition of cosmic radiation.
 
     Attributes
     ----------
     proton_flux : float
-        Flux protonów.
+        Proton flux.
     alpha_flux : float
-        Flux jąder helu.
+        Helium nuclei flux.
     hze_flux : float
-        Flux ciężkich jonów (HZE).
+        Heavy ion (HZE) flux.
     """
 
     proton_flux: float
@@ -42,17 +42,17 @@ HZE_FRACTION = 0.01
 
 def split_cosmic_flux(total_flux: float) -> CosmicRaySpectrum:
     """
-    Rozdziela całkowity flux GCR na główne składniki.
+    Split the total GCR flux into its main components.
 
     Parameters
     ----------
     total_flux : float
-        Całkowity flux promieniowania kosmicznego.
+        Total cosmic radiation flux.
 
     Returns
     -------
     CosmicRaySpectrum
-        Podział fluxu na protony, jądra helu i ciężkie jony.
+        Flux split into protons, helium nuclei and heavy ions.
     """
 
     if total_flux < 0:

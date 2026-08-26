@@ -1,5 +1,5 @@
 """
-Podstawowe elementy fizyczne wykorzystywane w całym pakiecie.
+Core physical building blocks used across the package.
 """
 
 from .constants import AU, SECONDS_PER_YEAR, SOLAR_LUMINOSITY, SOLAR_MASS

@@ -1,9 +1,9 @@
 """
-Warstwa uruchomieniowa dla REBOUND i pipeline'u promieniowania.
+Execution layer for REBOUND and the radiation pipeline.
 
-Ten katalog zbiera odpowiedzialności związane z:
-- budową układu w REBOUND,
-- sprzężeniem odległości z promieniowaniem,
+This package collects the responsibilities for:
+- building the REBOUND system,
+- coupling distances to radiation,
 - uruchamianiem scenariuszy pokazowych.
 """
 

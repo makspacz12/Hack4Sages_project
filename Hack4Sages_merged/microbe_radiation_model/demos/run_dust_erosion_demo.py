@@ -57,12 +57,12 @@ def main() -> None:
     initial_min_radius = min(initial_radii.values())
     final_min_radius = min(final_radii)
 
-    print("=== Demo erozji pyłowej ===")
+    print("=== Dust erosion demo ===")
     print(f"Liczba asteroid: {len(final_radii)}")
-    print(f"Minimalny promień początkowy: {initial_min_radius:.6e} m")
-    print(f"Minimalny promień końcowy: {final_min_radius:.6e} m")
+    print(f"Minimum initial radius: {initial_min_radius:.6e} m")
+    print(f"Minimum final radius: {final_min_radius:.6e} m")
     print(
-        "Przykładowa utrata promienia: "
+        "Sample radius loss: "
         f"{asteroid_state_store.get(asteroid_state_store.asteroid_indices()[0]).extra['cumulative_radius_loss_m']:.6e} m"
     )
 

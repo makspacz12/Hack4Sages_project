@@ -1,5 +1,5 @@
 """
-Pomocnicze funkcje do bezpiecznego wypisywania polskich komunikatów w konsoli.
+Helpers for safely printing non-ASCII report text to the console.
 """
 
 import sys
@@ -7,7 +7,7 @@ import sys
 
 def configure_utf8_output() -> None:
     """
-    Przełącza standardowe wyjście na UTF-8, jeśli interpreter to wspiera.
+    Switch standard output to UTF-8 when the interpreter supports it.
     """
 
     if hasattr(sys.stdout, "reconfigure"):

@@ -1,5 +1,5 @@
 """
-Proste katalogi i presety parametrów używanych przez model.
+Simple catalogs and parameter presets used by the model.
 """
 
 from .asteroid_properties import DEFAULT_ROCK_VARIANTS

@@ -1,8 +1,8 @@
 """
-Podstawowe zależności fizyczne dla gwiazd ciągu głównego.
+Basic physical relations for main-sequence stars.
 
-Na razie moduł przelicza masę gwiazdy na jasność, co stanowi pierwszy etap
-budowy środowiska radiacyjnego.
+For now the module converts stellar mass to luminosity, the first stage of
+building the radiation environment.
 """
 
 from .constants import SOLAR_LUMINOSITY, SOLAR_MASS
@@ -10,7 +10,7 @@ from .constants import SOLAR_LUMINOSITY, SOLAR_MASS
 
 def stellar_luminosity_from_mass(mass_kg: float) -> float:
     """
-    Oblicza jasność gwiazdy ciągu głównego na podstawie masy w kilogramach.
+    Compute main-sequence stellar luminosity from a mass given in kilograms.
     """
     if mass_kg <= 0:
         raise ValueError("Stellar mass must be positive.")
@@ -20,7 +20,7 @@ def stellar_luminosity_from_mass(mass_kg: float) -> float:
 
 def stellar_luminosity_from_solar_mass(mass_solar: float) -> float:
     """
-    Oblicza jasność gwiazdy ciągu głównego na podstawie masy w masach Słońca.
+    Compute main-sequence stellar luminosity from a mass given in solar masses.
     """
     if mass_solar <= 0:
         raise ValueError("Stellar mass in solar units must be positive.")

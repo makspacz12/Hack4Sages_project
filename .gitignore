@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+
+# Downloaded SPICE kernels (fetched at runtime from naif.jpl.nasa.gov)
+kernels/
+*.bsp
+*.tls
+*.tpc
+
+# Generated simulation output
+Hack4Sages_merged/microbe_radiation_model/data/gamma_radiation_timeseries.json
+Hack4Sages_merged/microbe_radiation_model/data/rock_radiation_summary.json
+Hack4Sages_merged/microbe_radiation_model/data/cosmos_visualizer_simulation.json
+
+# Node / frontend (branch `kacper`)
+node_modules/
+dist/
+dist-ssr/
+.vite/
+coverage/
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs and archives
+*.log
+*.zip
+
+# Local-only Polish walkthrough (deliberately not published)
+OPRACOWANIE.md

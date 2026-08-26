@@ -60,7 +60,7 @@ def main() -> None:
         for asteroid in impact_result.asteroids
     ]
 
-    print("=== Demo ciśnienia promieniowania ===")
+    print("=== Radiation pressure demo ===")
     print(f"Radiation forces aktywne. c = {radiation_forces.params['c']:.2f} AU/yr")
     print(f"Beta przypisane {len(beta_by_particle)} asteroidom.")
     print(f"Dynamiczny refresh wykonany po 3 krokach. Zakres beta: {min(current_betas):.3e} - {max(current_betas):.3e}")

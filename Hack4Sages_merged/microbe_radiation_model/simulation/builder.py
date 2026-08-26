@@ -1,5 +1,5 @@
 """
-Budowanie układu REBOUND zgodnego z resztą projektu.
+Construction of a REBOUND system consistent with the rest of the project.
 """
 
 from __future__ import annotations
@@ -63,7 +63,7 @@ def build_simulation(
     """
 
     if rebound is None:
-        raise ImportError("REBOUND jest wymagany do build_simulation. Zainstaluj pakiet 'rebound'.")
+        raise ImportError("REBOUND is required for build_simulation. Install the 'rebound' package.")
 
     sim = rebound.Simulation()
 

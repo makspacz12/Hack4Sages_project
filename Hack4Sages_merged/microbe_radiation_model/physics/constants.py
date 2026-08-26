@@ -1,8 +1,8 @@
 """
-Stałe fizyczne i astronomiczne używane w całym projekcie.
+Physical and astronomical constants used throughout the project.
 
-Trzymamy je w jednym miejscu, żeby model promieniowania i warstwa symulacyjna
-korzystały dokładnie z tych samych wartości.
+They are kept in one place so the radiation model and the simulation layer use
+exactly the same values.
 """
 
 SOLAR_LUMINOSITY = 3.828e26   # W

@@ -1,17 +1,17 @@
 """
-Model galaktycznego promieniowania kosmicznego (GCR).
+Galactic cosmic radiation (GCR) model.
 
-Ten modul dostarcza uproszczony model tła promieniowania kosmicznego
-działającego na obiekty w przestrzeni kosmicznej.
+This module provides a simplified model of the cosmic ray background acting
+on objects in space.
 
-Model rozróżnia dwa regiony:
+The model distinguishes two regions:
 
-1. Wnętrze heliosfery gwiazdy
-   - promieniowanie kosmiczne jest częściowo tłumione przez wiatr gwiazdowy
+1. Inside the star's heliosphere
+   - cosmic radiation is partly suppressed by the stellar wind
 
-2. Przestrzeń międzygwiazdowa
-   - brak osłony heliosfery
-   - wyższy poziom GCR
+2. Interstellar space
+   - no heliospheric shielding
+   - higher GCR level
 """
 
 from __future__ import annotations
@@ -28,17 +28,17 @@ DEFAULT_HELIOSPHERE_RADIUS_AU = 120.0
 
 def cosmic_background_flux(base_flux: float = COSMIC_BACKGROUND_FLUX) -> float:
     """
-    Zwraca bazowy flux galaktycznego promieniowania kosmicznego.
+    Return the base galactic cosmic ray flux.
 
     Parameters
     ----------
     base_flux : float
-        Bazowy flux promieniowania kosmicznego.
+        Base cosmic ray flux.
 
     Returns
     -------
     float
-        Flux promieniowania kosmicznego.
+        Cosmic ray flux.
     """
 
     if base_flux < 0:
@@ -54,23 +54,23 @@ def cosmic_flux_by_region(
     deep_space_multiplier: float = COSMIC_DEEP_SPACE_MULTIPLIER,
 ) -> float:
     """
-    Zwraca flux promieniowania kosmicznego w zależności od regionu kosmosu.
+    Return the cosmic ray flux as a function of the region of space.
 
     Parameters
     ----------
     distance_au : float
-        Odległość od gwiazdy [AU]
+        Distance from the star [AU]
     base_flux : float
-        Bazowy flux GCR wewnątrz heliosfery
+        Base GCR flux inside the heliosphere
     heliosphere_radius_au : float
-        Promień heliosfery gwiazdy
+        Heliosphere radius of the star
     deep_space_multiplier : float
-        Wzrost GCR poza heliosferą
+        GCR increase outside the heliosphere
 
     Returns
     -------
     float
-        Flux promieniowania kosmicznego
+        Cosmic ray flux
     """
 
     if distance_au < 0:
@@ -90,14 +90,14 @@ def cosmic_flux_by_star(
     transition_width_factor: float = 1.0,
 ) -> float:
     """
-    Zwraca flux GCR z uwzględnieniem rozmiaru heliosfery konkretnej gwiazdy.
+    Return the GCR flux accounting for the heliosphere size of a specific star.
 
-    Założenia:
-    - promień heliosfery skaluje się z jasnością gwiazdy jak sqrt(L_star / L_sun),
-      tzn. R_helio = 120 AU * sqrt(L_star / L_sun),
-    - wewnątrz R_helio flux = base_flux,
-    - daleko poza (>= R_helio * (1 + transition_width_factor)) flux = base_flux * deep_space_multiplier,
-    - pomiędzy tymi strefami stosowany jest prosty liniowy ramp.
+    Assumptions:
+    - the heliosphere radius scales with stellar luminosity as sqrt(L_star / L_sun),
+      i.e. R_helio = 120 AU * sqrt(L_star / L_sun),
+    - inside R_helio the flux equals base_flux,
+    - far outside (>= R_helio * (1 + transition_width_factor)) the flux is base_flux * deep_space_multiplier,
+    - a simple linear ramp is applied between those zones.
     """
 
     if distance_au < 0:
@@ -107,15 +107,15 @@ def cosmic_flux_by_star(
     if transition_width_factor < 0:
         raise ValueError("transition_width_factor must be >= 0")
 
-    # Jasność w jednostkach słonecznych – zabezpieczenie przed skrajnie małymi wartościami.
+    # Luminosity in solar units - guarded against extremely small values.
     luminosity_ratio = max(luminosity_w / SOLAR_LUMINOSITY, 1e-3)
 
-    # Skalowanie promienia heliosfery z jasnością.
+    # Scale the heliosphere radius with luminosity.
     r_helio_au = DEFAULT_HELIOSPHERE_RADIUS_AU * math.sqrt(luminosity_ratio)
     if r_helio_au <= 0.0:
         return base_flux
 
-    # Szerokość strefy przejściowej.
+    # Width of the transition zone.
     r_transition_au = r_helio_au * (1.0 + transition_width_factor)
 
     if distance_au <= r_helio_au:
@@ -123,7 +123,7 @@ def cosmic_flux_by_star(
     if distance_au >= r_transition_au:
         return base_flux * deep_space_multiplier
 
-    # Liniowe przejście 1.0 -> deep_space_multiplier w strefie przejściowej.
+    # Linear transition from 1.0 to deep_space_multiplier across the zone.
     t = (distance_au - r_helio_au) / (r_transition_au - r_helio_au)
     factor = 1.0 + (deep_space_multiplier - 1.0) * t
     return base_flux * factor

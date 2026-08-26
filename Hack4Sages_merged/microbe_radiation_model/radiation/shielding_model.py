@@ -1,9 +1,9 @@
 """
-Model tłumienia promieniowania w skale z centralnym rdzeniem biologicznym.
+Radiation attenuation model for a rock with a central biological core.
 
-Układ ma dwa obszary:
-- zewnętrzną warstwę skalną,
-- wewnętrzny rdzeń biologiczny.
+The object has two regions:
+- an outer rock shell,
+- an inner biological core.
 """
 
 import math
@@ -16,7 +16,7 @@ from ..physics.materials import Material
 @dataclass(frozen=True)
 class RadiationPointResult:
     """
-    Wynik obliczenia promieniowania dla jednego punktu wewnątrz obiektu.
+    Radiation result for a single point inside the object.
     """
 
     point: Tuple[float, float, float]
@@ -35,7 +35,7 @@ def attenuation_factor(
     k: float,
 ) -> float:
     """
-    Liczy współczynnik tłumienia zgodnie z prawem Beer-Lamberta.
+    Compute the attenuation factor according to the Beer-Lambert law.
     """
     if path_length < 0:
         raise ValueError("path_length cannot be negative")
@@ -56,7 +56,7 @@ def radiation_at_point_in_rock_with_bio_core(
     surface_flux: float,
 ) -> RadiationPointResult:
     """
-    Oblicza lokalny strumień promieniowania dla punktu wewnątrz skały z rdzeniem biologicznym.
+    Compute the local radiation flux at a point inside a rock with a biological core.
     """
     if rock_radius <= 0:
         raise ValueError("rock_radius must be positive")
@@ -73,11 +73,11 @@ def radiation_at_point_in_rock_with_bio_core(
     if r > rock_radius:
         raise ValueError(f"Point {point} lies outside the rock")
 
-    # Punkt znajduje się wewnątrz rdzenia biologicznego.
+    # The point lies inside the biological core.
     if r <= bio_radius:
         path_in_rock = rock_radius - bio_radius
         path_in_bio = bio_radius - r
-    # Punkt leży w warstwie skalnej, poza rdzeniem biologicznym.
+    # The point lies in the rock shell, outside the biological core.
     else:
         path_in_rock = rock_radius - r
         path_in_bio = 0.0
@@ -120,7 +120,7 @@ def radiation_at_points_in_rock_with_bio_core(
     surface_flux: float,
 ) -> List[RadiationPointResult]:
     """
-    Liczy promieniowanie dla wielu punktów wewnątrz tego samego obiektu.
+    Compute radiation for many points inside the same object.
     """
     return [
         radiation_at_point_in_rock_with_bio_core(

@@ -1,29 +1,32 @@
 # physics
 
-Ten katalog zawiera podstawowe cegielki obliczeniowe niezależne od konkretnej symulacji.
+Basic computational building blocks that do not depend on any particular simulation.
 
-## Co jest tutaj trzymane
-- stałe fizyczne i astronomiczne
-- definicja materiałów używanych przez model ekranowania
-- funkcje geometrii kulistej dla skały i rdzenia biologicznego
-- relacja masa gwiazdy -> jasność gwiazdy
+## What lives here
 
-## Moduły
+- physical and astronomical constants
+- the material definition used by the shielding model
+- spherical geometry helpers for the rock and its biological core
+- the stellar mass → luminosity relation
+
+## Modules
+
 - `constants.py`
-  - trzyma wspólne stałe: `SOLAR_LUMINOSITY`, `SOLAR_MASS`, `AU`, `SECONDS_PER_YEAR`
-  - jest importowany przez `radiation/` i `simulation/`
+  - holds the shared constants: `SOLAR_LUMINOSITY`, `SOLAR_MASS`, `AU`, `SECONDS_PER_YEAR`
+  - imported by `radiation/`, `thermal/`, `biology/` and `simulation/`
 - `materials.py`
-  - definiuje klasę `Material` (`name`, `density`, `k`)
-  - ta klasa jest używana jako kontrakt danych pomiędzy warstwami
+  - defines `Material` (`name`, `density`, `k`)
+  - this class is the data contract between layers
 - `geometry.py`
-  - liczy objętość i masę kuli oraz promień rdzenia biologicznego
-  - funkcja `biological_core_radius` jest używana przy obliczeniach ekranowania
+  - sphere volume and mass, plus the biological core radius
+  - `biological_core_radius` is used by the shielding calculation
 - `stellar_physics.py`
-  - liczy jasność gwiazdy na podstawie masy (`kg` lub `M_sun`)
-  - dostarcza wejście do obliczeń strumienia promieniowania
+  - stellar luminosity from mass (`kg` or `M_sun`)
+  - feeds the radiation flux calculation
 - `__init__.py`
-  - eksportuje najważniejsze symbole, żeby warstwa wyżej mogła importować je wygodnie
+  - re-exports the key symbols so higher layers can import them conveniently
 
-## Wejście i wyjście tej warstwy
-- wejście: liczby skalarne (masa, gęstość, promień)
-- wyjście: wartości fizyczne gotowe do wykorzystania przez `radiation/` i `simulation/`
+## Input and output of this layer
+
+- **in:** scalar values (mass, density, radius)
+- **out:** physical quantities ready for `radiation/`, `thermal/` and `simulation/`

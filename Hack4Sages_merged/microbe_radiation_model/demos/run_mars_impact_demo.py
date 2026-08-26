@@ -22,10 +22,10 @@ def main() -> None:
     )
     asteroid_df = impact_result.to_dataframe()
 
-    print("=== Demo impaktu marsjańskiego ===")
+    print("=== Mars impact demo ===")
     print(f"Dodano asteroid: {len(impact_result.asteroids)}")
     print(f"Pierwszy indeks: {impact_result.first_index}")
-    print(f"Najbliższa gwiazda dla impaktu: {impact_result.nearest_star_index}")
+    print(f"Nearest star to the impact: {impact_result.nearest_star_index}")
     print(
         "Zakres beta: "
         f"{asteroid_df['beta'].min():.3e} - {asteroid_df['beta'].max():.3e}"

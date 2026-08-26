@@ -4,7 +4,7 @@ from dataclasses import dataclass
 @dataclass(frozen=True)
 class Material:
     """
-    Właściwości fizyczne materiału używanego w obliczeniach ekranowania.
+    Physical properties of a material used in the shielding calculation.
     """
 
     name: str

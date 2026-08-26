@@ -1,0 +1,54 @@
+Concept: using AMUSE in this project (draft)
+--------------------------------------------
+
+Main goal:
+    - Extend the current simulation (REBOUND/REBOUNDx) with additional physics
+      that may in future require several specialised solvers.
+
+What we already have without AMUSE:
+    - N-body dynamics in REBOUND: the Sun + planets + 50 Gaia stars.
+    - (Planned) radiation pressure on asteroids via REBOUNDx.
+    - The ability to add "local" per-asteroid processes (cosmic radiation,
+      hydrolysis, erosion) as our own modules on top of REBOUND.
+
+Potential roles for AMUSE:
+1) Managing multiple solvers:
+    - N-body: different gravitational codes (ph4, Huayno, Hermite) instead of or
+      alongside REBOUND.
+    - Hydrodynamics: gas models after an explosion (SPH) and their effect on
+      asteroid motion.
+    - Stellar evolution: L(t), M(t) changes for stars (e.g. SSE/BSE), feeding
+      beta(t) in the radiation pressure model.
+    - Coupling: AMUSE ties these solvers together and handles data exchange over time.
+
+2) Consistent units and time:
+    - AMUSE has a built-in unit system (amuse.units), which helps:
+        - avoid conversion errors (AU vs m vs pc),
+        - integrate different codes (each may use different internal units).
+    - It can take over global time control and the steps between solvers.
+
+3) Advanced scenarios:
+    - Modelling the evolution of the whole local stellar environment
+      (changing stellar masses and luminosities, motion in the galactic potential).
+    - Adding an external galactic potential (galactic plane, spiral arms) affecting
+      asteroid and stellar trajectories.
+    - A joint simulation of:
+        - a gas cloud after an explosion (hydro),
+        - asteroids inside that gas (N-body),
+        - evolving stars (evolution codes),
+      all synchronised through AMUSE.
+
+4) Comparative experiments:
+    - Easy comparison of:
+        - the same problem solved with different N-body solvers,
+        - the effect of different stellar evolution or hydrodynamics models on
+          asteroid survival.
+
+When it is actually worth moving to AMUSE:
+    - Once the project grows beyond "REBOUND + local particle physics" and we start
+      needing:
+        - full hydrodynamics of a post-explosion cloud,
+        - realistic stellar evolution (variable L(t), M(t)),
+        - a strongly coupled multi-physics simulation with several solvers.
+    - For now REBOUND/REBOUNDx is sufficient; AMUSE is treated as a possible
+      stage 2.0 for a more complex, multi-physics version of the project.

@@ -1,5 +1,5 @@
 """
-Prosty punkt wejścia uruchamiający statyczne demo promieniowania.
+Simple entry point running the static radiation demo.
 """
 
 import sys

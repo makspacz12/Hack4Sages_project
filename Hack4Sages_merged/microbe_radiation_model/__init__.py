@@ -1,8 +1,8 @@
 """
-Pakiet łączący model promieniowania z prostą warstwą symulacyjną.
+Package tying the radiation model to a simple simulation layer.
 
-Najważniejsze funkcje są eksportowane na poziomie pakietu, żeby można było
-łatwo uruchomić demo albo zbudować własny pipeline w notebooku.
+The most important functions are re-exported at package level so a demo can be
+run, or a custom pipeline built in a notebook, without walking the subpackages.
 """
 
 from .chemistry.hydrolysis_model import compute_hydrolysis_rate

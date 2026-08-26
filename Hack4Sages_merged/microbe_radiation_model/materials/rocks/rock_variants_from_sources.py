@@ -1,7 +1,7 @@
 """
 Automatycznie wygenerowane obiekty Rock.
-Priorytet źródeł: NASA/JPL SBDB -> fallback z literatury naukowej.
-Uwaga: radius_m opisuje promień referencyjnej asteroidy, a nie stałą materiałową.
+Source priority: NASA/JPL SBDB -> fallback to the scientific literature.
+Note: radius_m is the radius of the reference asteroid, not a material constant.
 """
 
 from .types import Rock

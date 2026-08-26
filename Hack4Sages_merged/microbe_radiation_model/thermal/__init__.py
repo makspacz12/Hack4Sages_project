@@ -1,9 +1,9 @@
 """
-Moduły związane z temperaturą skał / ciał.
+Modules dealing with the temperature of rocks and bodies.
 
-Warstwa `thermal` NIE liczy promieniowania od zera – korzysta z istniejących
+The `thermal` layer does NOT compute radiation from scratch - it reuses the
 funkcji z `physics` i `radiation` i na ich podstawie szacuje temperatury
-równowagowe itp.
+existing flux models to derive equilibrium temperatures and related quantities.
 """
 
 from .surface_temperature import (

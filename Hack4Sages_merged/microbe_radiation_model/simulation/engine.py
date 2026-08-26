@@ -1,5 +1,5 @@
 """
-Główny silnik uruchomieniowy łączący REBOUND z modelem promieniowania.
+Main execution engine connecting REBOUND to the radiation model.
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ SimulationStepHook = Callable[[Any, int, List[int], List[int], int], None]
 
 def nearest_star_index(sim: Any, body_index: int, star_indices: List[int]) -> Optional[int]:
     """
-    Zwraca indeks najbliższej gwiazdy dla wskazanego ciała.
+    Return the index of the star nearest to the given body.
     """
 
     if not star_indices:

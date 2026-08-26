@@ -1,5 +1,5 @@
 """
-Sprzężenie pomiędzy pozycjami z REBOUND a lokalnym modelem promieniowania.
+Coupling between REBOUND positions and the local radiation model.
 """
 
 import math
@@ -25,7 +25,7 @@ def process_radiation_step(
     dt: float,
 ) -> Any:
     """
-    Wykonuje jeden krok promieniowania dla ciała w symulacji REBOUND.
+    Perform one radiation step for a body in the REBOUND simulation.
     """
 
     star = sim.particles[star_index]

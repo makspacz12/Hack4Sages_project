@@ -1,12 +1,12 @@
 """
-Wejścia uruchomieniowe i skrypty demonstracyjne.
+Entry points and demonstration scripts.
 """
 
 from .console import configure_utf8_output
 
 
 def main_demo() -> None:
-    """Uruchamia główne demo."""
+    """Run the main demo."""
 
     from .demo import main
 
@@ -22,7 +22,7 @@ def main_radiation_demo() -> None:
 
 
 def main_simulation_demo() -> None:
-    """Uruchamia demo scenariusza połączonego."""
+    """Run the connected scenario demo."""
 
     from .run_simulation import main
 
@@ -38,7 +38,7 @@ def main_fetch_gaia_catalog() -> None:
 
 
 def main_build_full_system() -> None:
-    """Buduje pełny układ z kerneli SPICE/Horizons."""
+    """Build the full system from SPICE/Horizons kernels."""
 
     from .build_full_system import main
 
@@ -46,7 +46,7 @@ def main_build_full_system() -> None:
 
 
 def main_mars_impact_demo() -> None:
-    """Uruchamia demo impaktu marsjańskiego."""
+    """Run the Mars impact demo."""
 
     from .run_mars_impact_demo import main
 
@@ -54,7 +54,7 @@ def main_mars_impact_demo() -> None:
 
 
 def main_mars_pipeline_demo() -> None:
-    """Uruchamia pełny pipeline marsjański."""
+    """Run the full Mars pipeline."""
 
     from .run_mars_pipeline import main
 
@@ -62,7 +62,7 @@ def main_mars_pipeline_demo() -> None:
 
 
 def main_radiation_pressure_demo() -> None:
-    """Uruchamia demo ciśnienia promieniowania."""
+    """Run the radiation pressure demo."""
 
     from .run_radiation_pressure_demo import main
 
@@ -70,7 +70,7 @@ def main_radiation_pressure_demo() -> None:
 
 
 def main_dust_erosion_demo() -> None:
-    """Uruchamia demo erozji pyłowej."""
+    """Run the dust erosion demo."""
 
     from .run_dust_erosion_demo import main
 

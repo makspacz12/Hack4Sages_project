@@ -35,8 +35,8 @@ def create_mars_impact(sim, config: ImpactEjectaConfig | None = None) -> ImpactR
     impact_normal_vec = np.asarray(impact_normal, dtype=float)
     impact_normal_vec /= np.linalg.norm(impact_normal_vec)
 
-    # Losujemy typy skał zgodnie z ich prawdopodobieństwami,
-    # a następnie rozmiary zależnie od rodzaju skały.
+    # Sample rock types according to their probabilities,
+    # then sample sizes for each rock type.
     sampled_rocks, radii_m = _sample_rock_variants_with_sizes(
         rock_variants=rock_variants,
         radius_min_m=config.radius_min_m,
@@ -132,7 +132,7 @@ def create_mars_impact(sim, config: ImpactEjectaConfig | None = None) -> ImpactR
                 spin_axis_x=float(spin_axes[idx, 0]),
                 spin_axis_y=float(spin_axes[idx, 1]),
                 spin_axis_z=float(spin_axes[idx, 2]),
-                # dodatkowa metadana dla modelu przeżywalności
+                # extra metadata for the survival model
                 radiation_surv_coeff=float(radiation_surv_coeff),
             )
         )
@@ -155,15 +155,15 @@ def _sample_rock_variants_with_sizes(
     """
     Sample rock variants and radii.
 
-    - Najpierw normalizujemy warianty skał i ich prawdopodobieństwa.
-    - Następnie dla każdej asteroidy losujemy typ skały z danego rozkładu.
-    - Promienie fragmentów losujemy globalnie z rozkładu potęgowego
-      w zakresie [0.01 m, 100 m], niezależnie od typu skały. Typ skały
-      wpływa na własności materiałowe (gęstość, porowatość, radionuklidy),
-      ale nie na typowy rozmiar fragmentu.
+    - First normalise the rock variants and their probabilities.
+    - Then draw a rock type for each asteroid from that distribution.
+    - Fragment radii are drawn globally from a power-law distribution over
+      [0.01 m, 100 m], independently of rock type. The rock type affects the
+      material properties (density, porosity, radionuclides),
+      but not the typical fragment size.
 
-    Parametry ``radius_min_m`` i ``radius_max_m`` są pozostawione dla
-    kompatybilności, ale aktualnie nie zmieniają zakresu losowania.
+    ``radius_min_m`` and ``radius_max_m`` are kept for backward compatibility
+    but currently do not change the sampling range.
     """
 
     normalized = [_normalize_variant(variant) for variant in rock_variants]
@@ -176,15 +176,15 @@ def _sample_rock_variants_with_sizes(
     )
     probabilities = probabilities / probabilities.sum()
 
-    # Losujemy indeks wariantu skały dla każdej asteroidy.
+    # Draw a rock-variant index for each asteroid.
     variant_indices = rng.choice(
         len(normalized),
         size=n_asteroids,
         p=probabilities,
     )
 
-    # Globalne losowanie promieni fragmentów z rozkładu potęgowego
-    # w stałym zakresie [0.01 m, 100 m], wspólnym dla wszystkich typów skał.
+    # Global sampling of fragment radii from a power-law distribution over a
+    # fixed [0.01 m, 100 m] range, shared by all rock types.
     radii_m = sample_truncated_power_law(
         0.01,
         100.0,

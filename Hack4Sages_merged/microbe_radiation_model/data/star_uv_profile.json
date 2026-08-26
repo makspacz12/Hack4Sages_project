@@ -1,15 +1,15 @@
 {
   "__description__": {
-    "stars": "Słownik gwiazd; klucz to nazwa, wartość zawiera metadane i profil UV.",
+    "stars": "Dictionary of stars; the key is the name, the value holds metadata and the UV profile.",
     "star_fields": {
-      "name": "Nazwa gwiazdy (np. 'Sun').",
-      "mass_solar": "Masa gwiazdy w jednostkach masy Słońca [M_sun].",
-      "luminosity_W": "Jasność gwiazdy [W].",
-      "uv_profile": "Lista punktów (distance_au, uv_surface_flux) opisujących strumień UV na różnych odległościach od gwiazdy."
+      "name": "Star name (e.g. 'Sun').",
+      "mass_solar": "Stellar mass in solar masses [M_sun].",
+      "luminosity_W": "Stellar luminosity [W].",
+      "uv_profile": "List of (distance_au, uv_surface_flux) points describing the UV flux at different distances from the star."
     },
     "profile_fields": {
-      "distance_au": "Odległość od gwiazdy [AU].",
-      "uv_surface_flux": "Strumień UV na tej odległości [W/m^2]."
+      "distance_au": "Distance from the star [AU].",
+      "uv_surface_flux": "UV flux at that distance [W/m^2]."
     }
   },
   "stars": {

@@ -1,18 +1,18 @@
 """
-Modele rozkładu temperatury wewnątrz jednorodnej kuli z wewnętrznym źródłem ciepła.
+Temperature distribution inside a uniform sphere with an internal heat source.
 
-Zakładamy:
-- stałą produkcję ciepła Q [W/m^3] w całej objętości,
+Assumptions:
+- constant heat production Q [W/m^3] throughout the volume,
 - przewodnictwo cieplne k_th [W/(m·K)],
-- ustaloną temperaturę powierzchni T_surface [K].
+- a fixed surface temperature T_surface [K].
 
-Wzór:
+Formula:
 
     T(r) = T_surface + Q / (6 * k_th) * (R^2 - r^2)
 
 gdzie:
-- R  - promień kuli [m],
-- r  - odległość od środka [m].
+- R  - sphere radius [m],
+- r  - distance from the centre [m].
 
 W centrum (r = 0):
 
@@ -30,9 +30,9 @@ def temperature_inside_sphere(
     thermal_conductivity_w_mk: float,
 ) -> float:
     """
-    Temperatura w odległości r od środka kuli z jednorodnym źródłem ciepła.
+    Temperature at distance r from the centre of a uniformly heated sphere.
 
-    Wzór:
+    Formula:
         T(r) = T_surface + Q / (6 * k_th) * (R^2 - r^2)
     """
     if radius_m <= 0.0:
@@ -58,7 +58,7 @@ def temperature_profile_surface_mid_center(
     thermal_conductivity_w_mk: float,
 ) -> tuple[float, float, float]:
     """
-    Zwraca (T_surface, T_mid_radius, T_center) dla kuli z jednorodnym źródłem ciepła.
+    Return (T_surface, T_mid_radius, T_center) for a uniformly heated sphere.
 
     - T_surface = T_surface
     - T_mid_radius = T(R/2)

@@ -6,11 +6,22 @@ from ...materials.rocks import Rock, get_rock_param
 from .activity import activity_from_rock, volumetric_activity_bq_m3
 from .geometry import geometry_from_rock
 
-# Empirical coefficients: c(ppm) × f -> dose rate [Gy/year] (formula from user table)
-_GAMMA_DOSE_COEFF_K40_PPM = 0.093   # Potas 40K, c(ppm)×0.093
-_GAMMA_DOSE_COEFF_TH232_PPM = 0.084  # Tor 232Th, c(ppm)×0.084
-_GAMMA_DOSE_COEFF_U238_PPM = 0.300   # Uran 238U, c(ppm)×0.300
-_GAMMA_DOSE_COEFF_U235_PPM = 1.81    # Uran 235U, c(ppm)×1.81
+# Empirical coefficients: c(ppm) x f -> dose rate [Gy/year] (uncited "user table").
+#
+# AUDIT WARNING - these coefficients do not reproduce first-principles values.
+# For basalt_vtype (U 0.15 ppm, Th 0.6 ppm, K 0.05%) they give 46.6 Gy/yr.
+# Computing the same quantity from activity x decay-chain energy in an infinite
+# medium (12.4 Bq/kg per ppm U x 51.7 MeV, 4.1 x 42.7 MeV, 313 Bq/kg per %K x
+# 0.6 MeV) gives 1.07e-3 Gy/yr - a factor of ~4.4e4 lower. Across the rock
+# catalog the discrepancy ranges from 4.4e4x to 6.2e5x, and the K-40 term alone
+# supplies 99.8% of the inflated total.
+#
+# Do not treat the absolute Gy/year values as physical until these are re-derived
+# or a source is attached. See the repository audit notes.
+_GAMMA_DOSE_COEFF_K40_PPM = 0.093   # Potassium 40K, c(ppm) x 0.093
+_GAMMA_DOSE_COEFF_TH232_PPM = 0.084  # Thorium 232Th, c(ppm) x 0.084
+_GAMMA_DOSE_COEFF_U238_PPM = 0.300   # Uranium 238U, c(ppm) x 0.300
+_GAMMA_DOSE_COEFF_U235_PPM = 1.81    # Uranium 235U, c(ppm) x 1.81
 _POTASSIUM_PERCENT_TO_PPM = 10000.0  # 1% = 10^4 ppm by mass
 
 
