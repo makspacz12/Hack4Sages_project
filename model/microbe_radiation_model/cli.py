@@ -203,7 +203,11 @@ def build_configs(args: argparse.Namespace) -> tuple[SimulationMaterialConfig, S
     if args.years is not None:
         if args.years <= 0:
             raise ValueError("--years must be positive")
-        steps = max(1, round(args.years / dt))
+    # A run of N frames spans (N-1)*dt: the first frame is the initial state,
+    # before any integration. Asking for 0.3 yr at dt=0.05 therefore needs 7
+    # frames, not 6 - the old arithmetic silently delivered 0.25 yr and the
+    # provenance record then carried that wrong span as the reproduce command.
+        steps = max(2, round(args.years / dt) + 1)
     elif args.steps is not None:
         if args.steps < 1:
             raise ValueError("--steps must be at least 1")
@@ -274,11 +278,11 @@ def describe(material: SimulationMaterialConfig, run: SimulationRunConfig) -> st
     """Human-readable summary of what is about to run."""
     impact: ImpactSimulationConfig = run.impact
     output: OutputConfig = run.output
-    total_years = run.dt_yr * run.n_steps
+    total_years = run.dt_yr * (run.n_steps - 1)
     lines = [
         "Resolved configuration",
         "──────────────────────",
-        f"  time              {run.n_steps} frames x {run.dt_yr} yr = {total_years:g} yr",
+        f"  time              {run.n_steps} frames, span {total_years:g} yr (dt {run.dt_yr:g})",
         f"  substeps          {run.integration_substeps} per frame",
         f"  fragments         {impact.n_asteroids}",
         f"  ejection speed    {impact.v_min_kms}-{impact.v_max_kms} km/s "
@@ -304,6 +308,13 @@ def describe(material: SimulationMaterialConfig, run: SimulationRunConfig) -> st
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Before any output: describe() prints box-drawing characters, and on a
+    # Windows console defaulting to cp1250 that raises UnicodeEncodeError
+    # before the run even starts.
+    from .demos.console import configure_utf8_output
+
+    configure_utf8_output()
+
     parser = build_parser()
     args = parser.parse_args(argv)
 
@@ -327,10 +338,8 @@ def main(argv: list[str] | None = None) -> int:
         print("\n--dry-run: nothing was executed.")
         return 0
 
-    from .demos.console import configure_utf8_output
     from .simulation.scenarios import format_demo_report, run_mars_ejecta_pipeline_demo
 
-    configure_utf8_output()
     print()
     report = run_mars_ejecta_pipeline_demo(material_config=material, run_config=run)
     print(format_demo_report(report))

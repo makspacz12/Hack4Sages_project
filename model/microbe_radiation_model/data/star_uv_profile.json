@@ -2,7 +2,7 @@
   "__description__": {
     "stars": "Dictionary of stars; the key is the name, the value holds metadata and the UV profile.",
     "star_fields": {
-      "name": "Star name (e.g. 'Sun').",
+      "name": "Nazwa gwiazdy (np. 'Sun').",
       "mass_solar": "Stellar mass in solar masses [M_sun].",
       "luminosity_W": "Stellar luminosity [W].",
       "uv_profile": "List of (distance_au, uv_surface_flux) points describing the UV flux at different distances from the star."
@@ -13,37 +13,6 @@
     }
   },
   "stars": {
-    "Sun": {
-      "name": "Sun",
-      "mass_solar": 1.0,
-      "luminosity_W": 3.828e+26,
-      "uv_profile": [
-        {
-          "distance_au": 0.1,
-          "uv_surface_flux": 136112.7717933597
-        },
-        {
-          "distance_au": 0.5,
-          "uv_surface_flux": 5444.510871734388
-        },
-        {
-          "distance_au": 1.0,
-          "uv_surface_flux": 1361.127717933597
-        },
-        {
-          "distance_au": 2.0,
-          "uv_surface_flux": 340.28192948339927
-        },
-        {
-          "distance_au": 5.0,
-          "uv_surface_flux": 54.44510871734388
-        },
-        {
-          "distance_au": 10.0,
-          "uv_surface_flux": 13.61127717933597
-        }
-      ]
-    },
     "star_0": {
       "name": "star_0",
       "mass_solar": 0.9999999999950272,
@@ -78,16 +47,16 @@
   },
   "provenance": {
     "schema_version": "1.0",
-    "generated_utc": "2026-08-26T20:18:28+00:00",
+    "generated_utc": "2026-08-26T20:34:47+00:00",
     "scenario": "mars_ejecta_pipeline",
-    "seed": 1164711760,
+    "seed": 99,
     "source": {
       "available": true,
-      "commit": "932f74c24b6bf61a63dfd1d627f2224d4362cf2b",
-      "commit_short": "932f74c24b6b",
-      "branch": "main",
+      "commit": "bbd827c2c5faaab9889104debbc889656457a3e5",
+      "commit_short": "bbd827c2c5fa",
+      "branch": "feature/reproducibility-and-tests",
       "dirty": true,
-      "describe": "932f74c2-dirty"
+      "describe": "bbd827c2-dirty"
     },
     "environment": {
       "python": "3.14.5",
@@ -121,7 +90,7 @@
       },
       "run": {
         "dt_yr": 0.05,
-        "n_steps": 6,
+        "n_steps": 7,
         "integration_substeps": 5,
         "add_test_particle": false,
         "gaia": {
@@ -184,7 +153,7 @@
             0.0,
             180.0
           ],
-          "seed": 1164711760
+          "seed": 99
         },
         "thermal": {
           "enabled": true,
@@ -213,8 +182,8 @@
         }
       }
     },
-    "parameters_sha256": "be865edb463426d42165b12a1ba099af5f5870df5075d470856a30a8796b2402",
-    "reproduce": "python -m microbe_radiation_model --asteroids 4 --years 0.3 --dt 0.05 --substeps 5 --seed 1164711760 --v-min 5.03 --v-max 20 --cone-angle 60 --fragment-radius 0.5 --bio-fraction 0.01 --dust-flux 1e-12 --no-radiation-pressure",
+    "parameters_sha256": "ef5cadb6a7c768167d7c2e1a0c729c99517ddeacd552cc1d13d2e41fcbe93d9c",
+    "reproduce": "python -m microbe_radiation_model --asteroids 4 --years 0.3 --dt 0.05 --substeps 5 --seed 99 --v-min 5.03 --v-max 20 --cone-angle 60 --fragment-radius 0.5 --bio-fraction 0.01 --dust-flux 1e-12 --no-radiation-pressure",
     "coefficients_under_audit": {
       "note": "These coefficients are not settled. Trends and relative comparisons in this file are meaningful; absolute doses and survival fractions are provisional.",
       "unresolved_count": 4,
@@ -254,9 +223,11 @@
           "source_of_range": "Mileikowsky, C. et al. (2000), Icarus 145(2), 391-427, doi:10.1006/icar.1999.6317"
         },
         "cosmic_ray_attenuation": {
+          "coefficient_in_use_m2_kg": 0.01,
+          "appropriate_for_gcr_m2_kg": 0.001,
           "module": "radiation.shielding_model",
           "status": "unresolved",
-          "issue": "Galactic cosmic rays are attenuated with the photon mass attenuation coefficient. Charged particles have an attenuation depth near 100 g/cm^2, roughly ten times larger, which changes the dose reaching a 0.5 m fragment's core by about 4e4."
+          "issue": "Galactic cosmic rays are attenuated with the photon mass attenuation coefficient recorded above. Charged particles have an attenuation depth near 100 g/cm^2, i.e. about 1e-3 m^2/kg - roughly ten times smaller - which changes the dose reaching a 0.5 m fragment's core by about 4e4."
         }
       }
     },
@@ -267,7 +238,7 @@
       "reproduce": "Run this to regenerate the file."
     },
     "scenario_details": {
-      "frames": 6,
+      "frames": 7,
       "objects": 63
     }
   }

@@ -16,9 +16,11 @@ Three details make that true rather than aspirational:
 * **The seed is resolved, not recorded as "None".** A run with no fixed seed is
   not reproducible, so `resolve_seed` draws one, the run uses it, and it is
   written down. There is no such thing as an unseeded run any more.
-* **The coefficients are read live from the modules that define them**, not
-  copied here. A constant cannot drift away from its record, because the record
-  is generated from the constant.
+* **The coefficients are imported from the modules that define them**, never
+  copied as literals. A constant cannot drift away from its record, because the
+  record is generated from the constant. Where a coefficient had no name to
+  import - the survival sensitivity was an inline default - it was given one
+  rather than transcribed here.
 * **A digest covers the inputs.** Two files with the same
   `parameters_sha256` came from the same configuration; different digests mean
   different runs, without diffing nested dictionaries by eye.
@@ -222,8 +224,13 @@ def audit_coefficients() -> dict[str, Any]:
         ),
     }
 
+    # Imported rather than copied: a literal here could drift away from the
+    # value the physics actually uses, which is precisely what this block
+    # exists to prevent.
+    from .simulation.scenarios import DEFAULT_RADIATION_SURV_COEFF
+
     entries["radiation_survival_coefficient"] = {
-        "default_value": 5e-6,
+        "default_value": DEFAULT_RADIATION_SURV_COEFF,
         "documented_range": [0.15, 0.5],
         "fitted_range": [0.157, 0.441],
         "module": "simulation.scenarios",
@@ -241,14 +248,19 @@ def audit_coefficients() -> dict[str, Any]:
         ),
     }
 
+    from .simulation.config import DEFAULT_ROCK_ATTENUATION_K_M2_KG
+
     entries["cosmic_ray_attenuation"] = {
+        "coefficient_in_use_m2_kg": DEFAULT_ROCK_ATTENUATION_K_M2_KG,
+        "appropriate_for_gcr_m2_kg": 1.0e-3,
         "module": "radiation.shielding_model",
         "status": "unresolved",
         "issue": (
             "Galactic cosmic rays are attenuated with the photon mass "
-            "attenuation coefficient. Charged particles have an attenuation "
-            "depth near 100 g/cm^2, roughly ten times larger, which changes the "
-            "dose reaching a 0.5 m fragment's core by about 4e4."
+            "attenuation coefficient recorded above. Charged particles have an "
+            "attenuation depth near 100 g/cm^2, i.e. about 1e-3 m^2/kg - "
+            "roughly ten times smaller - which changes the dose reaching a "
+            "0.5 m fragment's core by about 4e4."
         ),
     }
 
@@ -276,7 +288,8 @@ def reproduce_command(material_config: Any, run_config: Any) -> str:
     rather than what was typed.
     """
     impact = run_config.impact
-    years = run_config.dt_yr * run_config.n_steps
+    # (n_steps - 1) integrations: frame 0 is the initial state.
+    years = run_config.dt_yr * (run_config.n_steps - 1)
     parts = [
         "python -m microbe_radiation_model",
         f"--asteroids {impact.n_asteroids}",
@@ -319,12 +332,24 @@ def build_provenance(
     @param scenario  Which pipeline produced the file, e.g. "mars_ejecta_pipeline".
     @param extra     Anything scenario-specific worth recording alongside.
     """
+    seed = run_config.impact.seed
+    if seed is None:
+        # Enforced here rather than trusted from the caller. A block recording
+        # "seed: null" would describe a run nobody can repeat, which defeats
+        # the point of writing it down at all; resolving it here instead would
+        # be worse, since the drawn value would not be the one the run used.
+        raise ValueError(
+            "cannot build provenance for an unresolved seed: call "
+            "provenance.resolve_seed() before the run samples anything, and "
+            "pass the resolved config here"
+        )
+
     parameters = capture_parameters(material_config, run_config)
     block: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "generated_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "scenario": scenario,
-        "seed": run_config.impact.seed,
+        "seed": seed,
         "source": collect_source_version(),
         "environment": collect_environment(),
         "parameters": parameters,

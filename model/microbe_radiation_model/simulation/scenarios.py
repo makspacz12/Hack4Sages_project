@@ -16,6 +16,7 @@ from ..data_store import (
     extend_radiation_records,
     extend_rock_radiation_records,
     write_star_uv_profile,
+    reset_run_outputs,
     stamp_provenance,
     write_visualizer_simulation,
 )
@@ -299,6 +300,24 @@ def _build_body_report(
     )
 
 
+# Calibration of the model GCR unit to an absorbed dose rate.
+#
+# The cosmic-ray model works in a normalised unit where 1.0 is the flux inside
+# the heliosphere; this converts that unit to Gy/year, after Mileikowsky et al.
+# (2000). Named and shared because it was previously applied to the surface
+# value and NOT to the shielded one, in one of the two writers - which made the
+# dose after shielding exceed the dose before it in 88% of exported records.
+GCR_MODEL_UNIT_TO_GY_PER_YEAR: float = 0.194
+
+
+def _scaled(spectrum: object, field: str, total: float | None):
+    """A spectrum share turned into the same dose unit as the total."""
+    share = getattr(spectrum, field, None)
+    if share is None or total is None:
+        return None
+    return share * total
+
+
 def _write_json_outputs(
     *,
     rock: Rock,
@@ -309,18 +328,27 @@ def _write_json_outputs(
     gcr_total_flux: float,
     gcr_spectrum: object,
 ) -> None:
+    # Same conversion as the pipeline writer. These two used to disagree, so a
+    # single file could hold gcr_surface_flux in model units from one scenario
+    # and in Gy/year from another, under one key.
+    surface_dose = gcr_total_flux * GCR_MODEL_UNIT_TO_GY_PER_YEAR
+    local_dose = (
+        body_report.gcr_local_flux * GCR_MODEL_UNIT_TO_GY_PER_YEAR
+        if body_report.gcr_local_flux is not None
+        else None
+    )
     append_radiation_record(
         time_seconds=time_seconds,
         step=step_index,
         uv_surface_flux=body_report.surface_flux,
         uv_local_flux=body_report.local_flux,
         uv_cumulative_exposure=body_report.cumulative_exposure,
-        gcr_total_flux=gcr_total_flux,
-        gcr_proton_flux=getattr(gcr_spectrum, "proton_flux", None),
-        gcr_alpha_flux=getattr(gcr_spectrum, "alpha_flux", None),
-        gcr_hze_flux=getattr(gcr_spectrum, "hze_flux", None),
-        gcr_surface_flux=gcr_total_flux,
-        gcr_local_flux=body_report.gcr_local_flux,
+        gcr_total_flux=surface_dose,
+        gcr_proton_flux=_scaled(gcr_spectrum, "proton_flux", surface_dose),
+        gcr_alpha_flux=_scaled(gcr_spectrum, "alpha_flux", surface_dose),
+        gcr_hze_flux=_scaled(gcr_spectrum, "hze_flux", surface_dose),
+        gcr_surface_flux=surface_dose,
+        gcr_local_flux=local_dose,
         context=f"{run_id}_body_{body_report.body_index}",
     )
     append_rock_radiation_record(
@@ -353,7 +381,14 @@ def _collect_json_output_payloads(
     # gcr_total_flux here is the model GCR value at the surface (1.0 inside heliosphere).
     # For analysis we export a surface dose rate in Gy/year using the 0.194 scaling.
     gcr_surface_model = gcr_total_flux
-    gcr_surface_dose_gy_per_year = gcr_surface_model * 0.194
+    gcr_surface_dose_gy_per_year = gcr_surface_model * GCR_MODEL_UNIT_TO_GY_PER_YEAR
+    # The shielded value has to travel through the same conversion, or the
+    # record claims more dose reaches the core than arrives at the surface.
+    gcr_local_dose_gy_per_year = (
+        body_report.gcr_local_flux * GCR_MODEL_UNIT_TO_GY_PER_YEAR
+        if body_report.gcr_local_flux is not None
+        else None
+    )
 
     # Gamma: use radionuclide-based dose rate [Gy/year] as a simple gamma proxy.
     gamma_dose_gy_per_year = radiation_decay_gy_per_year_from_rock(rock)
@@ -365,11 +400,13 @@ def _collect_json_output_payloads(
         "uv_local_flux": body_report.local_flux,
         "uv_cumulative_exposure": body_report.cumulative_exposure,
         "gcr_total_flux": gcr_surface_dose_gy_per_year,
-        "gcr_proton_flux": getattr(gcr_spectrum, "proton_flux", None),
-        "gcr_alpha_flux": getattr(gcr_spectrum, "alpha_flux", None),
-        "gcr_hze_flux": getattr(gcr_spectrum, "hze_flux", None),
+        # split_cosmic_flux returns shares of the total, so these are scaled by
+        # the surface dose to land in Gy/year like every other field here.
+        "gcr_proton_flux": _scaled(gcr_spectrum, "proton_flux", gcr_surface_dose_gy_per_year),
+        "gcr_alpha_flux": _scaled(gcr_spectrum, "alpha_flux", gcr_surface_dose_gy_per_year),
+        "gcr_hze_flux": _scaled(gcr_spectrum, "hze_flux", gcr_surface_dose_gy_per_year),
         "gcr_surface_flux": gcr_surface_dose_gy_per_year,
-        "gcr_local_flux": body_report.gcr_local_flux,
+        "gcr_local_flux": gcr_local_dose_gy_per_year,
         "gamma_surface_flux": gamma_dose_gy_per_year,
         "gamma_local_flux": gamma_dose_gy_per_year,
         # Friendlier English label for the body context, used in timeseries/analysis.
@@ -507,6 +544,19 @@ def _build_visualizer_payload(
     }
 
 
+# Per-asteroid radiation sensitivity used when an asteroid carries no override.
+#
+# Named rather than inlined so `provenance.audit_coefficients` can read the
+# live value instead of keeping a copy that could drift away from it.
+#
+# AUDIT WARNING - see provenance.audit_coefficients: this is five orders of
+# magnitude below the 0.15-0.5 range documented in
+# biology/survival.py::survival_function and below the 0.157-0.441 slopes
+# fitted in analysis/radiation_to_survival.R. It very nearly cancels the
+# inflated gamma dose coefficients, so the two must be corrected together.
+DEFAULT_RADIATION_SURV_COEFF: float = 5e-6
+
+
 def _default_mars_pipeline_run_config() -> SimulationRunConfig:
     from ..erosion import DustErosionConfig
     from .config import ImpactSimulationConfig, OutputConfig, RadiationPressureConfig
@@ -581,10 +631,7 @@ def run_mars_ejecta_pipeline_demo(
     # Resolve the seed before anything samples from it. A run whose seed is
     # None cannot be repeated, and recording "seed: null" only documents that
     # fact; drawing one here makes every run reproducible by construction.
-    run_config = replace(
-        run_config,
-        impact=replace(run_config.impact, seed=resolve_seed(run_config.impact.seed)),
-    )
+    run_config = _begin_run(run_config)
 
     build_result = build_simulation(
         gaia_csv_path=run_config.gaia_csv_path,
@@ -858,7 +905,9 @@ def run_mars_ejecta_pipeline_demo(
                 # final numbers look reasonable for the wrong reason. Fix both
                 # together, never one alone.
                 radiation_surv_coeff = float(
-                    asteroid_state.extra.get("radiation_surv_coeff", 5e-6)
+                    asteroid_state.extra.get(
+                        "radiation_surv_coeff", DEFAULT_RADIATION_SURV_COEFF
+                    )
                 )
                 step_survival = survival_function(
                     radiation_space_gy_per_year=radiation_space_gy_per_year,
@@ -1084,6 +1133,48 @@ def run_mars_ejecta_pipeline_demo(
     )
 
 
+def _begin_run(run_config: SimulationRunConfig) -> SimulationRunConfig:
+    """
+    Prepare a run: pin its seed and clear the record exports.
+
+    Both halves of the reproducibility invariant start here. The seed has to be
+    fixed before anything samples from it, and the record files have to be empty
+    before anything is appended to them - otherwise the block stamped at the end
+    describes a file that also contains other people's runs.
+    """
+    if run_config.output.export_json or run_config.output.export_star_uv_profile:
+        reset_run_outputs()
+    return _with_resolved_seed(run_config)
+
+
+def _with_resolved_seed(run_config: SimulationRunConfig) -> SimulationRunConfig:
+    """
+    Pin the run's seed before anything samples from it.
+
+    Every scenario goes through this, not just the one that launches ejecta.
+    A run whose seed stays None cannot be repeated, and `build_provenance`
+    refuses to describe one - so resolving here is what makes the guarantee
+    structural rather than a property of a single call site.
+    """
+    return replace(
+        run_config,
+        impact=replace(run_config.impact, seed=resolve_seed(run_config.impact.seed)),
+    )
+
+
+def _stamp_run(material_config, run_config, scenario: str) -> None:
+    """
+    Stamp the record exports at the end of a scenario that wrote any.
+
+    Every scenario that touches the data files has to do this, not just the
+    Mars pipeline: the writers strip any previous block when they append, so a
+    scenario that skipped stamping would leave files with no provenance at all.
+    """
+    if not run_config.output.export_json and not run_config.output.export_star_uv_profile:
+        return
+    stamp_provenance(build_provenance(material_config, run_config, scenario=scenario))
+
+
 def run_static_radiation_demo(
     material_config: Optional[SimulationMaterialConfig] = None,
     mass_solar: float = 1.0,
@@ -1096,7 +1187,7 @@ def run_static_radiation_demo(
     """
 
     material_config = material_config or default_material_config()
-    run_config = run_config or SimulationRunConfig()
+    run_config = _begin_run(run_config or SimulationRunConfig())
     report_rock = _resolve_report_rock(material_config)
 
     bio_radius = biological_core_radius(
@@ -1162,6 +1253,7 @@ def run_static_radiation_demo(
         mass_solar=mass_solar,
         run_config=run_config,
     )
+    _stamp_run(material_config, run_config, "static_radiation_demo")
 
     return SimulationReport(
         mode="static_radiation",
@@ -1184,7 +1276,7 @@ def run_connected_demo(
     Run the full demo; falls back to static mode when REBOUND is not installed.
     """
 
-    run_config = run_config or SimulationRunConfig()
+    run_config = _begin_run(run_config or SimulationRunConfig())
     if find_spec("rebound") is None:
         return run_static_radiation_demo(material_config=material_config, run_config=run_config)
 
@@ -1286,6 +1378,8 @@ def run_connected_demo(
                 run_config=run_config,
             )
             written_profiles.add(nearest_index)
+
+    _stamp_run(material_config, run_config, "connected_demo")
 
     first_body = body_reports[0] if body_reports else None
     return SimulationReport(

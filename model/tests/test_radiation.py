@@ -200,10 +200,17 @@ class TestCosmicRays(unittest.TestCase):
         outside = cosmic_flux_by_region(distance_au=1e6)
         self.assertGreaterEqual(outside, inside)
 
-    def test_inside_the_heliosphere_the_flux_is_the_base_level(self):
-        self.assertAlmostEqual(
-            cosmic_flux_by_region(distance_au=1.0), COSMIC_BACKGROUND_FLUX, places=12
-        )
+    def test_inside_the_heliosphere_the_flux_is_the_normalisation_anchor(self):
+        # Checked against the literal 1.0, not against the module's own
+        # constant. Comparing the constant to itself passes no matter what the
+        # value is - setting it to 777.0 left the suite green.
+        #
+        # 1.0 is not arbitrary: it is the normalisation the export calibration
+        # depends on, where one model unit equals 0.194 Gy/yr after
+        # Mileikowsky et al. (2000). Changing it silently rescales every
+        # exported cosmic-ray dose.
+        self.assertAlmostEqual(COSMIC_BACKGROUND_FLUX, 1.0, places=12)
+        self.assertAlmostEqual(cosmic_flux_by_region(distance_au=1.0), 1.0, places=12)
 
     def test_a_negative_distance_is_rejected(self):
         with self.assertRaises(ValueError):
@@ -227,6 +234,37 @@ class TestCosmicRays(unittest.TestCase):
         spectrum = split_cosmic_flux(1.0)
         self.assertGreater(spectrum.proton_flux, spectrum.alpha_flux)
         self.assertGreater(spectrum.alpha_flux, spectrum.hze_flux)
+
+    def test_composition_matches_the_measured_gcr_abundances(self):
+        # Sum-and-ordering alone is not enough: swapping the shares to
+        # 0.50 / 0.49 / 0.01 keeps both properties and left the suite green.
+        # Measured galactic cosmic ray composition by number is roughly
+        # 87% protons, 12% helium, 1% heavier nuclei.
+        spectrum = split_cosmic_flux(1.0)
+        self.assertAlmostEqual(spectrum.proton_flux, 0.88, delta=0.05)
+        self.assertAlmostEqual(spectrum.alpha_flux, 0.10, delta=0.04)
+        self.assertLess(spectrum.hze_flux, 0.03)
+
+    def test_heliosphere_radius_scales_as_the_square_root_of_luminosity(self):
+        # The docstring states R_helio = 120 AU * sqrt(L/L_sun). Dropping the
+        # square root left every other cosmic-ray test green.
+        from microbe_radiation_model.physics.constants import SOLAR_LUMINOSITY
+
+        def boundary(luminosity):
+            """Largest distance still at the unshielded base level."""
+            lo, hi = 0.1, 1e6
+            for _ in range(80):
+                mid = (lo + hi) / 2
+                if cosmic_flux_by_star(distance_au=mid, luminosity_w=luminosity) <= 1.0 + 1e-12:
+                    lo = mid
+                else:
+                    hi = mid
+            return lo
+
+        base = boundary(SOLAR_LUMINOSITY)
+        quadrupled = boundary(4.0 * SOLAR_LUMINOSITY)
+        # sqrt(4) = 2
+        self.assertAlmostEqual(quadrupled / base, 2.0, delta=0.05)
 
 
 if __name__ == "__main__":

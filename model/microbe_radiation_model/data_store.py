@@ -274,6 +274,20 @@ def _load_star_uv_payload(path: Path) -> Dict[str, Any]:
     return data
 
 
+def _invalidate_provenance(payload: Dict[str, Any]) -> None:
+    """
+    Drop any provenance block before a data file is modified.
+
+    These files are appended to record by record, and a block written by an
+    earlier run would otherwise survive the append and go on describing
+    contents it no longer covers. A stale record that looks authoritative is
+    worse than no record at all. Only `stamp_provenance`, called once a run has
+    finished, puts a valid block back - so a file either carries a block that
+    matches it, or carries none.
+    """
+    payload.pop("provenance", None)
+
+
 def append_radiation_record(
     *,
     time_seconds: float,
@@ -317,6 +331,7 @@ def append_radiation_record(
     records: List[Dict[str, Any]] = payload.setdefault("records", [])
     records.append(asdict(record))
 
+    _invalidate_provenance(payload)
     with path.open("w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=2)
 
@@ -337,6 +352,7 @@ def extend_radiation_records(records_to_add: Sequence[RadiationRecord | Dict[str
         else:
             records.append(dict(record))
 
+    _invalidate_provenance(payload)
     with path.open("w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=2)
 
@@ -410,6 +426,7 @@ def append_rock_radiation_record(
         }
     )
 
+    _invalidate_provenance(payload)
     with path.open("w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=2)
 
@@ -472,6 +489,7 @@ def extend_rock_radiation_records(records_to_add: Sequence[Dict[str, Any]]) -> N
             }
         )
 
+    _invalidate_provenance(payload)
     with path.open("w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=2)
 
@@ -525,8 +543,40 @@ def write_star_uv_profile(
         "uv_profile": profile,
     }
 
+    _invalidate_provenance(payload)
     with path.open("w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=2)
+
+
+def reset_run_outputs(*, filenames: Iterable[str] | None = None) -> list[Path]:
+    """
+    Clear the record exports so a file describes exactly one run.
+
+    These writers append, and nothing rotated the files, so a single
+    gamma_radiation_timeseries.json had accumulated 26 525 records from 42
+    different runs. `stamp_provenance` then wrote one block on top, which
+    described 0.02% of the contents and misdescribed the rest - the opposite of
+    what a provenance record is for.
+
+    Called at the start of a run, before anything is written. Combined with the
+    stamp at the end, the invariant is: one file, one run, one block that
+    actually covers it.
+
+    @returns the paths that were cleared
+    """
+    if filenames is None:
+        filenames = (
+            "gamma_radiation_timeseries.json",
+            "rock_radiation_summary.json",
+            "star_uv_profile.json",
+        )
+    cleared: list[Path] = []
+    for name in filenames:
+        path = _ensure_data_dir() / name
+        if path.exists():
+            path.unlink()
+            cleared.append(path)
+    return cleared
 
 
 def stamp_provenance(block: Dict[str, Any], *, filenames: Iterable[str] | None = None) -> list[Path]:
@@ -593,6 +643,7 @@ __all__ = [
     "extend_rock_radiation_records",
     "load_rock_radiation_summary",
     "write_star_uv_profile",
+    "reset_run_outputs",
     "stamp_provenance",
     "write_visualizer_simulation",
 ]

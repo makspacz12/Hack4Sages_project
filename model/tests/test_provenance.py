@@ -145,9 +145,20 @@ class TestReproduceCommand(unittest.TestCase):
         self.assertIn("--seed 777", reproduce_command(material, run))
 
     def test_command_states_the_simulated_span_not_the_frame_count(self):
+        # A run of N frames spans (N-1)*dt, because frame 0 is the initial
+        # state before any integration. This test previously asserted N*dt,
+        # which is the arithmetic the CLI and the provenance record both got
+        # wrong - it reported 0.3 yr for a run that actually covered 0.25.
         material, run = seeded_configs()
-        years = run.dt_yr * run.n_steps
+        years = run.dt_yr * (run.n_steps - 1)
         self.assertIn(f"--years {years:g}", reproduce_command(material, run))
+
+    def test_the_span_is_one_step_shorter_than_the_frame_count_suggests(self):
+        material, run = seeded_configs()
+        naive = run.dt_yr * run.n_steps
+        actual = run.dt_yr * (run.n_steps - 1)
+        self.assertNotAlmostEqual(naive, actual)
+        self.assertNotIn(f"--years {naive:g}", reproduce_command(material, run))
 
     def test_disabled_physics_is_reflected_as_a_flag(self):
         material, run = seeded_configs()

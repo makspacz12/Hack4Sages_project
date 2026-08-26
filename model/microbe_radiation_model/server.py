@@ -134,7 +134,7 @@ def validate(payload: dict[str, Any]) -> dict[str, Any]:
             f"max ({values['v_max']})"
         )
 
-    steps = round(values["years"] / values["dt"])
+    steps = round(values["years"] / values["dt"]) + 1
     if steps < 2:
         raise ParameterError("simulated time is shorter than two time steps")
     if steps > 20000:
@@ -156,7 +156,7 @@ def build_configs(values: dict[str, Any]):
     run = replace(
         run,
         dt_yr=values["dt"],
-        n_steps=max(2, round(values["years"] / values["dt"])),
+        n_steps=max(2, round(values["years"] / values["dt"]) + 1),
         integration_substeps=int(values["substeps"]),
         impact=replace(
             run.impact,
@@ -190,7 +190,7 @@ class Run:
         self.values = values
         self.status = "queued"          # queued | running | done | error | cancelled
         self.step = 0
-        self.total = max(2, round(values["years"] / values["dt"]))
+        self.total = max(2, round(values["years"] / values["dt"]) + 1)
         self.error: str | None = None
         self.replay: dict[str, Any] | None = None
         self.message: str | None = None
