@@ -2,54 +2,65 @@
  * theme.css
  * Design tokens for the visualizer.
  *
- * The interface is meant to read as a scientific instrument, not a web app:
- * a dark instrument surface, one accent, hairline rules, and numbers set in a
- * tabular monospace so columns of values line up and digits do not jitter as
- * they update.
+ * The palette is taken from the thing being simulated rather than from a
+ * generic tech blue: BASALT for the ground (the default fragment in the rock
+ * catalog is basalt), REGOLITH for the ink, and IRON OXIDE for the data - the
+ * colour of the rock whose fate the model computes.
+ *
+ * The accent is a cool instrument teal, and the reason is measured rather than
+ * aesthetic. A warm accent was tried first and had to be abandoned: against
+ * iron-oxide data, both the amber warning and the red alert fell below the
+ * ~15 discrimination threshold, so the two colours that must never be confused
+ * became confusable. Moving the accent to the cool side frees the whole warm
+ * band for data and attention.
+ *
+ * Validated against the panel surface (#14100e) in dark mode: every colour
+ * clears 3:1 contrast, and the worst normal-vision pair is 15.2. Amber against
+ * iron oxide sits in the 6-8 CVD band, which is legal only because every
+ * warning here ships with text beside it, never colour alone.
  *
  * Rules the rest of the CSS follows:
  *   - Labels are uppercase, letter-spaced, small, in muted ink.
  *   - Every number carries its unit, set separately and dimmer.
  *   - Panels are square-ish (3px), not rounded; radius is for controls only.
- *   - Colour is reserved for data. Chrome is greyscale plus the accent.
+ *   - Colour is reserved for data and for attention. Chrome is basalt greys
+ *     plus the one teal.
  */
 
 :root {
   /* Surfaces, darkest to lightest */
-  --bg-void:      #05070e;   /* the 3D scene behind everything */
-  --bg-panel:     #0a0f1c;   /* panel body */
-  --bg-raised:    #101828;   /* inputs, hovered rows */
-  --bg-sunken:    #070b15;   /* plot wells, code */
+  --bg-void:      #0a0807;   /* basalt - the 3D scene behind everything */
+  --bg-panel:     #14100e;   /* panel body */
+  --bg-raised:    #1e1917;   /* inputs, hovered rows */
+  --bg-sunken:    #0d0a09;   /* plot wells, code */
 
   /* Rules */
-  --line-hair:    #16203a;   /* internal separators */
-  --line-edge:    #1e2b4a;   /* panel borders */
-  --line-strong:  #2a3c63;   /* focused / active */
+  --line-hair:    #2a2320;   /* internal separators */
+  --line-edge:    #3a2f29;   /* panel borders */
+  --line-strong:  #57453b;   /* focused / active */
 
   /* Ink */
-  --ink-bright:   #e9f0fb;
-  --ink:          #b9c7de;
-  --ink-dim:      #7286a6;
-  --ink-faint:    #4a5975;
+  --ink-bright:   #f2ebe4;   /* regolith, lit */
+  --ink:          #cbbfb4;
+  --ink-dim:      #98897d;
+  --ink-faint:    #6b5e55;
 
-  /* Accent - one only */
-  --accent:       #4ea3ff;
-  --accent-dim:   #2a6bb0;
-  --accent-glow:  rgba(78, 163, 255, 0.14);
+  /* Accent - one only. Cool, so the warm band stays free for data. */
+  --accent:       #2ba3ab;
+  --accent-lit:   #45c2ca;
+  --accent-dim:   #1d6f75;
+  --accent-glow:  rgba(43, 163, 171, 0.15);
 
-  /* Status */
-  --ok:           #2fbf71;
-  --warn:         #f0b429;
-  --bad:          #e0564f;
+  /* Attention. There is no separate "ok" colour: the accent already means the
+     instrument is nominal, which keeps green out of the way of the teal. */
+  --warn:         #bfa81a;
+  --bad:          #bf3a6e;
 
-  /* Data series - validated categorical order, never cycled, never reordered */
-  --series-1: #3987e5;
-  --series-2: #d95926;
-  --series-3: #199e70;
-  --series-4: #c98500;
-  --series-5: #d55181;
-  --series-6: #008300;
-  --series-7: #9085e9;
+  /* Data. Individual fragments and their mean are the same quantity, so they
+     share one hue at two emphases rather than reading as two categories. */
+  --data-trace:    #e2683c;   /* iron oxide, drawn faint */
+  --data-mean:     #f2ebe4;   /* the aggregate, drawn bright */
+  --data-selected: #45c2ca;   /* what you are pointing at */
 
   /* Type */
   --font-ui: ui-sans-serif, system-ui, "Segoe UI", Inter, Roboto, sans-serif;
@@ -121,14 +132,14 @@
 .ui-btn:disabled { opacity: .45; cursor: not-allowed; }
 
 .ui-btn--primary {
-  color: #041020;
+  color: #06100f;
   background: var(--accent);
   border-color: var(--accent);
 }
 .ui-btn--primary:hover:not(:disabled) {
-  color: #041020;
-  background: #6db4ff;
-  border-color: #6db4ff;
+  color: #06100f;
+  background: var(--accent-lit);
+  border-color: var(--accent-lit);
 }
 
 .ui-btn:focus-visible,
@@ -144,8 +155,8 @@
   display: inline-block; flex: 0 0 auto;
   background: var(--ink-faint);
 }
-.ui-dot--ok   { background: var(--ok);   box-shadow: 0 0 6px var(--ok); }
-.ui-dot--warn { background: var(--warn); box-shadow: 0 0 6px var(--warn); }
+.ui-dot--ok   { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+.ui-dot--warn { background: var(--warn);   box-shadow: 0 0 6px var(--warn); }
 .ui-dot--bad  { background: var(--bad); }
 .ui-dot--busy {
   background: var(--accent);

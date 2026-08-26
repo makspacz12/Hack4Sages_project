@@ -211,7 +211,7 @@ async function mainReplay(source) {
   // ── Comet trails for replay-mode objects ─────────────────────────────
   const TRAIL_LEN        = 10;   // asteroids
   const PLANET_TRAIL_LEN = 40;   // planets – longer arc
-  const PLANET_TRAIL_COLOR = '#778899'; // slate-grey
+  const PLANET_TRAIL_COLOR = '#98897d'; // slate-grey
   const trailPosScale  = simData.meta?.positionScale ?? 1;
   const replayTrailMap = new Map();
   for (const { body, mesh } of nodes) {

@@ -10,7 +10,7 @@ const PANEL_ID = 'asteroid-panel';
 const STYLES = `
 #asteroid-toggle {
   position: fixed; top: 16px; right: 16px;
-  background: #1a1a2e; color: #aad4f5; border: 1px solid #334;
+  background: #1a1a2e; color: #cbbfb4; border: 1px solid #334;
   font-family: monospace; font-size: 13px; padding: 6px 14px;
   cursor: pointer; border-radius: 4px; z-index: 100;
 }
@@ -23,7 +23,7 @@ const STYLES = `
   padding: 14px 16px; border-radius: 6px; z-index: 100;
   display: none; width: 240px;
 }
-#asteroid-panel h2 { color: #aad4f5; margin: 0 0 10px; font-size: 14px; }
+#asteroid-panel h2 { color: #cbbfb4; margin: 0 0 10px; font-size: 14px; }
 #asteroid-panel label { display: block; margin: 6px 0 2px; color: #999; }
 #asteroid-panel input[type=number], #asteroid-panel input[type=color] {
   width: 100%; background: #111; color: #eee; border: 1px solid #335;
@@ -36,21 +36,21 @@ const STYLES = `
 #asteroid-panel input[type=color] { height: 28px; padding: 2px; cursor: pointer; }
 .vec-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
 .vec-row input { width: 100%; }
-#asteroid-panel .hint { color: #556; font-size: 11px; margin-top: 4px; }
+#asteroid-panel .hint { color: #6b5e55; font-size: 11px; margin-top: 4px; }
 #asteroid-spawn-btn {
   margin-top: 12px; width: 100%;
-  background: #1b3a5c; color: #aad4f5; border: 1px solid #2a5a8c;
+  background: #3a2f29; color: #cbbfb4; border: 1px solid #57453b;
   font-family: monospace; font-size: 13px; padding: 6px;
   cursor: pointer; border-radius: 4px;
 }
-#asteroid-spawn-btn:hover { background: #1f4a7a; }
+#asteroid-spawn-btn:hover { background: #57453b; }
 #trail-toggle-btn {
   margin-top: 8px; width: 100%;
-  background: #1a1a2e; color: #afd4ff; border: 1px solid #334;
+  background: #1a1a2e; color: #cbbfb4; border: 1px solid #334;
   font-family: monospace; font-size: 13px; padding: 6px;
   cursor: pointer; border-radius: 4px;
 }
-#trail-toggle-btn.active { background: #1b3a5c; border-color: #2a5a8c; color: #7af; }
+#trail-toggle-btn.active { background: #3a2f29; border-color: #57453b; color: #7af; }
 #asteroid-list { margin-top: 12px; max-height: 120px; overflow-y: auto; }
 .asteroid-entry {
   display: flex; justify-content: space-between; align-items: center;

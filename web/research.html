@@ -9,12 +9,12 @@
 
     :root {
       --bg:        #04060f;
-      --surface:   #080c1a;
-      --border:    #1a2540;
-      --accent:    #4a9eff;
+      --surface:   #0a0807;
+      --border:    #1e1917;
+      --accent:    #2ba3ab;
       --accent2:   #fdb813;
-      --text:      #c8d4e8;
-      --muted:     #5a6a88;
+      --text:      #cbbfb4;
+      --muted:     #6b5e55;
       --heading:   #e8f0ff;
     }
 
@@ -34,7 +34,7 @@
       inset: 0;
       background-image:
         radial-gradient(1px 1px at 10% 20%, #fff 0%, transparent 100%),
-        radial-gradient(1px 1px at 30% 60%, #aac 0%, transparent 100%),
+        radial-gradient(1px 1px at 30% 60%, #cbbfb4 0%, transparent 100%),
         radial-gradient(1px 1px at 55% 15%, #fff 0%, transparent 100%),
         radial-gradient(1px 1px at 75% 80%, #ccf 0%, transparent 100%),
         radial-gradient(1px 1px at 90% 40%, #fff 0%, transparent 100%),
@@ -50,7 +50,7 @@
       position: sticky;
       top: 0;
       z-index: 10;
-      background: rgba(4, 6, 15, 0.88);
+      background: rgba(8, 6, 5, 0.90);
       backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--border);
       padding: 14px 40px;
@@ -81,7 +81,7 @@
     }
     .btn-back:hover {
       border-color: var(--accent);
-      background: rgba(74, 158, 255, 0.08);
+      background: rgba(43, 163, 171, 0.09);
     }
 
     main {
@@ -112,7 +112,7 @@
 
     .lead {
       font-size: 1.15rem;
-      color: #8ba4cc;
+      color: #98897d;
       margin-bottom: 48px;
       max-width: 640px;
     }
@@ -148,8 +148,8 @@
     code {
       font-family: monospace;
       font-size: 0.88em;
-      background: rgba(74, 158, 255, 0.1);
-      color: #7ec8ff;
+      background: rgba(43, 163, 171, 0.11);
+      color: #45c2ca;
       padding: 2px 6px;
       border-radius: 3px;
     }
@@ -193,9 +193,9 @@
       border-left: 3px solid var(--accent);
       margin: 24px 0;
       padding: 12px 20px;
-      background: rgba(74, 158, 255, 0.05);
+      background: rgba(43, 163, 171, 0.06);
       border-radius: 0 6px 6px 0;
-      color: #8ba4cc;
+      color: #98897d;
       font-style: italic;
     }
 
@@ -206,7 +206,7 @@
       padding: 16px 24px;
       font-family: monospace;
       font-size: 14px;
-      color: #a0d4ff;
+      color: #45c2ca;
       margin: 20px 0;
       overflow-x: auto;
     }
@@ -224,8 +224,8 @@
     .ref-list li:last-child { border-bottom: none; }
     /* ── inline R console ── */
     .r-console {
-      background: rgba(8, 10, 20, 0.92);
-      border: 1px solid #1e2e4a;
+      background: rgba(20, 16, 14, 0.94);
+      border: 1px solid #3a2f29;
       border-radius: 10px;
       overflow: hidden;
       margin: 28px 0;
@@ -238,19 +238,19 @@
       align-items: center;
       justify-content: space-between;
       padding: 7px 14px;
-      background: rgba(0, 20, 50, 0.55);
-      border-bottom: 1px solid #1e2e4a;
+      background: rgba(30, 22, 18, .55);
+      border-bottom: 1px solid #3a2f29;
     }
 
     .r-console-header .r-title {
       font-weight: bold;
-      color: #6cf;
+      color: #2ba3ab;
       letter-spacing: .05em;
     }
 
     .r-console-header .r-hint {
       font-size: 11px;
-      color: #446;
+      color: #6b5e55;
     }
 
     .r-canvas-wrap {
@@ -276,7 +276,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: rgba(5, 8, 20, 0.85);
+      background: rgba(10, 8, 7, 0.87);
       color: #6af;
       font-size: 13px;
       gap: 10px;
@@ -287,7 +287,7 @@
     .r-spinner {
       width: 26px;
       height: 26px;
-      border: 3px solid #1a3060;
+      border: 3px solid #3a2f29;
       border-top-color: #5af;
       border-radius: 50%;
       animation: rspin .8s linear infinite;
@@ -297,9 +297,9 @@
     .r-editor {
       display: none;
       flex-direction: column;
-      background: rgba(5, 8, 18, 0.97);
+      background: rgba(10, 8, 7, 0.97);
       padding: 10px;
-      border-top: 1px solid #1e2e4a;
+      border-top: 1px solid #3a2f29;
     }
     .r-editor.open { display: flex; }
 
@@ -307,9 +307,9 @@
       width: 100%;
       height: 140px;
       resize: vertical;
-      background: #0a0e1a;
-      color: #bdf;
-      border: 1px solid #2a3860;
+      background: #14100e;
+      color: #cbbfb4;
+      border: 1px solid #3a2f29;
       border-radius: 5px;
       padding: 8px;
       font-family: monospace;
@@ -318,7 +318,7 @@
       outline: none;
       box-sizing: border-box;
     }
-    .r-editor textarea:focus { border-color: #4a7fd0; }
+    .r-editor textarea:focus { border-color: #2ba3ab; }
 
     .r-btn-row {
       display: flex;
@@ -333,18 +333,18 @@
       cursor: pointer;
       font-family: monospace;
       font-size: 13px;
-      border: 1px solid #3a4860;
+      border: 1px solid #3a2f29;
     }
-    .r-btn-run    { background: #0e2a50; color: #7cf; }
-    .r-btn-run:hover { background: #153a70; }
+    .r-btn-run    { background: #2a2320; color: #7cf; }
+    .r-btn-run:hover { background: #57453b; }
     .r-btn-cancel { background: #111; color: #778; }
     .r-btn-cancel:hover { background: #1a1a2a; }
 
     .r-status {
       padding: 4px 14px;
       font-size: 11px;
-      color: #446;
-      border-top: 1px solid #141e30;
+      color: #6b5e55;
+      border-top: 1px solid #1e1917;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -651,11 +651,11 @@ planets <- c("Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptu
 a <- c(0.387, 0.723, 1.000, 1.524, 5.203, 9.537, 19.19, 30.07)   # AU
 T <- c(0.241, 0.615, 1.000, 1.881, 11.86, 29.46, 84.01, 164.8)   # years
 
-par(bg="#080c1a", col.axis="#8ba4cc", col.lab="#c8d4e8",
-    col.main="#e8f0ff", fg="#2a3860")
+par(bg="#0a0807", col.axis="#98897d", col.lab="#cbbfb4",
+    col.main="#e8f0ff", fg="#3a2f29")
 
 plot(log10(a), log10(T),
-     pch=21, bg="#4a9eff", col="white", cex=1.6,
+     pch=21, bg="#2ba3ab", col="white", cex=1.6,
      main="Prawo Keplera III: log(T) vs log(a)",
      xlab="log\u2081\u2080(a)  [AU]",
      ylab="log\u2081\u2080(T)  [lata]",
@@ -666,11 +666,11 @@ fit <- lm(log10(T) ~ log10(a))
 abline(fit, col="#fdb813", lwd=2)
 
 # etykiety
-text(log10(a), log10(T), planets, pos=4, cex=0.75, col="#8ba4cc")
+text(log10(a), log10(T), planets, pos=4, cex=0.75, col="#98897d")
 
 legend("topleft",
        legend=sprintf("nachylenie = %.3f", coef(fit)[2]),
-       col="#fdb813", lwd=2, bty="n", text.col="#c8d4e8")`;
+       col="#fdb813", lwd=2, bty="n", text.col="#cbbfb4")`;
 
     const canvasEl  = document.getElementById('r-canvas');
     const wrap      = document.getElementById('r-canvas-wrap');
@@ -716,7 +716,7 @@ legend("topleft",
     async function runCode(code) {
       await getWebR();
       const capture = await _shelter.captureR(code, {
-        captureGraphics: { width: CW, height: CH, bg: '#080c1a' },
+        captureGraphics: { width: CW, height: CH, bg: '#0a0807' },
       });
       const text = (capture.output ?? [])
         .filter(m => ['stdout','stderr','message'].includes(m.type))
@@ -746,7 +746,7 @@ legend("topleft",
         } else {
           overlay.style.display = 'flex';
           const msg = result.text || '(no plot)';
-          overlay.innerHTML = `<pre style="color:#bdf;font-size:12px;white-space:pre-wrap;text-align:left;max-height:${CH-24}px;overflow:auto;width:100%;padding:0 16px">${escHtml(msg)}</pre>`;
+          overlay.innerHTML = `<pre style="color:#cbbfb4;font-size:12px;white-space:pre-wrap;text-align:left;max-height:${CH-24}px;overflow:auto;width:100%;padding:0 16px">${escHtml(msg)}</pre>`;
           setStatus(result.text ? 'Text output' : 'No plot', result.text ? '' : 'err');
         }
       } catch (err) {

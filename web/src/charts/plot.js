@@ -377,6 +377,10 @@ export function liveLinePlot(container, options) {
       }
       paths[i].setAttribute('stroke-opacity', opacity);
       paths[i].setAttribute('stroke-width', strokeWidth);
+      // The selected trace takes the instrument accent so it reads as "the one
+      // you picked" rather than merely "a brighter fragment".
+      paths[i].setAttribute('stroke', isSelected && s.selectedColor
+        ? s.selectedColor : s.color);
     });
   }
 

@@ -25,10 +25,10 @@ export function buildOrbitPoints(radius, segments = 128) {
 /**
  * Create a Three.js LineLoop representing an orbital path.
  * @param {number} radius
- * @param {string} [color='#333355']
+ * @param {string} [color='#3a2f29']
  * @returns {THREE.LineLoop}
  */
-export function createOrbitLine(radius, color = '#333355') {
+export function createOrbitLine(radius, color = '#3a2f29') {
   const pts = buildOrbitPoints(radius);
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(pts, 3));

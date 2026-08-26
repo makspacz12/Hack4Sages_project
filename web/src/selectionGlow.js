@@ -24,11 +24,11 @@ function getGlowTexture() {
 
   // Transparent centre → bright blue ring → transparent outer edge
   const grad = ctx.createRadialGradient(cx, cx, 0, cx, cx, cx);
-  grad.addColorStop(0.00, 'rgba(60,  140, 255, 0.0)');
-  grad.addColorStop(0.45, 'rgba(80,  160, 255, 0.15)');
-  grad.addColorStop(0.70, 'rgba(100, 180, 255, 0.90)');
-  grad.addColorStop(0.88, 'rgba(60,  140, 255, 0.35)');
-  grad.addColorStop(1.00, 'rgba(40,  100, 255, 0.0)');
+  grad.addColorStop(0.00, 'rgba(43, 163, 171, 0.0)');
+  grad.addColorStop(0.45, 'rgba(69, 194, 202, 0.15)');
+  grad.addColorStop(0.70, 'rgba(69, 194, 202, 0.90)');
+  grad.addColorStop(0.88, 'rgba(43, 163, 171, 0.35)');
+  grad.addColorStop(1.00, 'rgba(29, 111, 117, 0.0)');
 
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, SIZE, SIZE);

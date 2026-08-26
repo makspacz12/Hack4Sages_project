@@ -21,8 +21,8 @@ function injectStyles() {
       width: 270px;
       max-height: calc(100vh - 100px);
       overflow-y: auto;
-      background: rgba(8, 10, 22, 0.92);
-      border: 1px solid #2a3860;
+      background: rgba(20, 16, 14, 0.94);
+      border: 1px solid #3a2f29;
       border-radius: 10px;
       padding: 14px 16px 16px;
       font-family: monospace; font-size: 12px; color: #cbd;
@@ -46,7 +46,7 @@ function injectStyles() {
       overflow: hidden; text-overflow: ellipsis;
     }
     #info-panel .ip-type {
-      font-size: 10px; background: #1a2240; border: 1px solid #3a4870;
+      font-size: 10px; background: #1e1917; border: 1px solid #57453b;
       border-radius: 4px; padding: 1px 6px; color: #89a; letter-spacing: .04em;
       text-transform: uppercase;
     }
@@ -54,12 +54,12 @@ function injectStyles() {
       background: none; border: none; color: #667; cursor: pointer;
       font-size: 15px; line-height: 1; padding: 0 2px; margin-left: 4px;
     }
-    #info-panel .ip-close:hover { color: #ccd; }
+    #info-panel .ip-close:hover { color: #cbbfb4; }
 
     /* section label */
     #info-panel .ip-section {
-      font-size: 10px; letter-spacing: .08em; color: #556; text-transform: uppercase;
-      margin: 10px 0 4px; border-top: 1px solid #1c2440; padding-top: 6px;
+      font-size: 10px; letter-spacing: .08em; color: #6b5e55; text-transform: uppercase;
+      margin: 10px 0 4px; border-top: 1px solid #1e1917; padding-top: 6px;
     }
     #info-panel .ip-section:first-of-type { margin-top: 0; }
 
@@ -69,8 +69,8 @@ function injectStyles() {
       padding: 2px 0; gap: 8px;
     }
     #info-panel .ip-key  { color: #778; flex-shrink: 0; }
-    #info-panel .ip-val  { color: #bdf; text-align: right; word-break: break-all; }
-    #info-panel .ip-unit { color: #556; margin-left: 3px; font-size: 10px; }
+    #info-panel .ip-val  { color: #cbbfb4; text-align: right; word-break: break-all; }
+    #info-panel .ip-unit { color: #6b5e55; margin-left: 3px; font-size: 10px; }
 
     /* highlighted live rows */
     #info-panel .ip-row.live .ip-val { color: #8ef; }
@@ -86,10 +86,10 @@ function injectStyles() {
       gap: 8px;
     }
     #info-panel .ip-bar-key { color: #778; flex-shrink: 0; font-size: 11px; }
-    #info-panel .ip-bar-val { color: #bdf; text-align: right; font-size: 11px; }
-    #info-panel .ip-bar-unit { color: #556; margin-left: 2px; font-size: 10px; }
+    #info-panel .ip-bar-val { color: #cbbfb4; text-align: right; font-size: 11px; }
+    #info-panel .ip-bar-unit { color: #6b5e55; margin-left: 2px; font-size: 10px; }
     #info-panel .ip-bar-track {
-      height: 4px; background: #0e1220; border: 1px solid #1a2540;
+      height: 4px; background: #0e1220; border: 1px solid #1e1917;
       border-radius: 3px; overflow: hidden; position: relative;
     }
     #info-panel .ip-bar-fill {

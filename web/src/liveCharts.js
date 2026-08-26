@@ -18,9 +18,13 @@ import {
 } from './charts/series.js';
 
 const PALETTE = {
-  // Validated against this dock's surface in dark mode. Slot order is fixed.
-  trace: '#3987e5',   // slot 1 - individual fragments
-  mean: '#d95926',    // slot 2 - the swarm mean drawn over them
+  // Individual fragments and their swarm mean are the SAME quantity, so they
+  // are one hue at two emphases rather than two categories: iron oxide drawn
+  // faint for each fragment, regolith-bright for the aggregate over them.
+  // Selection borrows the instrument accent, the one cool colour on the page.
+  trace: '#e2683c',      // iron oxide - the rock being simulated
+  mean: '#f2ebe4',       // regolith, lit - the aggregate
+  selected: '#45c2ca',   // instrument teal - what you are pointing at
 };
 
 function injectStyles() {
@@ -31,9 +35,9 @@ function injectStyles() {
     #live-charts {
       position: fixed; top: 0; right: 0; bottom: 72px;
       width: 330px; z-index: 860;
-      background: rgba(8, 12, 26, 0.94);
-      border-left: 1px solid #1e2e4a;
-      font-family: monospace; color: #ccd;
+      background: rgba(20, 16, 14, 0.95);
+      border-left: 1px solid #3a2f29;
+      font-family: monospace; color: #cbbfb4;
       display: flex; flex-direction: column;
       transition: transform .18s ease;
     }
@@ -41,126 +45,126 @@ function injectStyles() {
 
     #live-charts .lc-head {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 12px; border-bottom: 1px solid #1e2e4a;
-      background: rgba(0, 20, 50, .5); flex: 0 0 auto;
+      padding: 10px 12px; border-bottom: 1px solid #3a2f29;
+      background: rgba(30, 22, 18, .55); flex: 0 0 auto;
     }
     #live-charts .lc-title {
-      font-size: 12px; font-weight: bold; color: #6cf; letter-spacing: .08em;
+      font-size: 12px; font-weight: bold; color: #2ba3ab; letter-spacing: .08em;
     }
-    #live-charts .lc-sub { font-size: 10px; color: #5c7099; margin-top: 2px; }
+    #live-charts .lc-sub { font-size: 10px; color: #6b5e55; margin-top: 2px; }
     #live-charts .lc-close {
-      background: none; border: 1px solid #1e2e4a; border-radius: 5px;
-      color: #6f7f9e; cursor: pointer; font-size: 13px; line-height: 1;
+      background: none; border: 1px solid #3a2f29; border-radius: 5px;
+      color: #98897d; cursor: pointer; font-size: 13px; line-height: 1;
       padding: 3px 8px;
     }
-    #live-charts .lc-close:hover { color: #cfe; border-color: #4a9eff; }
+    #live-charts .lc-close:hover { color: #f2ebe4; border-color: #2ba3ab; }
 
     #live-charts .lc-body { overflow-y: auto; padding: 4px 0 12px; flex: 1 1 auto; }
-    #live-charts .lc-fig { padding: 8px 12px 5px; border-bottom: 1px solid #141e31; }
+    #live-charts .lc-fig { padding: 8px 12px 5px; border-bottom: 1px solid #2a2320; }
     #live-charts .lc-fig:last-child { border-bottom: none; }
-    #live-charts .lc-fig-title { font-size: 11.5px; color: #dfe8f7; font-weight: bold; }
-    #live-charts .lc-fig-note { font-size: 10px; color: #5c7099; margin-top: 1px; }
-    #live-charts .lc-readout { font-size: 10.5px; color: #8ba4cc; margin-top: 4px; }
+    #live-charts .lc-fig-title { font-size: 11.5px; color: #f2ebe4; font-weight: bold; }
+    #live-charts .lc-fig-note { font-size: 10px; color: #6b5e55; margin-top: 1px; }
+    #live-charts .lc-readout { font-size: 10.5px; color: #98897d; margin-top: 4px; }
     #live-charts .lc-plot { margin-top: 4px; position: relative; }
 
-    #live-charts svg .grid   { stroke: #182238; stroke-width: 1; }
-    #live-charts svg .axis   { stroke: #26324c; stroke-width: 1; }
-    #live-charts svg .tick   { fill: #6f7f9e; font-size: 9px; font-family: inherit; }
+    #live-charts svg .grid   { stroke: #241d1a; stroke-width: 1; }
+    #live-charts svg .axis   { stroke: #3a2f29; stroke-width: 1; }
+    #live-charts svg .tick   { fill: #98897d; font-size: 9px; font-family: inherit; }
     #live-charts svg .tick-y { text-anchor: end; dominant-baseline: middle; }
     #live-charts svg .tick-x { text-anchor: middle; }
-    #live-charts svg .axis-label { fill: #6f7f9e; font-size: 9.5px; text-anchor: middle; font-family: inherit; }
-    #live-charts svg .crosshair { stroke: #6f7f9e; stroke-width: 1; opacity: .45; }
-    #live-charts .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 5px; font-size: 10px; color: #8ba4cc; }
+    #live-charts svg .axis-label { fill: #98897d; font-size: 9.5px; text-anchor: middle; font-family: inherit; }
+    #live-charts svg .crosshair { stroke: #98897d; stroke-width: 1; opacity: .45; }
+    #live-charts .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 5px; font-size: 10px; color: #98897d; }
     #live-charts .legend-item { display: inline-flex; align-items: center; gap: 5px; }
     #live-charts .legend-swatch { width: 10px; height: 3px; border-radius: 2px; display: inline-block; }
-    #live-charts .empty { padding: 18px 0; text-align: center; color: #4a5670; font-size: 10.5px; }
+    #live-charts .empty { padding: 18px 0; text-align: center; color: #6b5e55; font-size: 10.5px; }
 
     #live-charts .lc-fig-head {
       display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
     }
     #live-charts .lc-expand {
       background: none; border: 1px solid transparent; border-radius: 3px;
-      color: #4a5975; cursor: pointer; font-size: 13px; line-height: 1;
+      color: #6b5e55; cursor: pointer; font-size: 13px; line-height: 1;
       padding: 2px 5px; flex: 0 0 auto;
     }
-    #live-charts .lc-fig:hover .lc-expand { border-color: #1e2b4a; color: #7286a6; }
-    #live-charts .lc-expand:hover { color: #4ea3ff; border-color: #4ea3ff; }
+    #live-charts .lc-fig:hover .lc-expand { border-color: #3a2f29; color: #98897d; }
+    #live-charts .lc-expand:hover { color: #2ba3ab; border-color: #2ba3ab; }
 
     #live-charts .lc-selection {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 6px 12px; background: rgba(78,163,255,.10);
-      border-bottom: 1px solid #1e2e4a; font-size: 10.5px; color: #a7b6d4;
+      padding: 6px 12px; background: rgba(43,163,171,.11);
+      border-bottom: 1px solid #3a2f29; font-size: 10.5px; color: #cbbfb4;
       flex: 0 0 auto;
     }
-    #live-charts .lc-selection b { color: #e9f0fb; }
+    #live-charts .lc-selection b { color: #f2ebe4; }
     #live-charts .lc-clear {
-      background: none; border: 1px solid #2a3c63; border-radius: 3px;
-      color: #7286a6; font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase;
+      background: none; border: 1px solid #57453b; border-radius: 3px;
+      color: #98897d; font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase;
       padding: 2px 7px; cursor: pointer; font-family: inherit;
     }
-    #live-charts .lc-clear:hover { color: #e9f0fb; border-color: #4ea3ff; }
+    #live-charts .lc-clear:hover { color: #f2ebe4; border-color: #2ba3ab; }
 
-    #live-charts svg .hoverline { stroke: #4ea3ff; stroke-width: 1; opacity: .55; }
+    #live-charts svg .hoverline { stroke: #2ba3ab; stroke-width: 1; opacity: .55; }
     #live-charts .tooltip, .lc-modal .tooltip {
       position: absolute; pointer-events: none; z-index: 5;
-      background: #101828; border: 1px solid #2a3c63; border-radius: 3px;
-      padding: 6px 9px; font-size: 11px; color: #e9f0fb;
+      background: #1e1917; border: 1px solid #57453b; border-radius: 3px;
+      padding: 6px 9px; font-size: 11px; color: #f2ebe4;
       box-shadow: 0 6px 20px rgba(0,0,0,.6); white-space: nowrap;
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     }
-    #live-charts .tt-head, .lc-modal .tt-head { color: #7286a6; margin-bottom: 3px; }
+    #live-charts .tt-head, .lc-modal .tt-head { color: #98897d; margin-bottom: 3px; }
     #live-charts .tt-row, .lc-modal .tt-row { display: flex; align-items: center; gap: 6px; }
     #live-charts .tt-swatch, .lc-modal .tt-swatch {
       width: 8px; height: 8px; border-radius: 2px; display: inline-block;
     }
-    #live-charts .tt-hint, .lc-modal .tt-hint { color: #4ea3ff; margin-top: 3px; font-size: 10px; }
+    #live-charts .tt-hint, .lc-modal .tt-hint { color: #2ba3ab; margin-top: 3px; font-size: 10px; }
 
     /* ── Enlarged view ── */
     .lc-modal {
       position: fixed; inset: 0; z-index: 1000;
-      background: rgba(3, 6, 14, .82);
+      background: rgba(6, 5, 4, .84);
       display: flex; align-items: center; justify-content: center; padding: 40px;
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     }
     .lc-modal-card {
-      background: #0a0f1c; border: 1px solid #2a3c63; border-radius: 4px;
+      background: #14100e; border: 1px solid #57453b; border-radius: 4px;
       width: min(1000px, 92vw); box-shadow: 0 24px 80px rgba(0,0,0,.7);
     }
     .lc-modal-head {
       display: flex; align-items: flex-start; justify-content: space-between;
-      padding: 14px 18px; border-bottom: 1px solid #1e2e4a; gap: 16px;
+      padding: 14px 18px; border-bottom: 1px solid #3a2f29; gap: 16px;
     }
-    .lc-modal-head .lc-fig-title { font-size: 14px; color: #e9f0fb; font-weight: bold; }
-    .lc-modal-head .lc-fig-note { font-size: 11px; color: #7286a6; margin-top: 3px; max-width: 80ch; }
+    .lc-modal-head .lc-fig-title { font-size: 14px; color: #f2ebe4; font-weight: bold; }
+    .lc-modal-head .lc-fig-note { font-size: 11px; color: #98897d; margin-top: 3px; max-width: 80ch; }
     .lc-modal-close {
-      background: none; border: 1px solid #1e2e4a; border-radius: 3px;
-      color: #7286a6; cursor: pointer; font-size: 16px; line-height: 1; padding: 3px 9px;
+      background: none; border: 1px solid #3a2f29; border-radius: 3px;
+      color: #98897d; cursor: pointer; font-size: 16px; line-height: 1; padding: 3px 9px;
     }
-    .lc-modal-close:hover { color: #e9f0fb; border-color: #4ea3ff; }
+    .lc-modal-close:hover { color: #f2ebe4; border-color: #2ba3ab; }
     .lc-modal-plot { padding: 12px 18px 4px; position: relative; }
-    .lc-modal-plot svg .grid { stroke: #182238; }
-    .lc-modal-plot svg .axis { stroke: #26324c; }
-    .lc-modal-plot svg .tick { fill: #7286a6; font-size: 11px; font-family: inherit; }
+    .lc-modal-plot svg .grid { stroke: #241d1a; }
+    .lc-modal-plot svg .axis { stroke: #3a2f29; }
+    .lc-modal-plot svg .tick { fill: #98897d; font-size: 11px; font-family: inherit; }
     .lc-modal-plot svg .tick-y { text-anchor: end; dominant-baseline: middle; }
     .lc-modal-plot svg .tick-x { text-anchor: middle; }
-    .lc-modal-plot svg .axis-label { fill: #a7b6d4; font-size: 12px; text-anchor: middle; font-family: inherit; }
-    .lc-modal-plot svg .hoverline { stroke: #4ea3ff; stroke-width: 1; opacity: .55; }
-    .lc-modal-plot svg .crosshair { stroke: #7286a6; stroke-width: 1; opacity: .4; }
-    .lc-modal-plot svg .hover-dot { stroke: #0a0f1c; stroke-width: 2; }
-    .lc-modal-plot .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; font-size: 11px; color: #a7b6d4; }
+    .lc-modal-plot svg .axis-label { fill: #cbbfb4; font-size: 12px; text-anchor: middle; font-family: inherit; }
+    .lc-modal-plot svg .hoverline { stroke: #2ba3ab; stroke-width: 1; opacity: .55; }
+    .lc-modal-plot svg .crosshair { stroke: #98897d; stroke-width: 1; opacity: .4; }
+    .lc-modal-plot svg .hover-dot { stroke: #14100e; stroke-width: 2; }
+    .lc-modal-plot .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; font-size: 11px; color: #cbbfb4; }
     .lc-modal-plot .legend-swatch { width: 12px; height: 3px; border-radius: 2px; display: inline-block; }
     .lc-modal-foot {
-      padding: 8px 18px 14px; font-size: 10.5px; color: #4a5975;
-      border-top: 1px solid #141e31;
+      padding: 8px 18px 14px; font-size: 10.5px; color: #6b5e55;
+      border-top: 1px solid #2a2320;
     }
 
     #btn-live-charts {
       position: fixed; top: 14px; right: 14px; z-index: 861;
-      background: rgba(8, 12, 28, 0.82); border: 1px solid #1e3060;
-      color: #4a9eff; font-family: monospace; font-size: 13px; font-weight: bold;
+      background: rgba(20, 16, 14, 0.86); border: 1px solid #3a2f29;
+      color: #2ba3ab; font-family: monospace; font-size: 13px; font-weight: bold;
       letter-spacing: .1em; padding: 6px 14px; border-radius: 6px; cursor: pointer;
     }
-    #btn-live-charts:hover { border-color: #4a9eff; background: rgba(74,158,255,.12); color: #80c4ff; }
+    #btn-live-charts:hover { border-color: #2ba3ab; background: rgba(43,163,171,.13); color: #45c2ca; }
     #btn-live-charts.docked { right: 344px; }
 
     /* The object search sits at right:300px; slide it clear of the dock so the
@@ -215,6 +219,7 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
 
   const traces = map => [...map].map(([id, points]) => ({
     color: PALETTE.trace, points, width: 1, opacity: 0.32, faint: true,
+    selectedColor: PALETTE.selected,
     pickId: id, label: id.replace('asteroid_', 'fragment '),
   }));
   const withMean = (map, meanName) => [
