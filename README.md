@@ -74,7 +74,7 @@ python run.py
 cd web
 npm install
 npm run dev          # http://localhost:3000
-npm test             # 245 tests
+npm test             # 264 tests
 ```
 
 **Feed a fresh simulation into the visualizer:**

@@ -34,6 +34,7 @@ import { initReplayUI } from './replayUI.js';
 import { createInfoPanel } from './infoPanel.js';
 import { createUVShells, setUVVisible, tickUVAnimation, updateHeatForNodes } from './uvRadiation.js';
 import { createObjectSearch } from './objectSearch.js';
+import { createLiveCharts } from './liveCharts.js';
 import { createRollState, tickCameraRoll } from './cameraRoll.js';
 
 /** Colour of the trail for the currently followed object – bright yellow-white. */
@@ -244,6 +245,9 @@ async function mainReplay(replayUrl) {
   const posUnit  = simData.meta?.positionUnit ?? '';
   const infoPanel = createInfoPanel();
 
+  // Charts that draw themselves alongside the animation, from this replay.
+  const liveCharts = createLiveCharts(simData).mount();
+
   /** Return { positions, velocities } for the current frame. */
   const curFrame = () => ctrl.frames?.[ctrl.currentFrame] ?? {};
 
@@ -367,6 +371,7 @@ async function mainReplay(replayUrl) {
     rebuildReplayTrails();   // scrubbing: rebuild trail from data, not live positions
     const { positions, velocities, properties } = curFrame();
     infoPanel.updateFrame(positions, velocities, properties, posUnit);
+    liveCharts.update(ctrl.currentFrame);
   }, {
     onUVToggle: (enabled) => {
       uvEnabled = enabled;
@@ -417,6 +422,7 @@ async function mainReplay(replayUrl) {
           refreshUI(ctrl);
           const { positions, velocities, properties } = curFrame();
           infoPanel.updateFrame(positions, velocities, properties, posUnit);
+          liveCharts.update(ctrl.currentFrame);
           rebuildReplayTrails();
         }
       } else if (frameChanged) {
@@ -424,6 +430,7 @@ async function mainReplay(replayUrl) {
         refreshUI(ctrl);
         const { positions, velocities, properties } = curFrame();
         infoPanel.updateFrame(positions, velocities, properties, posUnit);
+        liveCharts.update(ctrl.currentFrame);
         rebuildReplayTrails();
       }
       updateFocus(focusCtrl, camera, controls);
