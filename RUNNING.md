@@ -25,9 +25,16 @@ python -m pip install -r requirements.txt
 
 If `venv` is missing on Debian/Ubuntu: `sudo apt install python3-venv`.
 
-> `rebound`, `reboundx` and `spiceypy` build from C sources and install reliably only on
-> Linux, macOS and WSL. Without them the package still runs — it falls back to a **static
-> radiation mode** with no orbital dynamics. See "Degraded mode" below.
+> `rebound` ships prebuilt wheels for Windows, macOS and Linux, so
+> `pip install rebound astropy` is enough to run the orbital pipeline anywhere.
+>
+> `reboundx` (radiation pressure) and `spiceypy` (full ephemeris) build from C sources.
+> `reboundx` does not compile under MSVC — its C uses variable-length arrays, which
+> Microsoft's compiler rejects — so on Windows use WSL if you need it. Without them the
+> run still completes and those two features are skipped.
+>
+> Without `rebound` at all the package falls back to a **static radiation mode** with no
+> orbital dynamics. See "Degraded mode" below.
 
 ### Run
 

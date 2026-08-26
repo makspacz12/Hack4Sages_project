@@ -425,7 +425,11 @@ export function createControlPanel({ onFinished }) {
       if (!state.rebound) {
         note('The solver is running but <code>rebound</code> is not importable in '
            + 'its environment, so it cannot integrate anything. Install it with '
-           + '<code>pip install rebound reboundx</code> (Linux, macOS or WSL).');
+           + '<code>pip install rebound astropy</code>, then restart the solver. '
+           + '<br><br>REBOUND ships a wheel for Windows, macOS and Linux. '
+           + '<code>reboundx</code> — needed only for radiation pressure — has no '
+           + 'Windows wheel and does not compile under MSVC; without it the run '
+           + 'still works and that one force is skipped.');
       }
     } catch (error) {
       setStatus('bad', 'schema unavailable');
