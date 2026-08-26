@@ -99,6 +99,37 @@ index.html?replay=data/test_replay.json
 
 ---
 
+## 2b. Running simulations from the browser
+
+Start the local solver, then use the **Run console** in the visualizer to choose
+parameters and launch a run without touching Python:
+
+```bash
+cd model && source .venv/bin/activate
+python -m microbe_radiation_model.server        # http://127.0.0.1:8000
+```
+
+Then open the visualizer (`cd web && npm run dev`). The console reads its parameter
+list from the server, so the controls can never offer something the model rejects.
+A finished run reloads the page with `?run=<id>` and the scene plays it.
+
+The server is standard-library only — no new dependencies — and job-based, because a
+run takes seconds to minutes and a blocking request would simply time out.
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /api/health` | is the solver up, and is REBOUND importable |
+| `GET /api/parameters` | parameter schema and defaults for the UI |
+| `POST /api/runs` | start a run |
+| `GET /api/runs/<id>` | status and progress |
+| `GET /api/runs/<id>/replay` | the finished replay |
+
+`--host` and `--port` change the bind address; the page reaches a non-default one via
+`?api=http://host:port`. Without the server the visualizer simply plays the bundled
+replay and the console explains how to start it.
+
+---
+
 ## 3. Connecting the two
 
 The model writes JSON; the site serves JSON; this script moves it across.

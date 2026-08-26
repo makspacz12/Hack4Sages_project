@@ -35,6 +35,9 @@ import { createInfoPanel } from './infoPanel.js';
 import { createUVShells, setUVVisible, tickUVAnimation, updateHeatForNodes } from './uvRadiation.js';
 import { createObjectSearch } from './objectSearch.js';
 import { createLiveCharts } from './liveCharts.js';
+import { createControlPanel } from './ui/controlPanel.js';
+import { runReplay } from './api.js';
+import './ui/theme.css';
 import { createRollState, tickCameraRoll } from './cameraRoll.js';
 
 /** Colour of the trail for the currently followed object – bright yellow-white. */
@@ -129,10 +132,17 @@ function onResize(renderer, camera, controls) {
  * Replay mode – loads simulation JSON and plays it frame-by-frame.
  * Activated by adding ?replay=data/test_replay.json to the URL.
  */
-async function mainReplay(replayUrl) {
-  const resp = await fetch(replayUrl);
-  if (!resp.ok) throw new Error(`Cannot load replay from "${replayUrl}": ${resp.status} ${resp.statusText}`);
-  const simData = await resp.json();
+async function mainReplay(source) {
+  // Accepts either a URL to fetch or an already-parsed replay, so a run coming
+  // back from the local solver does not have to be written out and re-read.
+  let simData;
+  if (typeof source === 'string') {
+    const resp = await fetch(source);
+    if (!resp.ok) throw new Error(`Cannot load replay from "${source}": ${resp.status} ${resp.statusText}`);
+    simData = await resp.json();
+  } else {
+    simData = source;
+  }
 
   const scene    = createScene();
   const camera   = createCamera(window.innerWidth / window.innerHeight);
@@ -246,7 +256,22 @@ async function mainReplay(replayUrl) {
   const infoPanel = createInfoPanel();
 
   // Charts that draw themselves alongside the animation, from this replay.
-  const liveCharts = createLiveCharts(simData).mount();
+  // Clicking a trace focuses that fragment in the 3D scene; `selectNodeById` is
+  // assigned once the scene's selection machinery exists, further down.
+  let selectNodeById = () => {};
+  const liveCharts = createLiveCharts(simData, {
+    onSelectFragment: (id) => selectNodeById(id),
+  }).mount();
+
+  // The run console: pick parameters, launch the solver, come back with a run.
+  createControlPanel({
+    onFinished: (runId) => {
+      const url = new URL(location.href);
+      url.searchParams.set('run', runId);
+      url.searchParams.delete('replay');
+      location.assign(url.toString());
+    },
+  }).mount();
 
   /** Return { positions, velocities } for the current frame. */
   const curFrame = () => ctrl.frames?.[ctrl.currentFrame] ?? {};
@@ -322,6 +347,24 @@ async function mainReplay(replayUrl) {
     }
   });
   objectSearch.mount();
+
+  // Same selection path the object list uses, exposed by id so the charts can
+  // drive it too.
+  selectNodeById = (id) => {
+    const node = nodes.find(n => n.body?.id === id);
+    if (!node) return;
+    objectSearch.selectById?.(id);
+    setFocusTarget(focusCtrl, node.mesh);
+    activateOrbit(focusCtrl);
+    selectionGlow.attach(node.mesh);
+    setFocusLabel(node.body?.name ?? id);
+    applyFollowTrailColor(node.body.id);
+    const simObj = objById.get(id);
+    if (simObj) {
+      const { positions, velocities, properties } = curFrame();
+      infoPanel.show(simObj, positions, velocities, properties, posUnit);
+    }
+  };
 
   registerClickHandler(
     renderer.domElement,
@@ -447,9 +490,23 @@ async function main() {
   // ?live → original orbital-mechanics solar system
   const params     = new URLSearchParams(location.search);
   const customFile = params.get('replay');
+  const runId      = params.get('run');
   const liveMode   = params.has('live');
 
   if (!liveMode) {
+    // ?run=<id> loads a simulation the local solver just produced. Handing the
+    // id over and reloading is cleaner than tearing down a live three.js world
+    // and rebuilding it in place.
+    if (runId) {
+      try {
+        const simData = await runReplay(runId);
+        await mainReplay(simData);
+        return;
+      } catch (error) {
+        console.warn(`Could not load run ${runId}: ${error.message}. `
+                   + 'Falling back to the bundled replay.');
+      }
+    }
     const replayUrl = customFile
       ? (/^https?:\/\//i.test(customFile) ? customFile : withBase(customFile))
       : withBase('data/cosmos_visualizer_simulation.json');

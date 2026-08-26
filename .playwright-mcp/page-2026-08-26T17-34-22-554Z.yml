@@ -1,0 +1,501 @@
+- generic [ref=f42e1]:
+  - generic:
+    - heading "Cosmos 3D – Visualizer" [level=1]
+    - paragraph: LMB drag – rotate | Scroll – zoom
+    - paragraph: RMB drag – pan | Click – focus
+    - paragraph: Esc – clear focus
+    - paragraph: "?live – orbital mode"
+  - generic [ref=f42e3]:
+    - generic [ref=f42e4]:
+      - generic [ref=f42e5]:
+        - generic [ref=f42e6]: LIVE ANALYSIS
+        - generic [ref=f42e7]: drawn from the replay, frame by frame
+      - button "×" [ref=f42e8] [cursor=pointer]
+    - generic [ref=f42e10]:
+      - generic [ref=f42e11]:
+        - generic [ref=f42e12]:
+          - generic [ref=f42e13]:
+            - generic [ref=f42e14]: Surviving microbial fraction
+            - generic [ref=f42e15]: N/N₀ · 10 fragments
+          - button "⛶" [active] [ref=f42e16] [cursor=pointer]
+        - img [ref=f42e18]:
+          - generic [ref=f42e19]: "0.99950"
+          - generic [ref=f42e20]: "1.00000"
+          - generic [ref=f42e21]: "0"
+          - generic [ref=f42e22]: "1.00"
+          - generic [ref=f42e23]: "2.00"
+          - generic [ref=f42e24]: time [yr]
+          - generic [ref=f42e25]: N / N₀
+          - generic [ref=f42e27] [cursor=pointer]
+        - generic [ref=f42e28]: t=0.00 yr · mean 1.000000 · worst 1.000000
+      - generic [ref=f42e29]:
+        - generic [ref=f42e30]:
+          - generic [ref=f42e31]:
+            - generic [ref=f42e32]: Distance from the Sun
+            - generic [ref=f42e33]: how far the swarm has travelled
+          - button "⛶" [ref=f42e34] [cursor=pointer]
+        - img [ref=f42e36]:
+          - generic [ref=f42e37]: "2.0"
+          - generic [ref=f42e38]: "4.0"
+          - generic [ref=f42e39]: "6.0"
+          - generic [ref=f42e40]: "0"
+          - generic [ref=f42e41]: "1.00"
+          - generic [ref=f42e42]: "2.00"
+          - generic [ref=f42e43]: time [yr]
+          - generic [ref=f42e44]: distance [AU]
+          - generic [ref=f42e46] [cursor=pointer]
+        - generic [ref=f42e47]: t=0.00 yr · mean 1.429 AU · max 1.429 AU
+      - generic [ref=f42e48]:
+        - generic [ref=f42e49]:
+          - generic [ref=f42e50]:
+            - generic [ref=f42e51]: Speed
+            - generic [ref=f42e52]: orbital speed of each fragment
+          - button "⛶" [ref=f42e53] [cursor=pointer]
+        - img [ref=f42e55]:
+          - generic [ref=f42e56]: "5.0"
+          - generic [ref=f42e57]: "0"
+          - generic [ref=f42e58]: "1.00"
+          - generic [ref=f42e59]: "2.00"
+          - generic [ref=f42e60]: time [yr]
+          - generic [ref=f42e61]: speed [AU/yr]
+          - generic [ref=f42e63] [cursor=pointer]
+        - generic [ref=f42e64]: t=0.00 yr · mean 6.394 AU/yr
+      - generic [ref=f42e65]:
+        - generic [ref=f42e66]:
+          - generic [ref=f42e67]:
+            - generic [ref=f42e68]: Dust erosion
+            - generic [ref=f42e69]: radius lost, relative to each fragment's own start
+          - button "⛶" [ref=f42e70] [cursor=pointer]
+        - img [ref=f42e72]:
+          - generic [ref=f42e73]: "-10"
+          - generic [ref=f42e74]: "-5"
+          - generic [ref=f42e75]: "0"
+          - generic [ref=f42e76]: "0"
+          - generic [ref=f42e77]: "1.00"
+          - generic [ref=f42e78]: "2.00"
+          - generic [ref=f42e79]: time [yr]
+          - generic [ref=f42e80]: Δr [ppm]
+          - generic [ref=f42e82] [cursor=pointer]
+        - generic [ref=f42e83]: t=0.00 yr · mean 0.00 ppm
+  - button "ANALYSIS ›" [ref=f42e84] [cursor=pointer]
+  - complementary [ref=f42e85]:
+    - generic [ref=f42e87]:
+      - generic [ref=f42e88]: Lithopanspermia
+      - generic [ref=f42e89]: Mars ejecta transport, radiation dose and microbial survival — a digital twin.
+      - link "Research background →" [ref=f42e90] [cursor=pointer]:
+        - /url: ./research.html
+    - generic [ref=f42e91]: solver up, no REBOUND
+    - generic [ref=f42e94]:
+      - generic [ref=f42e142]:
+        - text: The solver is running but
+        - code [ref=f42e143]: rebound
+        - text: is not importable in its environment, so it cannot integrate anything. Install it with
+        - code [ref=f42e144]: pip install rebound reboundx
+        - text: (Linux, macOS or WSL).
+      - generic [ref=f42e145]:
+        - generic [ref=f42e146]: Ejecta
+        - generic [ref=f42e147]:
+          - generic [ref=f42e148]:
+            - generic "How many ejecta fragments the impact launches." [ref=f42e149]: Fragments
+            - generic [ref=f42e150]: "25"
+          - slider "Fragments" [ref=f42e151] [cursor=pointer]: "25"
+        - generic [ref=f42e152]:
+          - generic [ref=f42e153]:
+            - generic "Default is Mars escape velocity - below it nothing leaves." [ref=f42e154]: Min ejection speed
+            - generic [ref=f42e155]: 5.0km/s
+          - slider "Min ejection speed" [ref=f42e156] [cursor=pointer]: "5"
+        - generic [ref=f42e157]:
+          - generic [ref=f42e158]:
+            - generic "Upper bound of the power-law velocity distribution." [ref=f42e159]: Max ejection speed
+            - generic [ref=f42e160]: 20.0km/s
+          - slider "Max ejection speed" [ref=f42e161] [cursor=pointer]: "20"
+        - generic [ref=f42e162]:
+          - generic [ref=f42e163]:
+            - generic "Half-angle of the cone the fragments are launched into." [ref=f42e164]: Ejecta cone
+            - generic [ref=f42e165]: 60deg
+          - slider "Ejecta cone" [ref=f42e166] [cursor=pointer]: "60"
+        - generic [ref=f42e167]:
+          - generic [ref=f42e168]:
+            - generic "Same seed gives the same swarm. Change it to resample." [ref=f42e169]: Random seed
+            - generic [ref=f42e170]: "42"
+          - slider "Random seed" [ref=f42e171] [cursor=pointer]: "42"
+      - generic [ref=f42e172]:
+        - generic [ref=f42e173]: Fragment
+        - generic [ref=f42e174]:
+          - generic [ref=f42e175]:
+            - generic "Radius of the tracked fragment used for shielding and thermal." [ref=f42e176]: Fragment radius
+            - generic [ref=f42e177]: 0.50m
+          - slider "Fragment radius" [ref=f42e178] [cursor=pointer]: "0.5"
+        - generic [ref=f42e179]:
+          - generic [ref=f42e180]:
+            - generic "Mass fraction of the fragment occupied by the microbial payload." [ref=f42e181]: Biological core
+            - generic [ref=f42e182]: "0.010"
+          - slider "Biological core" [ref=f42e183] [cursor=pointer]: "0.01"
+        - generic [ref=f42e184]:
+          - generic [ref=f42e185]:
+            - generic "Incident dust mass flux that drives erosion." [ref=f42e186]: Dust flux
+            - generic [ref=f42e187]: 1.0e-12kg/m²/s
+          - slider "Dust flux" [ref=f42e188] [cursor=pointer]: "1e-12"
+      - generic [ref=f42e189]:
+        - generic [ref=f42e190]: Integration
+        - generic [ref=f42e191]:
+          - generic [ref=f42e192]:
+            - generic "Total time to propagate. Frame count is years / step." [ref=f42e193]: Simulated time
+            - generic [ref=f42e194]: 2.5yr
+          - slider "Simulated time" [ref=f42e195] [cursor=pointer]: "2.5"
+        - generic [ref=f42e196]:
+          - generic [ref=f42e197]:
+            - generic "One output frame per step. Smaller means smoother and slower." [ref=f42e198]: Time step
+            - generic [ref=f42e199]: 0.025yr
+          - slider "Time step" [ref=f42e200] [cursor=pointer]: "0.025"
+      - generic [ref=f42e201]:
+        - generic [ref=f42e202]: Physics
+        - switch "Radiation pressure" [checked] [ref=f42e203] [cursor=pointer]
+        - switch "Dust erosion" [checked] [ref=f42e206] [cursor=pointer]
+        - switch "Planets" [checked] [ref=f42e209] [cursor=pointer]
+    - generic [ref=f42e95]:
+      - generic [ref=f42e96]:
+        - generic [ref=f42e97]: 100 frames
+        - generic [ref=f42e98]: 84 bodies
+      - generic [ref=f42e99]:
+        - button "Run simulation" [disabled] [ref=f42e100]
+        - button "Reset" [ref=f42e101] [cursor=pointer]
+  - button "Run console" [ref=f42e102] [cursor=pointer]
+  - button "☰ Objects" [ref=f42e103] [cursor=pointer]
+  - generic:
+    - generic:
+      - generic: Select object
+      - button "✕"
+    - textbox "Search…"
+    - generic: 69 / 69 objects
+    - generic:
+      - generic:
+        - generic: ★
+        - generic: Sun
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 1
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 2
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 3
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 4
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 5
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 6
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 7
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 8
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 9
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 10
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 11
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 12
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 13
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 14
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 15
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 16
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 17
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 18
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 19
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 20
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 21
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 22
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 23
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 24
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 25
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 26
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 27
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 28
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 29
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 30
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 31
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 32
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 33
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 34
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 35
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 36
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 37
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 38
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 39
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 40
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 41
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 42
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 43
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 44
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 45
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 46
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 47
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 48
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 49
+        - generic: star
+      - generic:
+        - generic: ★
+        - generic: Gaia Star 50
+        - generic: star
+      - generic:
+        - generic: ●
+        - generic: Mercury
+        - generic: planet
+      - generic:
+        - generic: ●
+        - generic: Venus
+        - generic: planet
+      - generic:
+        - generic: ●
+        - generic: Earth
+        - generic: planet
+      - generic:
+        - generic: ●
+        - generic: Mars
+        - generic: planet
+      - generic:
+        - generic: ●
+        - generic: Jupiter
+        - generic: planet
+      - generic:
+        - generic: ●
+        - generic: Saturn
+        - generic: planet
+      - generic:
+        - generic: ●
+        - generic: Uranus
+        - generic: planet
+      - generic:
+        - generic: ●
+        - generic: Neptune
+        - generic: planet
+      - generic:
+        - generic: ·
+        - generic: cm_chondrite 1
+        - generic: asteroid
+      - generic:
+        - generic: ·
+        - generic: cm_chondrite 2
+        - generic: asteroid
+      - generic:
+        - generic: ·
+        - generic: enstatite 3
+        - generic: asteroid
+      - generic:
+        - generic: ·
+        - generic: basalt_vtype 4
+        - generic: asteroid
+      - generic:
+        - generic: ·
+        - generic: stony_iron 5
+        - generic: asteroid
+      - generic:
+        - generic: ·
+        - generic: basalt_vtype 6
+        - generic: asteroid
+      - generic:
+        - generic: ·
+        - generic: ci_chondrite 7
+        - generic: asteroid
+      - generic:
+        - generic: ·
+        - generic: ice_rich 8
+        - generic: asteroid
+      - generic:
+        - generic: ·
+        - generic: organic_rich 9
+        - generic: asteroid
+      - generic:
+        - generic: ·
+        - generic: cm_chondrite 10
+        - generic: asteroid
+  - generic [ref=f42e104]:
+    - generic [ref=f42e105]:
+      - generic [ref=f42e106]: t=0.00 yr
+      - slider [ref=f42e107] [cursor=pointer]: "0"
+      - generic [ref=f42e108]: t=2.47 yr
+    - generic [ref=f42e109]:
+      - generic [ref=f42e110]:
+        - button "⏮" [ref=f42e111] [cursor=pointer]
+        - button "‹" [ref=f42e112] [cursor=pointer]
+        - button "▶" [ref=f42e113] [cursor=pointer]
+        - button "›" [ref=f42e114] [cursor=pointer]
+        - button "⏭" [ref=f42e115] [cursor=pointer]
+      - generic [ref=f42e116]:
+        - generic [ref=f42e117]: Frame 1 / 100 · t = 0.00 yr
+        - generic [ref=f42e118]:
+          - spinbutton "Steps per second" [ref=f42e119]: "30"
+          - generic [ref=f42e120]: step/s
+        - generic [ref=f42e121]:
+          - spinbutton "World scale (multiplier)" [ref=f42e122]: "1"
+          - generic [ref=f42e123]: × scale
+        - generic [ref=f42e124] [cursor=pointer]:
+          - checkbox "Smoothing" [ref=f42e125]
+          - generic [ref=f42e126]: Smoothing
+        - generic [ref=f42e127] [cursor=pointer]:
+          - checkbox "UV Rad." [ref=f42e128]
+          - generic [ref=f42e129]: UV Rad.
+        - generic [ref=f42e130] [cursor=pointer]:
+          - checkbox "Comet trails" [ref=f42e131]
+          - generic [ref=f42e132]: Comet trails
+        - generic [ref=f42e133] [cursor=pointer]:
+          - checkbox "Followed only" [ref=f42e134]
+          - generic [ref=f42e135]: Followed only
+        - generic [ref=f42e136] [cursor=pointer]:
+          - checkbox "Planet trails" [ref=f42e137]
+          - generic [ref=f42e138]: Planet trails
+        - generic [ref=f42e139] [cursor=pointer]:
+          - checkbox "Starfield" [checked] [ref=f42e140]
+          - generic [ref=f42e141]: Starfield
+  - generic [ref=f42e213]:
+    - generic [ref=f42e214]:
+      - generic [ref=f42e215]:
+        - generic [ref=f42e216]: Surviving microbial fraction
+        - generic [ref=f42e217]: N/N₀ · 10 fragments
+      - button "×" [ref=f42e218] [cursor=pointer]
+    - img [ref=f42e220]:
+      - generic [ref=f42e221]: "0.99950"
+      - generic [ref=f42e222]: "1.00000"
+      - generic [ref=f42e223]: "0"
+      - generic [ref=f42e224]: "1.00"
+      - generic [ref=f42e225]: "2.00"
+      - generic [ref=f42e226]: time [yr]
+      - generic [ref=f42e227]: N / N₀
+      - generic [ref=f42e229] [cursor=pointer]
+    - generic [ref=f42e230]: Hover for exact values · click a trace to follow that fragment · Esc to close

@@ -95,7 +95,8 @@ function makeSvg(width, height) {
   return svg;
 }
 
-function drawAxes(svg, { width, height, xTicks, yTicks, xPos, yPos, xLabel, yLabel, xFormat, yFormat }) {
+function drawAxes(svg, { width, height, xTicks, yTicks, xPos, yPos, xLabel, yLabel, xFormat, yFormat, pad = PAD }) {
+  const PAD = pad;
   const plotW = width - PAD.left - PAD.right;
 
   for (const t of yTicks) {
@@ -184,8 +185,16 @@ function makeTooltip(container) {
 export function liveLinePlot(container, options) {
   const {
     series = [], xLabel, yLabel, yScale = 'linear',
-    xFormat, yFormat, height = 148,
+    xFormat, yFormat, height = 148, xUnit, onPick, selected = null,
   } = options;
+  let selectedId = selected;
+
+  // Bigger charts use bigger tick text, so the gutters have to grow with them
+  // or the rotated y label lands on top of the numbers.
+  const big = height >= 300;
+  const PAD = big
+    ? { top: 20, right: 28, bottom: 56, left: 104 }
+    : { top: 14, right: 16, bottom: 40, left: 62 };
 
   container.textContent = '';
   const width = Math.max(240, container.clientWidth || 300);
@@ -194,7 +203,7 @@ export function liveLinePlot(container, options) {
   const allY = series.flatMap(s => s.points.map(p => p[1]));
   if (allX.length === 0) {
     container.appendChild(emptyState('no data'));
-    return { update() {}, destroy() {} };
+    return { update() {}, setSelected() {}, destroy() {} };
   }
 
   const svg = makeSvg(width, height);
@@ -229,6 +238,7 @@ export function liveLinePlot(container, options) {
     yTicks: useLog ? logTicks(yLo, yHi, 4) : niceTicks(yLo, yHi, 3),
     xPos, yPos, xLabel, yLabel, xFormat,
     yFormat: yFormat ?? (useLog ? v => v.toExponential(0) : undefined),
+    pad: PAD,
   });
 
   const playhead = el('line', {
@@ -257,7 +267,128 @@ export function liveLinePlot(container, options) {
   container.appendChild(svg);
   buildLegend(container, series);
 
+  // ── Interaction ────────────────────────────────────────────────────────
+  const tip = makeTooltip(container);
+  const hoverLine = el('line', {
+    y1: PAD.top, y2: height - PAD.bottom, class: 'hoverline', visibility: 'hidden',
+  });
+  svg.appendChild(hoverLine);
+  const hoverDot = el('circle', { r: 3.5, class: 'hover-dot', visibility: 'hidden' });
+  svg.appendChild(hoverDot);
+
+  const hit = el('rect', {
+    x: PAD.left, y: PAD.top,
+    width: plotW, height: plotH,
+    fill: 'transparent', style: onPick ? 'cursor:pointer' : 'cursor:crosshair',
+  });
+  svg.appendChild(hit);
+
+  let hovered = -1;
+
+  function pointerToData(event) {
+    const box = svg.getBoundingClientRect();
+    const scale = width / box.width;
+    return {
+      px: (event.clientX - box.left) * scale,
+      py: (event.clientY - box.top) * scale,
+      box,
+    };
+  }
+
+  /** Nearest drawn point across every series, so thin traces are still catchable. */
+  function nearest(px, py, upTo) {
+    let best = null;
+    for (let i = 0; i < series.length; i++) {
+      const pts = series[i].points;
+      const limit = Math.min(upTo, pts.length - 1);
+      for (let k = 0; k <= limit; k++) {
+        const p = pts[k];
+        if (!p || !Number.isFinite(p[1])) continue;
+        if (useLog && !(p[1] > 0)) continue;
+        const dx = xPos(p[0]) - px;
+        const dy = yPos(p[1]) - py;
+        const d2 = dx * dx + dy * dy;
+        if (!best || d2 < best.d2) best = { d2, i, k, p };
+      }
+    }
+    return best && best.d2 < 40 * 40 ? best : null;
+  }
+
+  function clearHover() {
+    hovered = -1;
+    hoverLine.setAttribute('visibility', 'hidden');
+    hoverDot.setAttribute('visibility', 'hidden');
+    tip.hidden = true;
+    applyEmphasis();
+  }
+
+  hit.addEventListener('pointerleave', clearHover);
+  hit.addEventListener('pointermove', event => {
+    const { px, py, box } = pointerToData(event);
+    const found = nearest(px, py, lastIndex);
+    if (!found) { clearHover(); return; }
+
+    hovered = found.i;
+    applyEmphasis();
+
+    const x = xPos(found.p[0]);
+    hoverLine.setAttribute('x1', x);
+    hoverLine.setAttribute('x2', x);
+    hoverLine.setAttribute('visibility', 'visible');
+    hoverDot.setAttribute('cx', x);
+    hoverDot.setAttribute('cy', yPos(found.p[1]));
+    hoverDot.setAttribute('fill', series[found.i].color);
+    hoverDot.setAttribute('visibility', 'visible');
+
+    const s = series[found.i];
+    const label = s.name ?? s.label ?? 'fragment';
+    tip.innerHTML =
+      `<div class="tt-head">${(xFormat ?? fmt)(found.p[0])} ${xUnit ?? ''}</div>` +
+      `<div class="tt-row"><span class="tt-swatch" style="background:${s.color}"></span>` +
+      `${label}: <b>${(yFormat ?? fmt)(found.p[1])}</b></div>` +
+      (onPick && s.pickId ? '<div class="tt-hint">click to follow</div>' : '');
+    tip.hidden = false;
+    const scale = width / box.width;
+    const left = Math.min(x / scale + 12, box.width - tip.offsetWidth - 6);
+    tip.style.left = `${Math.max(2, left)}px`;
+    tip.style.top = `${PAD.top / scale}px`;
+  });
+
+  if (onPick) {
+    hit.addEventListener('click', event => {
+      const { px, py } = pointerToData(event);
+      const found = nearest(px, py, lastIndex);
+      if (found) onPick(series[found.i], found.i);
+    });
+  }
+
+  /** Dim everything except the hovered and the selected trace. */
+  function applyEmphasis() {
+    series.forEach((s, i) => {
+      const isLead = !s.faint;
+      const isSelected = selectedId != null && s.pickId === selectedId;
+      const isHovered = i === hovered;
+      let opacity = s.opacity ?? 1;
+      let strokeWidth = s.width ?? 2;
+      if (isSelected) { opacity = 1; strokeWidth = 2; }
+      if (isHovered) { opacity = 1; strokeWidth = Math.max(strokeWidth, 2); }
+      if ((selectedId != null || hovered >= 0) && !isSelected && !isHovered && !isLead) {
+        opacity = 0.12;
+      }
+      paths[i].setAttribute('stroke-opacity', opacity);
+      paths[i].setAttribute('stroke-width', strokeWidth);
+    });
+  }
+
+  function setSelected(id) {
+    selectedId = id;
+    applyEmphasis();
+  }
+
+  let lastIndex = 0;
+
   function update(index) {
+    lastIndex = index;
     const upTo = Math.max(0, index);
     series.forEach((s, i) => {
       let d = '';
@@ -288,7 +419,12 @@ export function liveLinePlot(container, options) {
   }
 
   update(0);
-  return { update, destroy: () => { container.textContent = ''; } };
+  applyEmphasis();
+  return {
+    update,
+    setSelected,
+    destroy: () => { container.textContent = ''; },
+  };
 }
 
 function emptyState(message) {

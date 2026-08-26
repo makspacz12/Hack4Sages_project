@@ -57,6 +57,11 @@ The three parts form one pipeline:
 | [`analysis/`](analysis/) | R + Python | `Rscript radiation_to_survival.R` |
 | [`tools/`](tools/) | Python | `python tools/export_simulation_to_web.py` |
 
+The visualizer can drive the model directly: start
+`python -m microbe_radiation_model.server` and the **Run console** in the browser
+picks parameters, launches a real REBOUND run, shows its progress and plays the
+result. Without the solver the page falls back to the bundled replay.
+
 ## Quick start
 
 **Simulation:**

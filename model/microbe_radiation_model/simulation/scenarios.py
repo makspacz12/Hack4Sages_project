@@ -7,7 +7,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from importlib.util import find_spec
 from math import pi, sqrt
-from typing import List, Optional
+from typing import Callable, List, Optional
 
 from ..chemistry.hydrolysis_model import compute_hydrolysis_rate
 from ..data_store import (
@@ -538,9 +538,17 @@ def _default_mars_pipeline_run_config() -> SimulationRunConfig:
 def run_mars_ejecta_pipeline_demo(
     material_config: Optional[SimulationMaterialConfig] = None,
     run_config: Optional[SimulationRunConfig] = None,
+    progress: Optional[Callable[[int, int], None]] = None,
 ) -> SimulationReport:
     """
     Run a visualization-oriented Mars ejecta pipeline with impact, erosion and dynamic beta refresh.
+
+    Parameters
+    ----------
+    progress : callable, optional
+        Called as ``progress(step_index, total_steps)`` after each output frame.
+        Used by the API server to report how far a run has got; a long run is
+        otherwise completely opaque to the caller.
     """
 
     if find_spec("rebound") is None:
@@ -656,9 +664,15 @@ def run_mars_ejecta_pipeline_demo(
     # positive orbital energy relative to the Sun as having escaped the Solar System.
     escape_distance_au = 2.0 * DEFAULT_HELIOSPHERE_RADIUS_AU
 
+    if progress is not None:
+        progress(0, run_config.n_steps)
+
     for step_index in range(1, run_config.n_steps):
         for _ in range(integration_substeps):
             sim.integrate(sim.t + integration_dt_yr)
+
+        if progress is not None:
+            progress(step_index, run_config.n_steps)
 
         _check_asteroid_effective_radii(
             sim,

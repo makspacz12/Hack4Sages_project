@@ -75,6 +75,85 @@ function injectStyles() {
     #live-charts .legend-swatch { width: 10px; height: 3px; border-radius: 2px; display: inline-block; }
     #live-charts .empty { padding: 18px 0; text-align: center; color: #4a5670; font-size: 10.5px; }
 
+    #live-charts .lc-fig-head {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+    }
+    #live-charts .lc-expand {
+      background: none; border: 1px solid transparent; border-radius: 3px;
+      color: #4a5975; cursor: pointer; font-size: 13px; line-height: 1;
+      padding: 2px 5px; flex: 0 0 auto;
+    }
+    #live-charts .lc-fig:hover .lc-expand { border-color: #1e2b4a; color: #7286a6; }
+    #live-charts .lc-expand:hover { color: #4ea3ff; border-color: #4ea3ff; }
+
+    #live-charts .lc-selection {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 6px 12px; background: rgba(78,163,255,.10);
+      border-bottom: 1px solid #1e2e4a; font-size: 10.5px; color: #a7b6d4;
+      flex: 0 0 auto;
+    }
+    #live-charts .lc-selection b { color: #e9f0fb; }
+    #live-charts .lc-clear {
+      background: none; border: 1px solid #2a3c63; border-radius: 3px;
+      color: #7286a6; font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase;
+      padding: 2px 7px; cursor: pointer; font-family: inherit;
+    }
+    #live-charts .lc-clear:hover { color: #e9f0fb; border-color: #4ea3ff; }
+
+    #live-charts svg .hoverline { stroke: #4ea3ff; stroke-width: 1; opacity: .55; }
+    #live-charts .tooltip, .lc-modal .tooltip {
+      position: absolute; pointer-events: none; z-index: 5;
+      background: #101828; border: 1px solid #2a3c63; border-radius: 3px;
+      padding: 6px 9px; font-size: 11px; color: #e9f0fb;
+      box-shadow: 0 6px 20px rgba(0,0,0,.6); white-space: nowrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    #live-charts .tt-head, .lc-modal .tt-head { color: #7286a6; margin-bottom: 3px; }
+    #live-charts .tt-row, .lc-modal .tt-row { display: flex; align-items: center; gap: 6px; }
+    #live-charts .tt-swatch, .lc-modal .tt-swatch {
+      width: 8px; height: 8px; border-radius: 2px; display: inline-block;
+    }
+    #live-charts .tt-hint, .lc-modal .tt-hint { color: #4ea3ff; margin-top: 3px; font-size: 10px; }
+
+    /* ── Enlarged view ── */
+    .lc-modal {
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(3, 6, 14, .82);
+      display: flex; align-items: center; justify-content: center; padding: 40px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    .lc-modal-card {
+      background: #0a0f1c; border: 1px solid #2a3c63; border-radius: 4px;
+      width: min(1000px, 92vw); box-shadow: 0 24px 80px rgba(0,0,0,.7);
+    }
+    .lc-modal-head {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      padding: 14px 18px; border-bottom: 1px solid #1e2e4a; gap: 16px;
+    }
+    .lc-modal-head .lc-fig-title { font-size: 14px; color: #e9f0fb; font-weight: bold; }
+    .lc-modal-head .lc-fig-note { font-size: 11px; color: #7286a6; margin-top: 3px; max-width: 80ch; }
+    .lc-modal-close {
+      background: none; border: 1px solid #1e2e4a; border-radius: 3px;
+      color: #7286a6; cursor: pointer; font-size: 16px; line-height: 1; padding: 3px 9px;
+    }
+    .lc-modal-close:hover { color: #e9f0fb; border-color: #4ea3ff; }
+    .lc-modal-plot { padding: 12px 18px 4px; position: relative; }
+    .lc-modal-plot svg .grid { stroke: #182238; }
+    .lc-modal-plot svg .axis { stroke: #26324c; }
+    .lc-modal-plot svg .tick { fill: #7286a6; font-size: 11px; font-family: inherit; }
+    .lc-modal-plot svg .tick-y { text-anchor: end; dominant-baseline: middle; }
+    .lc-modal-plot svg .tick-x { text-anchor: middle; }
+    .lc-modal-plot svg .axis-label { fill: #a7b6d4; font-size: 12px; text-anchor: middle; font-family: inherit; }
+    .lc-modal-plot svg .hoverline { stroke: #4ea3ff; stroke-width: 1; opacity: .55; }
+    .lc-modal-plot svg .crosshair { stroke: #7286a6; stroke-width: 1; opacity: .4; }
+    .lc-modal-plot svg .hover-dot { stroke: #0a0f1c; stroke-width: 2; }
+    .lc-modal-plot .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; font-size: 11px; color: #a7b6d4; }
+    .lc-modal-plot .legend-swatch { width: 12px; height: 3px; border-radius: 2px; display: inline-block; }
+    .lc-modal-foot {
+      padding: 8px 18px 14px; font-size: 10.5px; color: #4a5975;
+      border-top: 1px solid #141e31;
+    }
+
     #btn-live-charts {
       position: fixed; top: 14px; right: 14px; z-index: 861;
       background: rgba(8, 12, 28, 0.82); border: 1px solid #1e3060;
@@ -101,7 +180,7 @@ function injectStyles() {
  * @param {object} simData the parsed replay
  * @returns {{ mount():object, update(frameIndex:number):void }}
  */
-export function createLiveCharts(simData) {
+export function createLiveCharts(simData, { onSelectFragment } = {}) {
   injectStyles();
 
   const frames = simData?.frames ?? [];
@@ -119,6 +198,7 @@ export function createLiveCharts(simData) {
       </div>
       <button class="lc-close" title="Hide">&times;</button>
     </div>
+    <div class="lc-selection" hidden></div>
     <div class="lc-body"></div>
   `;
   const body = panel.querySelector('.lc-body');
@@ -133,8 +213,9 @@ export function createLiveCharts(simData) {
   const erosion = relativeChangePpm(fragmentSeries(frames, 'radius'));
   const speed = speedSeries(frames);
 
-  const traces = map => [...map.values()].map(points => ({
+  const traces = map => [...map].map(([id, points]) => ({
     color: PALETTE.trace, points, width: 1, opacity: 0.32, faint: true,
+    pickId: id, label: id.replace('asteroid_', 'fragment '),
   }));
   const withMean = (map, meanName) => [
     ...traces(map),
@@ -186,17 +267,27 @@ export function createLiveCharts(simData) {
     const fig = document.createElement('div');
     fig.className = 'lc-fig';
     fig.innerHTML = `
-      <div class="lc-fig-title">${spec.title}</div>
-      <div class="lc-fig-note">${spec.note}</div>
+      <div class="lc-fig-head">
+        <div>
+          <div class="lc-fig-title">${spec.title}</div>
+          <div class="lc-fig-note">${spec.note}</div>
+        </div>
+        <button class="lc-expand" title="Enlarge">&#9974;</button>
+      </div>
       <div class="lc-plot"></div>
       <div class="lc-readout">—</div>
     `;
     body.appendChild(fig);
     const plotEl = fig.querySelector('.lc-plot');
     const readoutEl = fig.querySelector('.lc-readout');
+    fig.querySelector('.lc-expand').addEventListener('click', () => openModal(spec));
 
     live.push({ spec, plotEl, readoutEl, chart: null });
   }
+
+  let selectedId = null;
+  let frameIndex = 0;
+  let modal = null;
 
   function renderAll() {
     for (const item of live) {
@@ -206,16 +297,87 @@ export function createLiveCharts(simData) {
         yLabel: item.spec.yLabel,
         yFormat: item.spec.yFormat,
         xFormat: v => fmt(v),
+        xUnit: timeUnit,
         height: 126,
+        selected: selectedId,
+        onPick: (s) => { if (s.pickId) select(s.pickId); },
       });
     }
   }
 
-  function update(frameIndex) {
-    const t = frames[Math.min(frameIndex, frames.length - 1)]?.time;
+  /** Selecting a fragment highlights it in every chart and follows it in 3D. */
+  function select(id) {
+    selectedId = selectedId === id ? null : id;
+    for (const item of live) item.chart?.setSelected(selectedId);
+    modal?.chart?.setSelected(selectedId);
+    paintSelection();
+    if (selectedId) onSelectFragment?.(selectedId);
+  }
+
+  function paintSelection() {
+    const bar = panel.querySelector('.lc-selection');
+    if (!bar) return;
+    bar.hidden = !selectedId;
+    if (selectedId) {
+      bar.innerHTML = `<span>following <b>${selectedId.replace('asteroid_', 'fragment ')}</b></span>`
+                    + '<button class="lc-clear">clear</button>';
+      bar.querySelector('.lc-clear').addEventListener('click', () => select(selectedId));
+    }
+  }
+
+  /** Click the enlarge glyph to inspect one chart at full size. */
+  function openModal(spec) {
+    closeModal();
+    const overlay = document.createElement('div');
+    overlay.className = 'lc-modal';
+    overlay.innerHTML = `
+      <div class="lc-modal-card">
+        <div class="lc-modal-head">
+          <div>
+            <div class="lc-fig-title">${spec.title}</div>
+            <div class="lc-fig-note">${spec.note}</div>
+          </div>
+          <button class="lc-modal-close" title="Close">&times;</button>
+        </div>
+        <div class="lc-modal-plot"></div>
+        <div class="lc-modal-foot">Hover for exact values · click a trace to follow that fragment · Esc to close</div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    const chart = liveLinePlot(overlay.querySelector('.lc-modal-plot'), {
+      series: spec.series,
+      xLabel: `time [${timeUnit}]`,
+      yLabel: spec.yLabel,
+      yFormat: spec.yFormat,
+      xFormat: v => fmt(v),
+      xUnit: timeUnit,
+      height: 420,
+      selected: selectedId,
+      onPick: (s) => { if (s.pickId) select(s.pickId); },
+    });
+    chart.update(frameIndex);
+    modal = { overlay, chart };
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+    overlay.querySelector('.lc-modal-close').addEventListener('click', closeModal);
+    document.addEventListener('keydown', onEsc);
+  }
+
+  function onEsc(e) { if (e.key === 'Escape') closeModal(); }
+
+  function closeModal() {
+    if (!modal) return;
+    modal.overlay.remove();
+    modal = null;
+    document.removeEventListener('keydown', onEsc);
+  }
+
+  function update(index) {
+    frameIndex = index;
+    modal?.chart?.update(index);
+    const t = frames[Math.min(index, frames.length - 1)]?.time;
     for (const item of live) {
-      item.chart?.update(frameIndex);
-      const text = item.spec.readout(item.spec.source, frameIndex);
+      item.chart?.update(index);
+      const text = item.spec.readout(item.spec.source, index);
       item.readoutEl.textContent = Number.isFinite(t)
         ? `t=${t.toFixed(2)} ${timeUnit} · ${text}`
         : text;
@@ -237,11 +399,12 @@ export function createLiveCharts(simData) {
     renderAll();
     setVisible(true);
     update(0);
+    paintSelection();
     body.scrollTop = 0;
     return api;
   }
 
-  const api = { mount, update };
+  const api = { mount, update, select };
   return api;
 }
 
