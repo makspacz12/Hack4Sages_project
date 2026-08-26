@@ -1,0 +1,210 @@
+{
+  "name": "Solar System",
+  "bodies": [
+    {
+      "id": "sun",
+      "name": "Sun",
+      "radius": 5,
+      "color": "#FDB813",
+      "emissive": true,
+      "distance": 0,
+      "orbitalPeriod": 0,
+      "rotationSpeed": 0.001,
+      "tilt": 7.25,
+      "mass": 1000000,
+      "children": [
+        {
+          "id": "mercury",
+          "name": "Mercury",
+          "radius": 0.35,
+          "color": "#B5B5B5",
+          "emissive": false,
+          "distance": 14,
+          "orbitalPeriod": 0.24,
+          "rotationSpeed": 0.002,
+          "tilt": 0.03,
+          "mass": 3,
+          "children": []
+        },
+        {
+          "id": "venus",
+          "name": "Venus",
+          "radius": 0.87,
+          "color": "#E8C07D",
+          "emissive": false,
+          "distance": 20,
+          "orbitalPeriod": 0.62,
+          "rotationSpeed": -0.0008,
+          "tilt": 177.4,
+          "mass": 80,
+          "children": []
+        },
+        {
+          "id": "earth",
+          "name": "Earth",
+          "radius": 0.92,
+          "color": "#2E86AB",
+          "emissive": false,
+          "distance": 28,
+          "orbitalPeriod": 1.0,
+          "rotationSpeed": 0.01,
+          "tilt": 23.44,
+          "mass": 100,
+          "children": [
+            {
+              "id": "moon",
+              "name": "Moon",
+              "radius": 0.25,
+              "color": "#AAAAAA",
+              "emissive": false,
+              "distance": 2.5,
+              "orbitalPeriod": 0.075,
+              "rotationSpeed": 0.004,
+              "tilt": 1.54,
+              "mass": 1.2,
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "mars",
+          "name": "Mars",
+          "radius": 0.5,
+          "color": "#C1440E",
+          "emissive": false,
+          "distance": 38,
+          "orbitalPeriod": 1.88,
+          "rotationSpeed": 0.0097,
+          "tilt": 25.19,
+          "mass": 20,
+          "children": [
+            {
+              "id": "phobos",
+              "name": "Phobos",
+              "radius": 0.08,
+              "color": "#8B7355",
+              "emissive": false,
+              "distance": 1.2,
+              "orbitalPeriod": 0.009,
+              "rotationSpeed": 0.02,
+              "tilt": 1.08,
+              "mass": 0.01,
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "jupiter",
+          "name": "Jupiter",
+          "radius": 2.8,
+          "color": "#C88B3A",
+          "emissive": false,
+          "distance": 62,
+          "orbitalPeriod": 11.86,
+          "rotationSpeed": 0.024,
+          "tilt": 3.13,
+          "mass": 1000,
+          "children": [
+            {
+              "id": "io",
+              "name": "Io",
+              "radius": 0.26,
+              "color": "#FFD700",
+              "emissive": false,
+              "distance": 4.5,
+              "orbitalPeriod": 0.0048,
+              "rotationSpeed": 0.005,
+              "tilt": 0.04,
+              "mass": 0.5,
+              "children": []
+            },
+            {
+              "id": "europa",
+              "name": "Europa",
+              "radius": 0.22,
+              "color": "#C2B280",
+              "emissive": false,
+              "distance": 6.0,
+              "orbitalPeriod": 0.0097,
+              "rotationSpeed": 0.003,
+              "tilt": 0.47,
+              "mass": 0.4,
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "saturn",
+          "name": "Saturn",
+          "radius": 2.3,
+          "color": "#E4D191",
+          "emissive": false,
+          "distance": 90,
+          "orbitalPeriod": 29.46,
+          "rotationSpeed": 0.022,
+          "tilt": 26.73,
+          "hasRings": true,
+          "ringInnerRadius": 3.0,
+          "ringOuterRadius": 5.5,
+          "ringColor": "#C2A35A",
+          "mass": 500,
+          "children": [
+            {
+              "id": "titan",
+              "name": "Titan",
+              "radius": 0.37,
+              "color": "#E8B04B",
+              "emissive": false,
+              "distance": 7.5,
+              "orbitalPeriod": 0.043,
+              "rotationSpeed": 0.002,
+              "tilt": 0.34,
+              "mass": 0.8,
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "uranus",
+          "name": "Uranus",
+          "radius": 1.6,
+          "color": "#7DE8E8",
+          "emissive": false,
+          "distance": 120,
+          "orbitalPeriod": 84.01,
+          "rotationSpeed": -0.014,
+          "tilt": 97.77,
+          "mass": 180,
+          "children": []
+        },
+        {
+          "id": "neptune",
+          "name": "Neptune",
+          "radius": 1.55,
+          "color": "#3F54BA",
+          "emissive": false,
+          "distance": 150,
+          "orbitalPeriod": 164.8,
+          "rotationSpeed": 0.015,
+          "tilt": 28.32,
+          "mass": 200,
+          "children": [
+            {
+              "id": "triton",
+              "name": "Triton",
+              "radius": 0.2,
+              "color": "#C8D8E8",
+              "emissive": false,
+              "distance": 4.0,
+              "orbitalPeriod": -0.016,
+              "rotationSpeed": 0.003,
+              "tilt": 156.87,
+              "mass": 0.15,
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

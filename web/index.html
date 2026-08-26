@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cosmos 3D – Visualizer</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { background: #000; overflow: hidden; }
+      canvas { display: block; }
+
+      #ui {
+        position: fixed;
+        top: 52px;
+        left: 16px;
+        color: #ccc;
+        font-family: monospace;
+        font-size: 13px;
+        pointer-events: none;
+        user-select: none;
+      }
+      #ui h1 { color: #FDB813; margin-bottom: 8px; font-size: 16px; }
+      #ui p  { margin: 2px 0; }
+
+      #focus-hud {
+        position: fixed;
+        top: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: none;
+        align-items: center;
+        gap: 8px;
+        font-family: monospace;
+        font-size: 14px;
+      }
+      #focus-hud.visible { display: flex; }
+      #focus-label {
+        color: #aad4f5;
+        background: rgba(0,0,10,0.65);
+        padding: 4px 14px;
+        border-radius: 4px;
+        border: 1px solid #334;
+        pointer-events: none;
+      }
+      #follow-btn {
+        background: rgba(0,0,10,0.65);
+        border: 1px solid #334;
+        border-radius: 4px;
+        color: #556;
+        cursor: pointer;
+        font-size: 15px;
+        padding: 3px 8px;
+        line-height: 1;
+        transition: background .15s, color .15s, border-color .15s;
+      }
+      #follow-btn:hover { background: #111830; color: #aad4f5; }
+      #follow-btn.orbit  { background: #0e1f40; border-color: #4fa; color: #6fd; }
+      #follow-btn.active { background: #0e1f40; border-color: #5af; color: #7cf; }
+
+      #speed-control {
+        position: fixed;
+        bottom: 80px;       /* sit above replay bar */
+        left: 50%;
+        transform: translateX(-50%);
+        color: #aaa;
+        font-family: monospace;
+        font-size: 13px;
+        display: none;       /* hidden unless ?live mode activates it */
+        align-items: center;
+        gap: 12px;
+      }
+      #speed-control input { width: 140px; cursor: pointer; }
+      #speed-control label { white-space: nowrap; }
+
+      #btn-research {
+        position: fixed;
+        top: 14px;
+        left: 14px;
+        z-index: 900;
+        background: rgba(8, 12, 28, 0.82);
+        border: 1px solid #1e3060;
+        color: #4a9eff;
+        font-family: monospace;
+        font-size: 13px;
+        font-weight: bold;
+        letter-spacing: 0.1em;
+        padding: 6px 22px;
+        border-radius: 6px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: border-color .2s, background .2s, color .2s;
+        pointer-events: all;
+      }
+      #btn-research:hover {
+        border-color: #4a9eff;
+        background: rgba(74, 158, 255, 0.12);
+        color: #80c4ff;
+      }
+    </style>
+  </head>
+  <body>
+    <a id="btn-research" href="./research.html">RESEARCH</a>
+
+    <div id="ui">
+      <h1>Cosmos 3D – Visualizer</h1>
+      <p>LMB drag – rotate &nbsp;|&nbsp; Scroll – zoom</p>
+      <p>RMB drag – pan &nbsp;|&nbsp; Click – focus</p>
+      <p>Esc – clear focus</p>
+      <p style="margin-top:6px;color:#667">?live – orbital mode</p>
+    </div>
+
+    <div id="focus-hud">
+      <div id="focus-label"></div>
+      <button id="follow-btn" title="Focus mode (click to cycle)">📌</button>
+    </div>
+
+    <div id="speed-control">
+      <label for="speed">Simulation speed</label>
+      <input id="speed" type="range" min="0" max="5" step="0.1" value="1" />
+      <span id="speed-value">1×</span>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

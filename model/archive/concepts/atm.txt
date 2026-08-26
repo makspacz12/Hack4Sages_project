@@ -1,0 +1,54 @@
+Concept: using ATM (Asteroid Thermal Modeling) in this project
+--------------------------------------------------------------
+
+Role of ATM:
+    - Provide realistic surface and subsurface temperature models for asteroids
+      as a function of:
+        * distance from the Sun (r),
+        * size (R),
+        * albedo, thermal inertia, rotation and shape.
+    - ATM results (T(theta, phi, t) or averaged T) would feed into:
+        * hydrolysis and chemical reaction models,
+        * erosion / sublimation models (change of radius and mass),
+        * assessment of life survivability in different parts of an asteroid.
+
+Integration with REBOUND/REBOUNDx:
+    - REBOUND/REBOUNDx:
+        * computes the orbits of the Sun, planets, 50 stars and asteroids
+          (N-body + radiation pressure),
+        * gives us asteroid trajectories: r(t), v(t).
+    - ATM:
+        * is not called on every REBOUND step,
+        * runs "above" the simulation:
+            - for representative orbit points (or for a grid in (r, R, parameters)),
+            - computes T for a given asteroid class,
+        * results are tabulated (lookup tables) and later interpolated in time.
+
+Typical cycle:
+    1. Generate an asteroid population (R, rho, albedo, rotation, material).
+    2. For a grid of (r, R, material parameters) run ATM and store:
+         - mean surface and subsurface temperatures,
+         - optionally the temperature ranges.
+    3. During a long REBOUND integration:
+         - every larger step (e.g. every 10^4-10^5 years) for each asteroid:
+             a) take its current r (and other parameters),
+             b) interpolate T from the ATM tables,
+             c) update:
+                 - hydrolysis / chemical reaction rates,
+                 - erosion/sublimation rate (-> dR/dt, change of mass and beta(t)),
+                 - the life survivability indicator eta(t).
+
+Why ATM:
+    - Instead of hand-made T(r) models we use a code validated against data
+      (NEOWISE and similar).
+    - It separates the "heavy" thermal physics from the N-body layer:
+        * REBOUND: trajectories,
+        * ATM: trustworthy temperatures,
+        * our module: chemistry/biology and the evolution of radius and beta.
+
+When to implement ATM:
+    - After stabilising:
+        * the orbital model (REBOUND/REBOUNDx),
+        * the basic radius/beta evolution without full thermal physics.
+    - ATM would be a stage 2.0 for a more realistic description of temperatures and
+      of the temperature-dependent processes on and inside asteroids.

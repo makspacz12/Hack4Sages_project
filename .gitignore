@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+
+# Downloaded SPICE kernels (fetched at runtime from naif.jpl.nasa.gov)
+kernels/
+*.bsp
+*.tls
+*.tpc
+
+# Transient model output.
+# The committed copies the site actually serves live in web/public/data/;
+# put a fresh run there with `python tools/export_simulation_to_web.py`.
+model/microbe_radiation_model/data/gamma_radiation_timeseries.json
+model/microbe_radiation_model/data/rock_radiation_summary.json
+model/microbe_radiation_model/data/cosmos_visualizer_simulation.json
+
+# R
+.Rhistory
+.RData
+.Rproj.user/
+
+# Node / frontend
+node_modules/
+dist/
+dist-ssr/
+.vite/
+coverage/
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs and archives
+*.log
+*.zip
+
+# Local-only Polish walkthrough (deliberately not published)
+OPRACOWANIE.md
