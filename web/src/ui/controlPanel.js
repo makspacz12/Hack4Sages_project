@@ -159,7 +159,7 @@ function injectStyles() {
 const GROUPS = [
   { title: 'Ejecta', keys: ['asteroids', 'v_min', 'v_max', 'cone_angle', 'seed'] },
   { title: 'Fragment', keys: ['fragment_radius', 'bio_fraction', 'dust_flux'] },
-  { title: 'Integration', keys: ['years', 'dt'] },
+  { title: 'Integration', keys: ['years', 'dt', 'substeps'] },
   { title: 'Physics', keys: ['radiation_pressure', 'erosion', 'planets'] },
 ];
 
