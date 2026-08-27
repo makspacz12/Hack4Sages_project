@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Survival heatmap – Lithopanspermia</title>
+</head>
+<body>
+  <header>
+    <span class="header-title">LITHOPANSPERMIA · GRID</span>
+    <a href="./index.html" class="btn-back">← Visualizer</a>
+  </header>
+  <main>
+    <h1>Survival heatmap (velocity × radius)</h1>
+    <p class="lede">
+      Median microbial survival across a 2D parameter grid. Each cell pins ejection
+      speed and fragment radius, then runs several random seeds. Load JSON from the
+      Python ensemble CLI or use the bundled sample.
+    </p>
+
+    <div class="analysis-toolbar">
+      <label for="grid-file">Load grid JSON…
+        <input type="file" id="grid-file" accept="application/json,.json" />
+      </label>
+      <button type="button" class="btn-link" id="grid-load-sample">Reload sample</button>
+      <a class="btn-link" href="./sensitivity.html">Tornado →</a>
+    </div>
+
+    <div id="grid-meta" class="analysis-meta"></div>
+    <div id="grid-plot" class="analysis-plot"></div>
+    <div id="grid-error" class="analysis-error"></div>
+
+    <pre>cd model &amp;&amp; source .venv/bin/activate
+python -m microbe_radiation_model.ensembles --grid \
+  --v-steps 3 --radius-steps 3 --seeds 0,1,2 \
+  --out ../web/public/data/grid_sample.json</pre>
+  </main>
+  <script type="module" src="./src/gridPage.js"></script>
+</body>
+</html>

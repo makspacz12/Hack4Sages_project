@@ -10,6 +10,11 @@
  */
 
 import { health, parameters, startRun, waitForRun } from '../api.js';
+import {
+  valueToPos, posToValue,
+  valueToPosLinear, posToValueLinear,
+  clampMin, clampMax, formatRadius,
+} from './rangeLog.js';
 
 function injectStyles() {
   if (document.getElementById('control-panel-style')) return;
@@ -92,6 +97,25 @@ function injectStyles() {
     }
     #run-console input[type=range]:disabled { opacity: .4; cursor: not-allowed; }
 
+    #run-console .rc-dual { position: relative; height: 24px; margin: 6px 0 2px; }
+    #run-console .rc-dual-track {
+      position: absolute; left: 0; right: 0; top: 11px; height: 3px;
+      background: var(--line-edge); border-radius: 2px; pointer-events: none;
+    }
+    #run-console .rc-dual-fill {
+      position: absolute; top: 0; bottom: 0; border-radius: 2px; background: var(--accent-dim);
+    }
+    #run-console .rc-dual input[type=range] {
+      position: absolute; left: 0; width: 100%; margin: 0; top: 6px;
+      height: 12px; background: transparent; pointer-events: none;
+    }
+    #run-console .rc-dual input[type=range]::-webkit-slider-thumb { pointer-events: auto; }
+    #run-console .rc-dual input[type=range]::-moz-range-thumb { pointer-events: auto; }
+    #run-console .rc-dual input[type=range]::-webkit-slider-runnable-track,
+    #run-console .rc-dual input[type=range]::-moz-range-track { background: transparent; }
+    #run-console .rc-dual input.rc-dual-hi { z-index: 3; }
+    #run-console .rc-dual input.rc-dual-lo { z-index: 4; }
+
     #run-console .rc-toggle {
       display: flex; align-items: center; justify-content: space-between;
       padding: 7px var(--sp-4); cursor: pointer;
@@ -158,10 +182,18 @@ function injectStyles() {
 
 const GROUPS = [
   { title: 'Ejecta', keys: ['asteroids', 'v_min', 'v_max', 'cone_angle', 'seed'] },
-  { title: 'Fragment', keys: ['fragment_radius', 'bio_fraction', 'dust_flux'] },
+  { title: 'Fragment', keys: ['radius_min', 'radius_max', 'bio_fraction', 'dust_flux'] },
   { title: 'Integration', keys: ['years', 'dt', 'substeps'] },
   { title: 'Physics', keys: ['radiation_pressure', 'erosion', 'planets'] },
 ];
+
+/** Schema keys rendered as one dual-thumb control. */
+const RANGE_PAIRS = {
+  radius_min: { hi: 'radius_max', label: 'Fragment radius', log: true },
+  v_min: { hi: 'v_max', label: 'Ejection speed', log: false },
+};
+const RANGE_PAIR_HIS = new Set(Object.values(RANGE_PAIRS).map(p => p.hi));
+const DUAL_STEPS = 1000;
 
 /**
  * @param {(runId:string, snapshot:object) => void} onFinished called when a run completes
@@ -180,6 +212,8 @@ export function createControlPanel({ onFinished }) {
         <div class="rc-tagline">Mars ejecta transport, radiation dose and
           microbial survival — a digital twin.</div>
         <a class="rc-nav" href="./research.html">Research background →</a>
+        <a class="rc-nav" href="./grid.html">Survival heatmap →</a>
+        <a class="rc-nav" href="./sensitivity.html">Sensitivity tornado →</a>
       </div>
     </div>
     <div class="rc-status">
@@ -247,10 +281,80 @@ export function createControlPanel({ onFinished }) {
       section.appendChild(title);
 
       for (const key of present) {
-        section.appendChild(buildField(byKey.get(key)));
+        if (RANGE_PAIR_HIS.has(key)) continue;
+        const meta = RANGE_PAIRS[key];
+        if (meta && byKey.has(meta.hi)) {
+          section.appendChild(buildRangeField(byKey.get(key), byKey.get(meta.hi), meta));
+        } else {
+          section.appendChild(buildField(byKey.get(key)));
+        }
       }
       body.appendChild(section);
     }
+  }
+
+  function buildRangeField(minSpec, maxSpec, meta) {
+    const absMin = Math.min(minSpec.min, maxSpec.min);
+    const absMax = Math.max(minSpec.max, maxSpec.max);
+    const unit = minSpec.unit || maxSpec.unit || '';
+    const help = minSpec.help || maxSpec.help || '';
+    const toPos = meta.log ? valueToPos : valueToPosLinear;
+    const toVal = meta.log ? posToValue : posToValueLinear;
+    const fmt = (v) => (meta.log ? formatRadius(v) : formatValue(minSpec, v));
+
+    const wrap = document.createElement('div');
+    wrap.className = 'rc-field';
+    wrap.innerHTML = `
+      <div class="rc-field-head">
+        <span class="rc-field-label" title="${escapeAttr(help)}">${meta.label}</span>
+        <span class="rc-field-value"><span class="v"></span>${unit ? `<span class="u">${unit}</span>` : ''}</span>
+      </div>
+      <div class="rc-dual"><div class="rc-dual-track"><div class="rc-dual-fill"></div></div></div>
+    `;
+    const dual = wrap.querySelector('.rc-dual');
+    const fill = wrap.querySelector('.rc-dual-fill');
+    const valueEl = wrap.querySelector('.v');
+
+    const mkThumb = (cls, label) => {
+      const input = document.createElement('input');
+      input.type = 'range';
+      input.className = cls;
+      input.min = '0';
+      input.max = String(DUAL_STEPS);
+      input.step = '1';
+      input.setAttribute('aria-label', label);
+      return input;
+    };
+    const loInput = mkThumb('rc-dual-lo', `${meta.label} minimum`);
+    const hiInput = mkThumb('rc-dual-hi', `${meta.label} maximum`);
+    dual.append(loInput, hiInput);
+
+    const paint = () => {
+      const loPos = toPos(values[minSpec.key], absMin, absMax);
+      const hiPos = toPos(values[maxSpec.key], absMin, absMax);
+      loInput.value = String(Math.round(loPos * DUAL_STEPS));
+      hiInput.value = String(Math.round(hiPos * DUAL_STEPS));
+      fill.style.left = `${loPos * 100}%`;
+      fill.style.width = `${Math.max(0, hiPos - loPos) * 100}%`;
+      valueEl.textContent = `${fmt(values[minSpec.key])} – ${fmt(values[maxSpec.key])}`;
+    };
+
+    loInput.addEventListener('input', () => {
+      const raw = toVal(Number(loInput.value) / DUAL_STEPS, absMin, absMax);
+      values[minSpec.key] = clampMin(raw, values[maxSpec.key], absMin, absMax);
+      paint();
+      refreshCost();
+    });
+    hiInput.addEventListener('input', () => {
+      const raw = toVal(Number(hiInput.value) / DUAL_STEPS, absMin, absMax);
+      values[maxSpec.key] = clampMax(raw, values[minSpec.key], absMin, absMax);
+      paint();
+      refreshCost();
+    });
+
+    paint();
+    inputs.set(`range:${minSpec.key}:${maxSpec.key}`, { inputs: [loInput, hiInput], paint });
+    return wrap;
   }
 
   function buildField(spec) {
@@ -350,8 +454,11 @@ export function createControlPanel({ onFinished }) {
     busy = on;
     runBtn.disabled = on;
     resetBtn.disabled = on;
-    for (const { input } of inputs.values()) {
-      if (input.tagName === 'INPUT') input.disabled = on;
+    for (const entry of inputs.values()) {
+      const els = entry.inputs ?? (entry.input ? [entry.input] : []);
+      for (const el of els) {
+        if (el.tagName === 'INPUT') el.disabled = on;
+      }
     }
     progressBox.classList.toggle('on', on);
     runBtn.textContent = on ? 'Running…' : 'Run simulation';
@@ -463,9 +570,15 @@ export function createControlPanel({ onFinished }) {
   runBtn.addEventListener('click', run);
   resetBtn.addEventListener('click', () => {
     values = { ...defaults };
-    for (const { paint } of inputs.values()) paint();
-    for (const [key, { input }] of inputs) {
-      if (input.tagName === 'INPUT') input.value = values[key];
+    for (const [key, entry] of inputs) {
+      if (entry.inputs) {
+        entry.paint();
+        continue;
+      }
+      if (entry.input?.tagName === 'INPUT') {
+        entry.input.value = values[key];
+      }
+      entry.paint();
     }
     refreshCost();
   });

@@ -178,6 +178,7 @@ class TestAuditCoefficients(unittest.TestCase):
         for key in (
             "internal_dose_coefficients",
             "hydrolysis",
+            "hydrolysis_survival_coefficient",
             "radiation_survival_coefficient",
             "cosmic_ray_attenuation",
         ):

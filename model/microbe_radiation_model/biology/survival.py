@@ -25,7 +25,9 @@ def survival_function(
     radiation_decay_gy_per_year : float
         Dose rate from internal radionuclide decay [Gy/year].
     radiation_surv_coeff : float
-        How much radiation affects the microbes [arbitrary]; typically in <0.15, 0.5>.
+        How much radiation affects the microbes [1/Gy]. Runtime samples the
+        DEMO band ~1e-6…1e-5 (see ``biology.constants``); literature D10
+        conversion is ~3.6e-4…1.0e-3 1/Gy — kept beside those constants.
     t_years : float
         Time interval [years] over which survival is evaluated.
     hdna_rate_per_s : float
@@ -37,7 +39,9 @@ def survival_function(
         Proportion of original microbe population surviving after time t_years.
     """
 
-    hydrolysis_surv_coeff = 1.2 / 0.001
+    from ..run_overrides import effective_hydrolysis_surv_coeff
+
+    hydrolysis_surv_coeff = effective_hydrolysis_surv_coeff()
     dose_rate_gy_per_year = radiation_space_gy_per_year + radiation_decay_gy_per_year
 
     # Convert hydrolysis rate from 1/s to 1/year for consistent units.
@@ -48,4 +52,3 @@ def survival_function(
     total_kill_rate_per_year = kill_radiation_per_year + kill_hydrolysis_per_year
 
     return math.exp(-total_kill_rate_per_year * t_years)
-

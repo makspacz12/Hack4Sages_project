@@ -1,7 +1,7 @@
 # web
 
 The 3D visualizer: a Three.js scene that replays the ejecta swarm produced by the Python
-model, plus two content pages that present the research.
+model, plus research pages and offline analysis views for ensemble JSON.
 
 Deployed to GitHub Pages from `main` by `.github/workflows/deploy-pages.yml`.
 
@@ -12,15 +12,17 @@ Deployed to GitHub Pages from `main` by `.github/workflows/deploy-pages.yml`.
 | `index.html` | Cosmos 3D — the interactive visualizer |
 | `research.html` | Research — Could life travel between solar systems? |
 | `further_details.html` | Further Details |
+| `grid.html` | Survival heatmap (velocity × radius ensemble JSON) |
+| `sensitivity.html` | Tornado chart (OAT sensitivity JSON) |
 
-All three are declared as Vite build inputs in `vite.config.js`.
+All five are declared as Vite build inputs in `vite.config.js`.
 
 ## Running it
 
 ```bash
 npm install
 npm run dev        # http://localhost:3000, opens automatically
-npm test           # 264 Vitest tests across 16 files
+npm test           # Vitest unit tests
 npm run build      # production build into dist/
 npm run preview    # serve the built dist/
 ```
@@ -41,6 +43,7 @@ Everything the site loads at runtime comes from `public/data/`:
 | `rock_radiation_summary.json` | Per-rock dose and temperature summary | the Python model |
 | `star_uv_profile.json` | Stellar UV flux versus distance | the Python model |
 | `solar_simulation.json`, `simulation_template.json`, `test_replay.json` | Fixtures and templates | hand-authored |
+| `grid_sample.json`, `tornado_sample.json` | Offline samples for analysis pages | `python -m microbe_radiation_model.ensembles` |
 
 To refresh the model-produced files after a simulation run, from the repository root:
 
@@ -67,8 +70,10 @@ index.html?replay=data/test_replay.json
 | Simulation playback | `replayController.js`, `replayUI.js`, `animator.js`, `physics.js`, `physicsSync.js` |
 | Asteroid swarm | `asteroidManager.js`, `asteroidUI.js` |
 | Interaction | `picker.js`, `focusController.js`, `objectSearch.js`, `objectSearchLogic.js`, `infoPanel.js` |
-| Science overlays | `uvRadiation.js`, `liveCharts.js`, `charts/plot.js`, `charts/series.js` |
+| Science overlays | `uvRadiation.js`, `liveCharts.js`, `charts/plot.js`, `charts/series.js`, `charts/heatmap.js`, `charts/tornado.js` |
+| Analysis pages | `gridPage.js`, `sensitivityPage.js` |
 | Data | `dataLoader.js` |
+| Run console | `ui/controlPanel.js`, `ui/rangeLog.js`, `ui/analysisPage.css` |
 | Entry point | `main.js` |
 
 Paths are resolved through `import.meta.env.BASE_URL`, so the same build works at the

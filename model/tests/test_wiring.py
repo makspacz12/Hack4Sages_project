@@ -54,6 +54,18 @@ class TestFragmentRadiusBounds(unittest.TestCase):
         self.assertGreaterEqual(radii.min(), 0.001)
         self.assertLessEqual(radii.max(), 5.0)
 
+    def test_fixed_radius_when_min_equals_max(self):
+        rocks, radii = _sample_rock_variants_with_sizes(
+            rock_variants=self.variants(),
+            radius_min_m=0.5,
+            radius_max_m=0.5,
+            q_size=2.0,
+            n_asteroids=20,
+            rng=np.random.default_rng(7),
+        )
+        self.assertEqual(len(rocks), 20)
+        self.assertTrue(np.allclose(radii, 0.5))
+
     def test_a_narrow_range_is_honoured_rather_than_widened(self):
         radii = self.sample(1.0, 2.0)
         self.assertGreaterEqual(radii.min(), 1.0)
@@ -79,6 +91,25 @@ class TestFragmentRadiusBounds(unittest.TestCase):
         config = ImpactSimulationConfig()
         self.assertLess(config.radius_max_m, 100.0)
         self.assertGreater(config.radius_min_m, 0.0)
+
+
+class TestServerRadiusWiring(unittest.TestCase):
+    """UI radius_min/max must reach ImpactEjectaConfig, not only material.rock_radius."""
+
+    def test_build_configs_forwards_radius_bounds(self):
+        from microbe_radiation_model.server import build_configs, validate
+
+        values = validate({"radius_min": 0.2, "radius_max": 1.0})
+        material, run = build_configs(values)
+        self.assertEqual(run.impact.radius_min_m, 0.2)
+        self.assertEqual(run.impact.radius_max_m, 1.0)
+        self.assertAlmostEqual(material.rock_radius, (0.2 * 1.0) ** 0.5)
+
+    def test_validate_rejects_inverted_radius_range(self):
+        from microbe_radiation_model.server import ParameterError, validate
+
+        with self.assertRaises(ParameterError):
+            validate({"radius_min": 1.0, "radius_max": 1.0})
 
 
 class TestRefreshInterval(unittest.TestCase):
@@ -340,34 +371,41 @@ class TestSurvivalTimesAgainstLiterature(unittest.TestCase):
 
         gcr_surface = 0.194           # Gy/yr, Mileikowsky et al. 2000
         internal = 1.0e-3             # Gy/yr, Cresswell factors on basalt
-        coeff = 5e-6                  # 1/Gy, the sampled range's geometric middle
+        from microbe_radiation_model.biology.constants import (
+            DEFAULT_RADIATION_SURV_COEFF_PER_GY,
+        )
+
+        coeff = DEFAULT_RADIATION_SURV_COEFF_PER_GY
         dose = gcr_surface * transmitted_fraction + internal
         return math.log(2.0) / (coeff * dose) / 1e6
 
-    def test_survival_times_are_on_the_published_scale(self):
+    def test_survival_times_are_on_the_demo_scale(self):
         """
-        Mileikowsky: metre-scale rocks protect spores for order 10-100 Myr.
-        Anything in kiloyears means the two coefficients have drifted apart
-        again.
+        DEMO c_rad (~1e-6) + GCR gives metre-scale half-lives of order
+        1-100 Myr. Literature D10 band (~6e-4) would be ~50–100× shorter —
+        see biology.constants.
         """
-        self.assertGreater(self.half_life_myr(0.115), 1.0)     # 1 m fragment
+        self.assertGreater(self.half_life_myr(0.115), 1.0)
         self.assertLess(self.half_life_myr(0.115), 100.0)
 
     def test_bigger_fragments_protect_for_longer(self):
         self.assertLess(self.half_life_myr(1.0), self.half_life_myr(0.115))
 
-    def test_the_sampled_coefficient_range_is_the_corrected_one(self):
-        """
-        Guards against re-applying the misreading that the R script's slopes of
-        0.157-0.441 are in 1/Gy. They are per Myr against cGy/yr.
-        """
+    def test_runtime_samples_demo_band_not_literature_d10(self):
+        """Runtime = DEMO 1e-6…1e-5; literature 3.6e-4…1e-3 stays as named aliases."""
         import inspect
 
+        from microbe_radiation_model.biology import constants as bio
         from microbe_radiation_model.impacts import mars_impact
 
+        self.assertAlmostEqual(bio.RADIATION_SURV_COEFF_MIN_PER_GY, 1e-6)
+        self.assertAlmostEqual(bio.RADIATION_SURV_COEFF_MAX_PER_GY, 1e-5)
+        self.assertAlmostEqual(bio.LITERATURE_RADIATION_SURV_COEFF_MIN_PER_GY, 3.6e-4)
+        self.assertAlmostEqual(bio.LITERATURE_RADIATION_SURV_COEFF_MAX_PER_GY, 1.0e-3)
         source = inspect.getsource(mars_impact)
-        self.assertIn("rng.uniform(1e-6, 1e-5)", source)
+        self.assertIn("RADIATION_SURV_COEFF_MIN_PER_GY", source)
         self.assertNotIn("rng.uniform(0.157, 0.441)", source)
+        self.assertNotIn("LITERATURE_RADIATION_SURV_COEFF_MIN_PER_GY", source)
 
 
 

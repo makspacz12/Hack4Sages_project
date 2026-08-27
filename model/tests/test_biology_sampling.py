@@ -36,27 +36,30 @@ class TestSurvivalFunction(unittest.TestCase):
         self.assertAlmostEqual(both, combined, places=15)
 
     def test_hydrolysis_rate_is_converted_from_per_second_to_per_year(self):
+        from microbe_radiation_model.biology.constants import HYDROLYSIS_SURV_COEFF
+
         rate_per_second = 1e-11
         got = survival_function(0.0, 0.0, 0.3, 1.0, rate_per_second)
-        expected = math.exp(-(rate_per_second * SECONDS_PER_YEAR * (1.2 / 0.001)))
+        expected = math.exp(-(rate_per_second * SECONDS_PER_YEAR * HYDROLYSIS_SURV_COEFF))
         self.assertAlmostEqual(got, expected, places=15)
 
     def test_survival_never_increases_with_time(self):
         previous = 1.0
         for years in range(0, 40, 4):
-            value = survival_function(1.0, 0.0, 0.3, float(years), 0.0)
+            value = survival_function(1.0, 0.0, 6e-4, float(years), 0.0)
             self.assertLessEqual(value, previous + 1e-15)
             previous = value
 
     def test_survival_stays_within_zero_and_one(self):
         for dose in (0.0, 1.0, 1e3, 1e6):
-            value = survival_function(dose, 0.0, 0.3, 100.0, 0.0)
+            value = survival_function(dose, 0.0, 6e-4, 100.0, 0.0)
             self.assertGreaterEqual(value, 0.0)
             self.assertLessEqual(value, 1.0)
 
     def test_a_more_sensitive_organism_dies_faster(self):
-        tough = survival_function(1.0, 0.0, 0.157, 10.0, 0.0)   # B. subtilis spores
-        fragile = survival_function(1.0, 0.0, 0.441, 10.0, 0.0)  # D. radiodurans fit
+        # Converted Mileikowsky D10 band: lower c_rad = tougher organism.
+        tough = survival_function(1.0, 0.0, 3.6e-4, 10.0, 0.0)
+        fragile = survival_function(1.0, 0.0, 1.0e-3, 10.0, 0.0)
         self.assertGreater(tough, fragile)
 
 

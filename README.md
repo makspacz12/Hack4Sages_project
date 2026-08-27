@@ -79,8 +79,21 @@ python run.py
 cd web
 npm install
 npm run dev          # http://localhost:3000
-npm test             # 264 tests
+npm test             # Vitest unit tests
 ```
+
+**Parameter sweeps (offline, no browser):**
+
+```bash
+cd model && source .venv/bin/activate
+# 2D heatmap: velocity × fragment radius
+python -m microbe_radiation_model.ensembles --grid --v-steps 3 --radius-steps 3 --seeds 0,1,2
+# OAT sensitivity tornado (±10 %, one knob at a time)
+python -m microbe_radiation_model.ensembles --tornado --quick --seeds 0,1,2
+```
+
+Load the JSON in `web/grid.html` or `web/sensitivity.html`, or use the bundled samples
+in `web/public/data/`.
 
 **Feed a fresh simulation into the visualizer:**
 
@@ -110,28 +123,40 @@ alongside radiation.
 | Survival function | `model/microbe_radiation_model/biology/` |
 | Rock properties, cited to source | `model/microbe_radiation_model/materials/rocks/` |
 
-## Known open questions in the physics
+## Known questions in the physics
 
-Four coefficients in the model do not currently reconcile with first-principles or
-published values. They are marked `AUDIT WARNING` in the source and they change the
-project's conclusion by many orders of magnitude, so treat absolute survival numbers as
-provisional until they are settled:
+Absolute survival numbers remain provisional where coefficients are still under
+audit. Several older issues now have published replacements; residual caveats
+are kept so we do not over-claim calibration.
 
-1. **Internal gamma dose** (`radiation/radionuclide_model/gamma.py`) — the uncited
-   coefficients give 46.6 Gy/yr for basalt against 1.07e-3 Gy/yr computed from activity
-   and decay-chain energy.
-2. **`radiation_surv_coeff`** (`simulation/scenarios.py`) — defaults to `5e-6`, while
-   [`analysis/`](analysis/README.md) derives 0.157–0.441 from Mileikowsky et al. (2000).
-   This error very nearly cancels the one above, so the final numbers look plausible for
-   the wrong reason.
-3. **DNA hydrolysis** (`chemistry/constants.py`) — `Ea = 60 kJ/mol` gives a 23 ms
-   half-life at 298 K against a measured ~700 years; `Ea ≈ 130 kJ/mol` reproduces the
-   literature.
-4. **Cosmic ray attenuation** — GCR are attenuated with the photon mass attenuation
-   coefficient rather than the ~10× smaller value appropriate for charged particles.
+**Still open**
+
+1. **`hydrolysis_surv_coeff = 1200`** (`biology/constants.py`) — written as
+   `1.2/0.001` with **no cited source**. Treat as a sensitivity / audit
+   parameter until replaced by a genome-based depurination lethality model.
+
+**Resolved (cited), residual uncertainty kept**
+
+2. **`radiation_surv_coeff`** (`biology/constants.py`) — **runtime = DEMO**
+   `~1e-6`–`1e-5` 1/Gy (under-tune so populations survive demo timescales).
+   **Literature D10** band `~3.6e-4`–`1.0e-3` 1/Gy (Mileikowsky 2000 conversion)
+   is recorded next to those constants but not sampled. Residual: intentional
+   dual calibration; single-exponential form ignores repair / GCR RBE.
+3. **DNA hydrolysis Arrhenius** (`chemistry/constants.py`) — **resolved.**
+   `Ea = 130 kJ/mol`, `A = 2.3e11` 1/s from Lindahl & Nyberg (1972)
+   (doi:10.1021/bi00769a018); Allentoft et al. (2012) support Ea ~130–155 kJ/mol
+   in fossil matrices. Residual: rate still depends on strand length and water
+   activity.
+4. **Internal gamma dose** (`radiation/radionuclide_model/gamma.py`) — **resolved.**
+   Cresswell, Carter & Sanderson (2018), Table 5
+   (doi:10.1016/j.radmeas.2018.02.007). Infinite-matrix factors; finite-size
+   geometry is still an approximation, not Monte Carlo transport.
+5. **Cosmic ray attenuation** (`simulation/config.py`) — **resolved.** GCR use
+   `k = 1/1600` m²/kg from Gosse & Phillips (2001) (~160 g/cm²). Residual:
+   calibrated for cosmogenic-nuclide production, not absorbed dose.
 
 See [`model/microbe_radiation_model/TECHNICAL_DOCUMENTATION.md`](model/microbe_radiation_model/TECHNICAL_DOCUMENTATION.md)
-§9 for the full derivations.
+and `provenance.audit_coefficients` for the live status of each constant.
 
 ## Documentation
 

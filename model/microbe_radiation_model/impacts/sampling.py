@@ -19,6 +19,8 @@ def sample_truncated_power_law(
     """
 
     u_rand = rng.uniform(0.0, 1.0, n)
+    if abs(x_max - x_min) <= max(abs(x_min), abs(x_max), 1.0) * 1e-12:
+        return np.full(n, x_min, dtype=float)
     if abs(alpha - 1.0) < 1e-10:
         return x_min * (x_max / x_min) ** u_rand
     exponent = 1.0 - alpha

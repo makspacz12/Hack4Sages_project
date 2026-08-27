@@ -39,9 +39,9 @@ def survival_function(radiation_space, radiation_decay, radiation_surv_coeff, t,
     radiation_decay : float
         Dose rate received from internal radioactive decay [Gy/year].
     radiation_surv_coeff : float
-        How strongly radiation affects the microbes [1/Gy]. The linear fits in
-        ``radiation_to_survival.R`` give 0.157 (B. subtilis spores) to 0.441
-        (D. radiodurans); see this directory's README.
+        How strongly radiation affects the microbes [1/Gy]. Mileikowsky et al.
+        (2000) D10 slopes converted via ``(a_per_kGy/1000)*ln(10)`` give roughly
+        ``3.6e-4 … 1.0e-3``; see this directory's README.
     t : float
         Time since meteorite launch [years].
     hDNA : float
@@ -52,6 +52,7 @@ def survival_function(radiation_space, radiation_decay, radiation_surv_coeff, t,
     float
         N/N0 - the proportion of the original microbe population surviving.
     """
+    # AUDIT: no cited source for 1.2/0.001 — keep in sync with biology.constants.
     hydrolysis_surv_coeff = 1.2 / 0.001
     dose_rate = radiation_space + radiation_decay
 

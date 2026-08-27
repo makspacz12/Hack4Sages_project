@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sensitivity tornado – Lithopanspermia</title>
+</head>
+<body>
+  <header>
+    <span class="header-title">LITHOPANSPERMIA · SENSITIVITY</span>
+    <a href="./index.html" class="btn-back">← Visualizer</a>
+  </header>
+  <main>
+    <h1>Tornado chart (one-at-a-time ±10%)</h1>
+    <p class="lede">
+      Each bar shows how median survival moves when a single knob is shifted down
+      (orange) or up (teal) while everything else stays at baseline. Knobs include
+      UI parameters and calibrated physics constants (Ea, radiation coeff., GCR k).
+    </p>
+
+    <div class="analysis-toolbar">
+      <label for="tornado-file">Load tornado JSON…
+        <input type="file" id="tornado-file" accept="application/json,.json" />
+      </label>
+      <button type="button" class="btn-link" id="tornado-load-sample">Reload sample</button>
+      <a class="btn-link" href="./grid.html">Heatmap →</a>
+    </div>
+
+    <div id="tornado-meta" class="analysis-meta"></div>
+    <div id="tornado-plot" class="analysis-plot"></div>
+    <div id="tornado-error" class="analysis-error"></div>
+
+    <pre>cd model &amp;&amp; source .venv/bin/activate
+python -m microbe_radiation_model.ensembles --tornado --quick \
+  --seeds 0,1 --years 0.5 --asteroids 4 \
+  --out ../web/public/data/tornado_sample.json</pre>
+  </main>
+  <script type="module" src="./src/sensitivityPage.js"></script>
+</body>
+</html>

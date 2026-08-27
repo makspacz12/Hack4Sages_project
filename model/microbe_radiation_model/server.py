@@ -60,18 +60,21 @@ PARAMETERS: list[dict[str, Any]] = [
      "min": 1, "max": 400, "step": 1, "default": 10,
      "help": "Integrator steps inside each frame. Accuracy depends on "
              "dt/substeps, so raise this with the output step to keep fidelity."},
-    {"key": "v_min", "label": "Min ejection speed", "type": "float",
-     "min": 1, "max": 30, "step": 0.1, "default": 5.03, "unit": "km/s",
-     "help": "Default is Mars escape velocity - below it nothing leaves."},
-    {"key": "v_max", "label": "Max ejection speed", "type": "float",
-     "min": 2, "max": 60, "step": 0.5, "default": 20.0, "unit": "km/s",
+    {"key": "v_min", "label": "Ejection speed (min)", "type": "float",
+     "min": 1, "max": 60, "step": 0.1, "default": 5.03, "unit": "km/s",
+     "help": "Lower bound of ejection speed. Default is Mars escape velocity."},
+    {"key": "v_max", "label": "Ejection speed (max)", "type": "float",
+     "min": 1, "max": 60, "step": 0.1, "default": 20.0, "unit": "km/s",
      "help": "Upper bound of the power-law velocity distribution."},
     {"key": "cone_angle", "label": "Ejecta cone", "type": "float",
      "min": 5, "max": 180, "step": 5, "default": 60.0, "unit": "deg",
      "help": "Half-angle of the cone the fragments are launched into."},
-    {"key": "fragment_radius", "label": "Fragment radius", "type": "float",
-     "min": 0.05, "max": 5.0, "step": 0.05, "default": 0.5, "unit": "m",
-     "help": "Radius of the tracked fragment used for shielding and thermal."},
+    {"key": "radius_min", "label": "Fragment radius (min)", "type": "float",
+     "min": 0.001, "max": 5.0, "step": 0.001, "default": 0.001, "unit": "m",
+     "help": "Lower bound of the power-law fragment size distribution."},
+    {"key": "radius_max", "label": "Fragment radius (max)", "type": "float",
+     "min": 0.001, "max": 5.0, "step": 0.001, "default": 5.0, "unit": "m",
+     "help": "Upper bound of the power-law fragment size distribution."},
     {"key": "bio_fraction", "label": "Biological core", "type": "float",
      "min": 0.001, "max": 0.5, "step": 0.001, "default": 0.01,
      "help": "Mass fraction of the fragment occupied by the microbial payload."},
@@ -134,6 +137,16 @@ def validate(payload: dict[str, Any]) -> dict[str, Any]:
             f"max ({values['v_max']})"
         )
 
+    if values["radius_min"] >= values["radius_max"]:
+        raise ParameterError(
+            f"fragment radius min ({values['radius_min']}) must be below "
+            f"max ({values['radius_max']})"
+        )
+    if values["radius_max"] / values["radius_min"] < 1.01:
+        raise ParameterError(
+            "fragment radius range is too narrow; keep max / min >= 1.01"
+        )
+
     steps = round(values["years"] / values["dt"]) + 1
     if steps < 2:
         raise ParameterError("simulated time is shorter than two time steps")
@@ -150,7 +163,10 @@ def build_configs(values: dict[str, Any]):
     from .simulation.scenarios import _default_mars_pipeline_run_config
 
     run = _default_mars_pipeline_run_config()
-    material = default_material_config(rock_radius_m=values["fragment_radius"])
+    # Report/provenance radius only; the swarm samples [radius_min, radius_max].
+    material = default_material_config(
+        rock_radius_m=(values["radius_min"] * values["radius_max"]) ** 0.5
+    )
     material = replace(material, bio_mass_fraction=values["bio_fraction"])
 
     run = replace(
@@ -164,6 +180,8 @@ def build_configs(values: dict[str, Any]):
             v_min_kms=values["v_min"],
             v_max_kms=values["v_max"],
             cone_half_angle=values["cone_angle"],
+            radius_min_m=values["radius_min"],
+            radius_max_m=values["radius_max"],
             seed=values["seed"],
         ),
         dust_erosion=replace(

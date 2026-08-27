@@ -8,6 +8,11 @@ import numpy as np
 from astropy import units as u
 from astropy.constants import M_sun as M_SUN
 
+from ..biology.constants import (
+    RADIATION_SURV_COEFF_MAX_PER_GY,
+    RADIATION_SURV_COEFF_MIN_PER_GY,
+)
+from ..run_overrides import effective_radiation_surv_coeff
 from ..materials.rocks import DEFAULT_ROCK_VARIANTS, Rock, with_rock_overrides
 from ..radiation.pressure import compute_beta_single_star, nearest_star_for_position, q_pr_from_albedo
 from .sampling import random_cone_directions, sample_truncated_power_law
@@ -90,6 +95,7 @@ def create_mars_impact(sim, config: ImpactEjectaConfig | None = None) -> ImpactR
     radii_au = radii_m * (1.0 * u.m).to(u.AU).value
     first_idx = sim.N
     asteroids: list[GeneratedAsteroid] = []
+    fixed_coeff = effective_radiation_surv_coeff()
 
     for idx in range(config.n_asteroids):
         sim.add(
@@ -103,26 +109,17 @@ def create_mars_impact(sim, config: ImpactEjectaConfig | None = None) -> ImpactR
             vz=vz[idx],
         )
 
-        # Radiation inactivation coefficient for the organism this fragment
-        # carries [1/Gy], independent of its physical properties.
-        #
-        # Beware: the fitted slopes in analysis/radiation_to_survival.R are NOT in
-        # 1/Gy. That script's x axis is labelled "[Gy]" but the values it holds
-        # (19.4, 22.2 ... 24.9) are Mileikowsky's dose rates in cGy/YEAR, and
-        # its kill frequencies are per Myr rather than the "per year" the
-        # variable names claim. Reading the slopes as 1/Gy inflates them by
-        # about 1e4. The audit note that called 5e-6 "five orders of magnitude
-        # too small" made exactly that misreading.
-        #
-        # Read with the right units the coefficient is of order 1e-5 1/Gy, and
-        # Valtonen et al. (2009) corroborate that independently: their internal-
-        # radioactivity kill term of 0.075 per Myr against an internal dose near
-        # 6e-4 Gy/yr implies about 1e-4 1/Gy.
-        #
-        # With this range and the corrected dose coefficients the model
-        # reproduces Mileikowsky's t ~ 75 l^2 Myr survival times to within a
-        # factor of about five, and reproduces the scaling with fragment size.
-        radiation_surv_coeff = rng.uniform(1e-6, 1e-5)
+        # Radiation inactivation [1/Gy]. Runtime = DEMO band (1e-6…1e-5) so
+        # cells do not die too fast in short runs. Literature D10 band
+        # (≈3.6e-4…1.0e-3 1/Gy) is documented next to the constants in
+        # biology.constants — not sampled here.
+        if fixed_coeff is not None:
+            radiation_surv_coeff = fixed_coeff
+        else:
+            radiation_surv_coeff = rng.uniform(
+                RADIATION_SURV_COEFF_MIN_PER_GY,
+                RADIATION_SURV_COEFF_MAX_PER_GY,
+            )
 
         asteroids.append(
             GeneratedAsteroid(
@@ -204,8 +201,8 @@ def _sample_rock_variants_with_sizes(
     # silently got hundred-metre boulders and the parameter did nothing.
     if not (radius_min_m > 0.0):
         raise ValueError("radius_min_m must be positive")
-    if not (radius_max_m > radius_min_m):
-        raise ValueError("radius_max_m must be greater than radius_min_m")
+    if radius_max_m < radius_min_m:
+        raise ValueError("radius_max_m must be >= radius_min_m")
 
     radii_m = sample_truncated_power_law(
         radius_min_m,

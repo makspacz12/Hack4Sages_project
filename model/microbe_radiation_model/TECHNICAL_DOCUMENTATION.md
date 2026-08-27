@@ -230,8 +230,10 @@ kill_radiation  = radiation_surv_coeff · (dose_space + dose_decay)      [per ye
 kill_hydrolysis = hydrolysis_rate · SECONDS_PER_YEAR · 1200            [per year]
 ```
 
-`radiation_surv_coeff` is typically in the range 0.15–0.5. The hydrolysis coefficient
-`1.2 / 0.001 = 1200` is a hard-coded model constant.
+`radiation_surv_coeff` is typically in the range **3.6e-4 – 1.0e-3 1/Gy**
+(Mileikowsky D10 → natural-exp conversion; see `biology/constants.py`). The
+hydrolysis coefficient `1.2 / 0.001 = 1200` is a hard-coded model constant with
+**no cited source** (audit / sensitivity parameter).
 
 ### 2.10 `impacts/` and `erosion/`
 
@@ -416,19 +418,19 @@ evaluates the survival function each step, and exports the visualizer JSON.
 4. The radiation sampling point is the centre, `(0, 0, 0)`.
 5. The internal gamma sub-model is an approximation, not Monte Carlo.
 6. Gaia stars are added as points with zero velocity and are static after loading.
-7. The hydrolysis survival coefficient (1200) is a hard-coded constant with no cited source.
-8. There are no unit tests on the Python side.
+7. The hydrolysis survival coefficient (1200) is a hard-coded constant with no cited source (audit parameter in `biology/constants.py`).
+8. Python unit tests live in `model/tests/` (wiring, biology, radiation, thermal, provenance, regressions). They do not yet cover every limiting case listed in §8.
 
 ---
 
 ## 8. Where to take this next
 
-1. Reconcile the fragment-radius issue in §9 — without it the biological chain reports zeros.
+1. Reconcile the fragment-radius issue in §9 — without it the biological chain reports zeros. *(Server/UI now expose `radius_min`/`radius_max` for the Mars pipeline; catalog-radius inheritance in static demos may still bite — see §9.)*
 2. Wire `internal_heat` and `radionuclide_model` fully into the main report.
 3. Extend the attenuation model with an energy-dependent cross-section.
 4. Add a CLI argument parser (time, step count, rock, composition).
-5. Add unit tests for unit integrity, limiting behaviour (`distance → 0`,
-   `bio_mass_fraction → 0/1`) and report regression.
+5. Extend `model/tests/` for unit integrity, limiting behaviour (`distance → 0`,
+   `bio_mass_fraction → 0/1`) and report regression where still missing.
 6. Automate the handoff of `data/*.json` to the visualizer's `public/data/`.
 
 ---

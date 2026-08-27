@@ -8,8 +8,6 @@ import math
 
 from .constants import (
     GAS_CONSTANT_J_MOL_K,
-    HYDROLYSIS_A_S_INV,
-    HYDROLYSIS_EA_J_MOL,
     FREEZING_TEMPERATURE_K,
 )
 
@@ -37,9 +35,11 @@ def compute_hydrolysis_rate(
     if temperature_k < FREEZING_TEMPERATURE_K:
         return 0.0
 
+    from ..run_overrides import effective_hydrolysis_a_s_inv, effective_hydrolysis_ea_j_mol
+
     k_hyd = (
-        HYDROLYSIS_A_S_INV
-        * math.exp(-HYDROLYSIS_EA_J_MOL / (GAS_CONSTANT_J_MOL_K * temperature_k))
+        effective_hydrolysis_a_s_inv()
+        * math.exp(-effective_hydrolysis_ea_j_mol() / (GAS_CONSTANT_J_MOL_K * temperature_k))
         * water_mass_fraction
     )
     return k_hyd

@@ -194,20 +194,9 @@ class TestHydrolysis(unittest.TestCase):
     def test_dry_material_does_not_hydrolyse(self):
         self.assertEqual(compute_hydrolysis_rate(300.0, 0.0), 0.0)
 
-    @unittest.expectedFailure
     def test_reproduces_the_measured_dna_depurination_rate(self):
         """
-        Expected to fail until the activation energy is resolved.
-
-        Measured DNA depurination at 298 K is about 3e-11 1/s, a half-life near
-        700 years. The constants as shipped give 3.08e1 1/s - a half-life of
-        23 milliseconds, twelve orders of magnitude out. An activation energy
-        near 130 kJ/mol reproduces the literature at the same pre-exponential.
-
-        Marked as an expected failure so the suite stays green while the audit
-        item is open; when someone fixes the constant this test starts passing
-        and unittest reports it as an unexpected success, which is the signal
-        to delete this decorator.
+        Lindahl & Nyberg (1972) scale: ~1e-11 1/s order at 298 K after fixing Ea.
         """
         rate = compute_hydrolysis_rate(298.15, 1.0)
         self.assertAlmostEqual(math.log10(rate), math.log10(3e-11), delta=1.0)

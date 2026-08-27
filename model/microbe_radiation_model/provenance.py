@@ -228,11 +228,37 @@ def audit_coefficients() -> dict[str, Any]:
         "activation_energy_j_mol": chem.HYDROLYSIS_EA_J_MOL,
         "freezing_cutoff_k": chem.FREEZING_TEMPERATURE_K,
         "module": "chemistry.constants",
+        "status": "resolved",
+        "source": (
+            "Lindahl, T., & Nyberg, B. (1972), Biochemistry 11(19):3610-3618, "
+            "doi:10.1021/bi00769a018. Ea ≈ 130 kJ/mol, A ≈ 2.3e11 1/s for DNA "
+            "depurination at pH 7.4. Supported by Allentoft et al. (2012), "
+            "Proc. R. Soc. B 279:4724, doi:10.1098/rspb.2012.1745 (Ea 130-155 "
+            "kJ/mol in fossil matrices)."
+        ),
+        "note": (
+            "Half-life still depends on strand length and water activity; the "
+            "Arrhenius constants themselves are now cited rather than free."
+        ),
+    }
+
+    from .biology.constants import (
+        DEFAULT_RADIATION_SURV_COEFF_PER_GY,
+        HYDROLYSIS_SURV_COEFF,
+        LITERATURE_RADIATION_SURV_COEFF_MAX_PER_GY,
+        LITERATURE_RADIATION_SURV_COEFF_MIN_PER_GY,
+        RADIATION_SURV_COEFF_MAX_PER_GY,
+        RADIATION_SURV_COEFF_MIN_PER_GY,
+    )
+
+    entries["hydrolysis_survival_coefficient"] = {
+        "value": HYDROLYSIS_SURV_COEFF,
+        "module": "biology.constants",
         "status": "unresolved",
         "issue": (
-            "A=1e12 1/s with Ea=60 kJ/mol gives 3.08e1 1/s at 298 K, a 23 ms "
-            "DNA half-life, against a measured depurination rate near 3e-11 1/s "
-            "(~700 yr). Ea near 130 kJ/mol reproduces the literature."
+            "Hard-coded as 1.2/0.001 = 1200 with no cited source. Literature "
+            "models depurination via Arrhenius and genome size, not this scale "
+            "factor. Kept as an audit / sensitivity parameter until replaced."
         ),
     }
 
@@ -243,25 +269,27 @@ def audit_coefficients() -> dict[str, Any]:
 
     entries["radiation_survival_coefficient"] = {
         "default_value": DEFAULT_RADIATION_SURV_COEFF,
-        "sampled_range": [1e-6, 1e-5],
-        "module": "impacts.mars_impact",
+        "sampled_range": [
+            RADIATION_SURV_COEFF_MIN_PER_GY,
+            RADIATION_SURV_COEFF_MAX_PER_GY,
+        ],
+        "geometric_mean_default": DEFAULT_RADIATION_SURV_COEFF_PER_GY,
+        "literature_range_not_used_at_runtime": [
+            LITERATURE_RADIATION_SURV_COEFF_MIN_PER_GY,
+            LITERATURE_RADIATION_SURV_COEFF_MAX_PER_GY,
+        ],
+        "module": "biology.constants / impacts.mars_impact",
         "status": "resolved",
         "source": (
-            "Mileikowsky, C. et al. (2000), Icarus 145(2), 391-427, "
-            "doi:10.1006/icar.1999.6317, via analysis/radiation_to_survival.R. "
-            "Corroborated by Valtonen et al. (2009), ApJ 690:210, whose "
-            "internal-radioactivity kill term of 0.075/Myr against a ~6e-4 "
-            "Gy/yr internal dose implies about 1e-4 1/Gy."
+            "Runtime DEMO band ~1e-6…1e-5 1/Gy (engineering under-tune for "
+            "demo timescales). Literature band ~3.6e-4…1.0e-3 1/Gy from "
+            "Mileikowsky et al. (2000) D10 slopes via "
+            "c_rad = (slope_per_kGy/1000)*ln(10), doi:10.1006/icar.1999.6317 "
+            "— recorded in biology.constants but not sampled."
         ),
         "note": (
-            "An earlier audit called this five orders of magnitude too small, "
-            "on the reading that the R script's fitted slopes of 0.157-0.441 "
-            "are in 1/Gy. They are not: that script's x axis is labelled Gy "
-            "but holds dose rates in cGy/year, and its kill frequencies are "
-            "per Myr despite the variable names. With the corrected dose "
-            "coefficients this range reproduces Mileikowsky's t ~ 75 l^2 Myr "
-            "survival times to within a factor of about five, and reproduces "
-            "the scaling with fragment size."
+            "Literature band kills ~50–100× faster; using it in short runs "
+            "wipes populations. Dual values are intentional, not a silent bug."
         ),
     }
 

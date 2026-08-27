@@ -22,6 +22,8 @@ export default defineConfig({
         main: './index.html',
         research: './research.html',
         further: './further_details.html',
+        grid: './grid.html',
+        sensitivity: './sensitivity.html',
       },
     },
   },

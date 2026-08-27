@@ -9,6 +9,7 @@ from importlib.util import find_spec
 from math import pi, sqrt
 from typing import Callable, List, Optional
 
+from ..biology.survival import survival_function
 from ..chemistry.hydrolysis_model import compute_hydrolysis_rate
 from ..data_store import (
     append_radiation_record,
@@ -35,17 +36,17 @@ from ..radiation import (
     stellar_flux,
 )
 from ..provenance import build_provenance, resolve_seed
-from ..radiation.radionuclide_model import radiation_decay_gy_per_year_from_rock
-from ..biology.survival import survival_function
+from ..run_overrides import effective_gcr_attenuation_k_m2_kg
 from ..radiation.exposure_model import ExposureState, update_exposure
+from ..radiation.radionuclide_model import radiation_decay_gy_per_year_from_rock
 from ..radiation.shielding_model import radiation_at_point_in_rock_with_bio_core
 from ..thermal import equilibrium_temperature_from_flux, temperature_profile_surface_mid_center
 from .config import (
-    DEFAULT_GCR_ATTENUATION_K_M2_KG,
     SimulationMaterialConfig,
     SimulationRunConfig,
     default_material_config,
 )
+from .terminal_report import build_terminal_events_report
 
 # Collision: stars (Sun + Gaia) = 2× radius, planets = 1× radius
 STAR_COLLISION_RADIUS_MULTIPLIER = 2.0
@@ -58,6 +59,7 @@ def _check_asteroid_collisions(
     n_permanent: int,
     asteroid_state_store: object,
     star_indices: list[int],
+    time_years: float,
 ) -> None:
     """
     Mark asteroids as inactive (active=False) when they enter the collision radius
@@ -97,6 +99,8 @@ def _check_asteroid_collisions(
                         if target_index in star_indices
                         else "collided_with_planet"
                     ),
+                    termination_time_years=time_years,
+                    population_fraction_at_termination=state.population_fraction,
                 )
                 break
 
@@ -111,6 +115,7 @@ def _check_asteroid_effective_radii(
     asteroid_state_store: object,
     star_indices: list[int],
     sun_index: int = 0,
+    time_years: float = 0.0,
 ) -> None:
     """
     For stars other than the Sun: set a distinct asteroid status flag when they
@@ -168,6 +173,8 @@ def _check_asteroid_effective_radii(
                     active=False,
                     termination_reason="entered_effective_hill",
                     termination_star_index=star_index,
+                    termination_time_years=time_years,
+                    population_fraction_at_termination=state.population_fraction,
                 )
                 break
 
@@ -209,6 +216,39 @@ class SimulationReport:
     permanent_bodies: Optional[int] = None
     json_exported: bool = False
     visualizer_export_path: Optional[str] = None
+    # End-of-run microbial survival across fragments (Mars pipeline).
+    survival_summary: Optional[dict] = None
+    # Terminal outcome counts / medians (Mars pipeline only).
+    terminal_events_report: Optional[dict] = None
+
+
+def _survival_summary_from_store(asteroid_state_store) -> dict:
+    """One-number-friendly survival stats for ensembles / reports."""
+    fractions = [
+        float(state.population_fraction)
+        for state in asteroid_state_store.by_index.values()
+    ]
+    if not fractions:
+        return {
+            "n_fragments": 0,
+            "mean_population_fraction": None,
+            "median_population_fraction": None,
+            "min_population_fraction": None,
+            "max_population_fraction": None,
+        }
+    ordered = sorted(fractions)
+    mid = len(ordered) // 2
+    if len(ordered) % 2:
+        median = ordered[mid]
+    else:
+        median = 0.5 * (ordered[mid - 1] + ordered[mid])
+    return {
+        "n_fragments": len(fractions),
+        "mean_population_fraction": sum(fractions) / len(fractions),
+        "median_population_fraction": median,
+        "min_population_fraction": ordered[0],
+        "max_population_fraction": ordered[-1],
+    }
 
 
 def _resolve_report_rock(material_config: SimulationMaterialConfig) -> Rock:
@@ -577,17 +617,9 @@ def _build_visualizer_payload(
 #
 # Named rather than inlined so `provenance.audit_coefficients` can read the
 # live value instead of keeping a copy that could drift away from it.
-#
-# AUDIT WARNING - see provenance.audit_coefficients: this is five orders of
-# magnitude below the 0.15-0.5 range documented in
-# biology/survival.py::survival_function and below the 0.157-0.441 slopes
-# fitted in analysis/radiation_to_survival.R. It very nearly cancels the
-# inflated gamma dose coefficients, so the two must be corrected together.
-# Fallback radiation inactivation coefficient [1/Gy], used only for fragments
-# that reach the biology stage without one of their own. The value the pipeline
-# actually uses is sampled per fragment in impacts/mars_impact.py, which is also
-# where the unit trap behind this number is written up.
-DEFAULT_RADIATION_SURV_COEFF: float = 5e-6
+# Fallback [1/Gy]; the Mars pipeline samples per fragment in impacts/mars_impact.py
+# from biology.constants (Mileikowsky D10 → natural-exp 1/Gy conversion).
+from ..biology.constants import DEFAULT_RADIATION_SURV_COEFF_PER_GY as DEFAULT_RADIATION_SURV_COEFF
 
 
 def _default_mars_pipeline_run_config() -> SimulationRunConfig:
@@ -776,6 +808,7 @@ def run_mars_ejecta_pipeline_demo(
             body_indices,
             asteroid_state_store,
             star_indices or [0],
+            time_years=float(sim.t),
         )
         _check_asteroid_collisions(
             sim,
@@ -783,6 +816,7 @@ def run_mars_ejecta_pipeline_demo(
             n_permanent,
             asteroid_state_store,
             star_indices or [0],
+            time_years=float(sim.t),
         )
 
         # Both configs expose refresh_interval_steps and neither was consulted:
@@ -839,13 +873,13 @@ def run_mars_ejecta_pipeline_demo(
             # In REBOUND units (AU, yr, Msun) G = 4*pi^2 and M_sun ~= 1.
             energy_sun = 0.5 * v2_sun - 4.0 * pi * pi / max(r_sun_au, 1e-8)
             if energy_sun > 0.0 and r_sun_au > escape_distance_au:
-                # Mark that the asteroid has escaped the Solar System,
-                # but keep it active so it can still evolve and potentially
-                # be captured by another star or collide with a body.
-                asteroid_state_store.update(
-                    body_index,
-                    escaped_sun=True,
-                )
+                if not asteroid_state.extra.get("escaped_sun"):
+                    asteroid_state_store.update(
+                        body_index,
+                        escaped_sun=True,
+                        escape_time_years=float(sim.t),
+                        population_fraction_at_escape=asteroid_state.population_fraction,
+                    )
 
             nearest_index = nearest_star_index(sim, body_index, star_indices or [])
             if nearest_index is None:
@@ -898,10 +932,10 @@ def run_mars_ejecta_pipeline_demo(
                 # so they need their own attenuation coefficient rather than the
                 # photon one carried on the material.
                 rock_material=replace(
-                    rock_material, k=DEFAULT_GCR_ATTENUATION_K_M2_KG
+                    rock_material, k=effective_gcr_attenuation_k_m2_kg()
                 ),
                 bio_material=replace(
-                    bio_material, k=DEFAULT_GCR_ATTENUATION_K_M2_KG
+                    bio_material, k=effective_gcr_attenuation_k_m2_kg()
                 ),
                 surface_flux=gcr_surface_flux,
             )
@@ -957,26 +991,7 @@ def run_mars_ejecta_pipeline_demo(
                 )
                 # Step duration in years.
                 t_years = dt_s / SECONDS_PER_YEAR
-                # Per-asteroid radiation sensitivity coefficient.
-                #
-                # AUDIT WARNING - the default 5e-6 is five orders of magnitude
-                # below the 0.15-0.5 range documented in
-                # biology/survival.py::survival_function.
-                #
-                # That documented range is the sourced one: analysis/
-                # radiation_to_survival.R regresses kill frequency against dose
-                # rate for four organisms using Mileikowsky et al. (2000), and
-                # the slopes are 0.157 (B. subtilis spores), 0.401, 0.441
-                # (D. radiodurans) and 0.362 [1/Gy]. So 5e-6 is the value that
-                # needs explaining, not the docstring.
-                #
-                # The most likely explanation is that it was tuned to offset the
-                # inflated gamma dose coefficients (see
-                # radiation/radionuclide_model/gamma.py). The two errors very
-                # nearly cancel - 46.6 Gy/yr x 5e-6 = 2.3e-4 /yr versus a
-                # first-principles 1.07e-3 Gy/yr x 0.3 = 3.2e-4 /yr - so the
-                # final numbers look reasonable for the wrong reason. Fix both
-                # together, never one alone.
+                # Per-asteroid radiation sensitivity [1/Gy]; see biology.constants.
                 radiation_surv_coeff = float(
                     asteroid_state.extra.get(
                         "radiation_surv_coeff", DEFAULT_RADIATION_SURV_COEFF
@@ -1220,6 +1235,12 @@ def run_mars_ejecta_pipeline_demo(
     elif pressure_active:
         message = f"{message} Radiation pressure via REBOUNDx was active."
 
+    terminal_report = build_terminal_events_report(
+        asteroid_state_store,
+        body_indices,
+        simulation_time_years=float(sim.t),
+    )
+
     return SimulationReport(
         mode="mars_ejecta_pipeline",
         used_rebound=True,
@@ -1232,6 +1253,8 @@ def run_mars_ejecta_pipeline_demo(
         permanent_bodies=n_permanent,
         json_exported=run_config.output.export_json,
         visualizer_export_path=visualizer_export_path,
+        survival_summary=_survival_summary_from_store(asteroid_state_store),
+        terminal_events_report=terminal_report,
     )
 
 
@@ -1527,6 +1550,21 @@ def format_demo_report(report: SimulationReport) -> str:
         lines.append("JSON export: enabled")
     if report.visualizer_export_path is not None:
         lines.append(f"Visualizer export: {report.visualizer_export_path}")
+
+    if report.survival_summary is not None:
+        s = report.survival_summary
+        lines.append(
+            f"Survival: median population fraction {s.get('median_population_fraction')}"
+        )
+    if report.terminal_events_report is not None:
+        t = report.terminal_events_report
+        c = t.get("counts", {})
+        lines.append("Terminal outcomes:")
+        lines.append(f"  arrived: {c.get('arrived', 0)}")
+        lines.append(f"  collided (star): {c.get('collided_star', 0)}")
+        lines.append(f"  collided (planet): {c.get('collided_planet', 0)}")
+        lines.append(f"  escaped, still travelling: {c.get('escaped_travelling', 0)}")
+        lines.append(f"  still in solar system: {c.get('travelling', 0)}")
 
     if report.body_reports:
         for body_report in report.body_reports:
