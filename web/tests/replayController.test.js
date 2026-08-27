@@ -50,6 +50,22 @@ describe('playReplay / pauseReplay / toggleReplay', () => {
     pauseReplay(c);  expect(c.playing).toBe(false);
     toggleReplay(c); expect(c.playing).toBe(true);
   });
+
+  it('restarts from frame 0 when play is pressed at the end', () => {
+    const c = createReplayController(makeSimData(5));
+    setReplayFrame(c, 4);
+    playReplay(c);
+    expect(c.currentFrame).toBe(0);
+    expect(c.playing).toBe(true);
+  });
+
+  it('restarts from last frame when rewinding from frame 0', () => {
+    const c = createReplayController(makeSimData(5));
+    setReplayDirection(c, -1);
+    playReplay(c);
+    expect(c.currentFrame).toBe(4);
+    expect(c.playing).toBe(true);
+  });
 });
 
 describe('tickReplay', () => {

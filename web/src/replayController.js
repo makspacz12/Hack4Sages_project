@@ -45,9 +45,24 @@ export function stepReplayFrame(ctrl, delta) {
   setReplayFrame(ctrl, ctrl.currentFrame + delta);
 }
 
-export function playReplay(ctrl)   { ctrl.playing = true; }
+export function playReplay(ctrl) {
+  const last = ctrl.frames.length - 1;
+  if (last >= 0) {
+    if (ctrl.direction > 0 && ctrl.currentFrame >= last) {
+      setReplayFrame(ctrl, 0);
+    } else if (ctrl.direction < 0 && ctrl.currentFrame <= 0) {
+      setReplayFrame(ctrl, last);
+    }
+  }
+  ctrl.playing = true;
+}
+
 export function pauseReplay(ctrl)  { ctrl.playing = false; ctrl._accumMs = 0; }
-export function toggleReplay(ctrl) { ctrl.playing = !ctrl.playing; ctrl._accumMs = 0; }
+
+export function toggleReplay(ctrl) {
+  if (ctrl.playing) pauseReplay(ctrl);
+  else playReplay(ctrl);
+}
 
 /** Set playback direction: +1 = forward, -1 = rewind. */
 export function setReplayDirection(ctrl, dir) {
