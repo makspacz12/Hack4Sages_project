@@ -310,6 +310,18 @@ def _build_body_report(
 GCR_MODEL_UNIT_TO_GY_PER_YEAR: float = 0.194
 
 
+def _due(step_index: int, interval: int) -> bool:
+    """
+    Whether a periodic task should run on this step.
+
+    An interval of 1 or less means every step, which keeps the previous
+    behaviour as the default.
+    """
+    if interval is None or interval <= 1:
+        return True
+    return step_index % interval == 0
+
+
 def _scaled(spectrum: object, field: str, total: float | None):
     """A spectrum share turned into the same dose unit as the total."""
     share = getattr(spectrum, field, None)
@@ -323,7 +335,7 @@ def _write_json_outputs(
     rock: Rock,
     run_id: str,
     step_index: int,
-    time_seconds: float,
+    time_years: float,
     body_report: BodyExposureReport,
     gcr_total_flux: float,
     gcr_spectrum: object,
@@ -338,7 +350,7 @@ def _write_json_outputs(
         else None
     )
     append_radiation_record(
-        time_seconds=time_seconds,
+        time_years=time_years,
         step=step_index,
         uv_surface_flux=body_report.surface_flux,
         uv_local_flux=body_report.local_flux,
@@ -355,7 +367,7 @@ def _write_json_outputs(
         rock=rock,
         run_id=run_id,
         step_index=step_index,
-        time_seconds=time_seconds,
+        time_years=time_years,
         uv_local_flux=body_report.local_flux,
         gcr_local_flux=body_report.gcr_local_flux,
         cumulative_exposure=body_report.cumulative_exposure,
@@ -373,7 +385,7 @@ def _collect_json_output_payloads(
     rock: Rock,
     run_id: str,
     step_index: int,
-    time_seconds: float,
+    time_years: float,
     body_report: BodyExposureReport,
     gcr_total_flux: float,
     gcr_spectrum: object,
@@ -394,7 +406,7 @@ def _collect_json_output_payloads(
     gamma_dose_gy_per_year = radiation_decay_gy_per_year_from_rock(rock)
 
     radiation_record = {
-        "time_seconds": time_seconds,
+        "time_years": time_years,
         "step": step_index,
         "uv_surface_flux": body_report.surface_flux,
         "uv_local_flux": body_report.local_flux,
@@ -416,7 +428,7 @@ def _collect_json_output_payloads(
         "rock": rock,
         "run_id": run_id,
         "step_index": step_index,
-        "time_seconds": time_seconds,
+        "time_years": time_years,
         "uv_local_flux": body_report.local_flux,
         "gcr_local_flux": body_report.gcr_local_flux,
         "gamma_local_flux": gamma_dose_gy_per_year,
@@ -752,7 +764,12 @@ def run_mars_ejecta_pipeline_demo(
             star_indices or [0],
         )
 
-        if run_config.dust_erosion.enabled:
+        # Both configs expose refresh_interval_steps and neither was consulted:
+        # the work ran every step regardless, so setting it to 10 changed the
+        # digest and nothing else.
+        if run_config.dust_erosion.enabled and _due(
+            step_index, run_config.dust_erosion.refresh_interval_steps
+        ):
             apply_dust_erosion_step(
                 sim=sim,
                 asteroid_state_store=asteroid_state_store,
@@ -765,7 +782,11 @@ def run_mars_ejecta_pipeline_demo(
                 erosion_config=run_config.dust_erosion,
             )
 
-        if pressure_active and run_config.radiation_pressure.dynamic_refresh:
+        if (
+            pressure_active
+            and run_config.radiation_pressure.dynamic_refresh
+            and _due(step_index, run_config.radiation_pressure.refresh_interval_steps)
+        ):
             refresh_dynamic_beta(
                 sim=sim,
                 star_indices=star_indices,
@@ -876,12 +897,25 @@ def run_mars_ejecta_pipeline_demo(
             )
 
             # Update the surviving population fraction from the local conditions.
-            if body_report.hydrolysis_rate_s_inv is not None:
+            #
+            # Gated on the radiation channel, not on the thermal one. This used
+            # to read `if body_report.hydrolysis_rate_s_inv is not None`, which
+            # meant --no-thermal silently switched off the ENTIRE survival
+            # model: hydrolysis returns None when the thermal stage is disabled,
+            # so the cosmic-ray and decay channels stopped being applied too and
+            # population_fraction stayed at 1.0 for the whole run without a
+            # warning. Radiation dose has no physical reason to depend on
+            # whether a temperature was computed.
+            if gcr_local_flux is not None:
+                # Hydrolysis contributes only when the thermal stage ran.
+                hydrolysis_rate = body_report.hydrolysis_rate_s_inv or 0.0
                 # Dose from radionuclide decay inside the rock [Gy/year].
                 radiation_decay_gy_per_year = radiation_decay_gy_per_year_from_rock(rock)
                 # Cosmic ray dose after shielding.
                 # Calibration: 1.0 model GCR unit = 0.194 Gy/year (Mileikowsky et al. 2000).
-                radiation_space_gy_per_year = float(gcr_local_flux) * 0.194
+                radiation_space_gy_per_year = (
+                    float(gcr_local_flux) * GCR_MODEL_UNIT_TO_GY_PER_YEAR
+                )
                 # Step duration in years.
                 t_years = dt_s / SECONDS_PER_YEAR
                 # Per-asteroid radiation sensitivity coefficient.
@@ -914,7 +948,7 @@ def run_mars_ejecta_pipeline_demo(
                     radiation_decay_gy_per_year=radiation_decay_gy_per_year,
                     radiation_surv_coeff=radiation_surv_coeff,
                     t_years=t_years,
-                    hdna_rate_per_s=body_report.hydrolysis_rate_s_inv,
+                    hdna_rate_per_s=hydrolysis_rate,
                 )
                 new_population_fraction = asteroid_state.population_fraction * step_survival
                 asteroid_state_store.update(
@@ -960,7 +994,8 @@ def run_mars_ejecta_pipeline_demo(
                     rock=rock,
                     run_id="mars_ejecta_pipeline",
                     step_index=step_index,
-                    time_seconds=sim.t,
+                    # sim.t is in years: sim.units = (AU, yr, Msun).
+                    time_years=sim.t,
                     body_report=body_report,
                     gcr_total_flux=gcr_total_flux,
                     gcr_spectrum=gcr_spectrum,
@@ -1242,7 +1277,7 @@ def run_static_radiation_demo(
             rock=report_rock,
             run_id="static_radiation_demo",
             step_index=0,
-            time_seconds=dt_seconds / SECONDS_PER_YEAR,
+            time_years=dt_seconds / SECONDS_PER_YEAR,
             body_report=body_report,
             gcr_total_flux=gcr_total_flux,
             gcr_spectrum=gcr_spectrum,
@@ -1365,7 +1400,9 @@ def run_connected_demo(
                 rock=report_rock,
                 run_id="connected_demo",
                 step_index=run_config.n_steps,
-                time_seconds=total_time_seconds,
+                # Years, like every other writer. This one passed seconds,
+                # so a single file held two conventions under one key.
+                time_years=total_time_seconds / SECONDS_PER_YEAR,
                 body_report=body_report,
                 gcr_total_flux=gcr_total_flux,
                 gcr_spectrum=gcr_spectrum,

@@ -27,7 +27,7 @@ class RadiationRecord:
     filled in incrementally.
     """
 
-    time_seconds: float
+    time_years: float
 
     # Simulation step index (optional; filled when available)
     step: Optional[int] = None
@@ -107,7 +107,7 @@ def _initial_payload() -> Dict[str, Any]:
     """
     return {
         "__description__": {
-            "time_seconds": "Simulation time [yr] at this step.",
+            "time_years": "Simulation time in years at this step. Renamed from `time_seconds`, which never held seconds in two of the three writers and did in the third.",
             "step": "Time-step index within the simulation (0-based).",
             # UV
             "uv_surface_flux": "UV flux at the rock surface before passing through material [W/m^2].",
@@ -171,7 +171,7 @@ def _initial_rock_payload() -> Dict[str, Any]:
             "record_fields": {
                 "run_id": "Simulation run identifier.",
                 "step_index": "Time-step index within the given run.",
-                "time_seconds": "Simulation time [yr] at this step.",
+                "time_years": "Simulation time in years at this step. Renamed from `time_seconds`, which never held seconds in two of the three writers and did in the third.",
                 "uv_local_flux": "UV flux at the microbe location [W/m^2].",
                 "gcr_local_flux": "Cosmic ray flux at the microbe location.",
                 "gamma_local_flux": "Gamma-ray dose rate at the microbe location [Gy/year].",
@@ -290,7 +290,7 @@ def _invalidate_provenance(payload: Dict[str, Any]) -> None:
 
 def append_radiation_record(
     *,
-    time_seconds: float,
+    time_years: float,
     step: Optional[int] = None,
     uv_surface_flux: Optional[float] = None,
     uv_local_flux: Optional[float] = None,
@@ -309,7 +309,7 @@ def append_radiation_record(
     Dodaje nowy rekord promieniowania (UV / GCR / gamma) do globalnego pliku JSON.
     """
     record = RadiationRecord(
-        time_seconds=time_seconds,
+        time_years=time_years,
         step=step,
         uv_surface_flux=uv_surface_flux,
         uv_local_flux=uv_local_flux,
@@ -362,7 +362,7 @@ def append_rock_radiation_record(
     rock: Rock,
     run_id: str,
     step_index: int,
-    time_seconds: float,
+    time_years: float,
     uv_local_flux: Optional[float] = None,
     gcr_local_flux: Optional[float] = None,
     gamma_local_flux: Optional[float] = None,
@@ -411,7 +411,7 @@ def append_rock_radiation_record(
         {
             "run_id": run_id,
             "step_index": step_index,
-            "time_seconds": time_seconds,
+            "time_years": time_years,
             "uv_local_flux": uv_local_flux,
             "gcr_local_flux": gcr_local_flux,
             "gamma_local_flux": gamma_local_flux,
@@ -474,7 +474,8 @@ def extend_rock_radiation_records(records_to_add: Sequence[Dict[str, Any]]) -> N
             {
                 "run_id": entry["run_id"],
                 "step_index": entry["step_index"],
-                "time_seconds": entry["time_seconds"],
+                # Old files used `time_seconds` for the same quantity.
+                "time_years": entry.get("time_years", entry.get("time_seconds")),
                 "uv_local_flux": entry.get("uv_local_flux"),
                 "gcr_local_flux": entry.get("gcr_local_flux"),
                 "gamma_local_flux": entry.get("gamma_local_flux"),

@@ -158,12 +158,11 @@ def _sample_rock_variants_with_sizes(
     - First normalise the rock variants and their probabilities.
     - Then draw a rock type for each asteroid from that distribution.
     - Fragment radii are drawn globally from a power-law distribution over
-      [0.01 m, 100 m], independently of rock type. The rock type affects the
-      material properties (density, porosity, radionuclides),
+      [radius_min_m, radius_max_m], independently of rock type. The rock type
+      affects the material properties (density, porosity, radionuclides),
       but not the typical fragment size.
 
-    ``radius_min_m`` and ``radius_max_m`` are kept for backward compatibility
-    but currently do not change the sampling range.
+    ``radius_min_m`` and ``radius_max_m`` bound the sampled radii.
     """
 
     normalized = [_normalize_variant(variant) for variant in rock_variants]
@@ -183,11 +182,18 @@ def _sample_rock_variants_with_sizes(
         p=probabilities,
     )
 
-    # Global sampling of fragment radii from a power-law distribution over a
-    # fixed [0.01 m, 100 m] range, shared by all rock types.
+    # Fragment radii from a power law over the requested range, shared by all
+    # rock types. These bounds used to be accepted and then ignored in favour of
+    # a hard-coded [0.01, 100] m, so a caller asking for metre-scale ejecta
+    # silently got hundred-metre boulders and the parameter did nothing.
+    if not (radius_min_m > 0.0):
+        raise ValueError("radius_min_m must be positive")
+    if not (radius_max_m > radius_min_m):
+        raise ValueError("radius_max_m must be greater than radius_min_m")
+
     radii_m = sample_truncated_power_law(
-        0.01,
-        100.0,
+        radius_min_m,
+        radius_max_m,
         q_size,
         n_asteroids,
         rng,
