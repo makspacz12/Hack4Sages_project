@@ -100,9 +100,10 @@ def _object_status(object_type: str, asteroid_state: AsteroidState | None) -> st
     if object_type in ("star", "planet"):
         return STATUS_STATIC
     if object_type == "asteroid" and asteroid_state is not None:
-        # Escaped from the Solar System but still dynamically active.
-        if asteroid_state.extra.get("escaped_sun", False):
-            return STATUS_ESCAPED_TRAVELLING
+        # Terminal states first. `escaped_sun` means unbound but still in
+        # flight; it is never cleared, so testing it first hid every terminal
+        # outcome that happened after escape - which is all of them, since
+        # reaching another star requires leaving this one.
         if not asteroid_state.active:
             reason = getattr(asteroid_state, "termination_reason", None)
             if reason == "collided_with_star":
@@ -110,6 +111,8 @@ def _object_status(object_type: str, asteroid_state: AsteroidState | None) -> st
             if reason in ("entered_effective_hill", "entered_hill_sphere"):
                 return STATUS_ARRIVED
             return STATUS_DESTROYED
+        if asteroid_state.extra.get("escaped_sun", False):
+            return STATUS_ESCAPED_TRAVELLING
         # Future: if asteroid_state.arrived or getattr(asteroid_state, "arrived", False): return STATUS_ARRIVED
         return STATUS_TRAVELING
     return STATUS_TRAVELING

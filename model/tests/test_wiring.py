@@ -180,5 +180,77 @@ class TestSurvivalIsNotGatedOnTemperature(unittest.TestCase):
         self.assertLess(survival_function(1.0, 0.5, 0.3, 10.0, 0.0), 1.0)
 
 
+class TestOutcomeClassification(unittest.TestCase):
+    """
+    `arrived` was structurally unreachable.
+
+    `escaped_sun` marks a transient condition - unbound from the Sun but still
+    in flight - and is never cleared. Both the aggregator and the exporter
+    tested it BEFORE the terminal check, and any real interstellar transfer must
+    pass the escape threshold on its way to another star. So every arrival
+    already carried the flag and was counted as still travelling: the one number
+    the whole simulation exists to produce could never be non-zero.
+    """
+
+    def status(self, *, active, reason=None, escaped=False):
+        from microbe_radiation_model.simulation.visualizer_export import _object_status
+
+        class State:
+            pass
+
+        state = State()
+        state.active = active
+        state.termination_reason = reason
+        state.extra = {"escaped_sun": escaped}
+        return _object_status("asteroid", state)
+
+    def test_an_arrival_after_escaping_reads_as_arrived(self):
+        """The exact case that used to be impossible."""
+        self.assertEqual(
+            self.status(active=False, reason="entered_effective_hill", escaped=True),
+            "arrived",
+        )
+
+    def test_an_arrival_without_escaping_still_reads_as_arrived(self):
+        self.assertEqual(
+            self.status(active=False, reason="entered_effective_hill", escaped=False),
+            "arrived",
+        )
+
+    def test_a_collision_after_escaping_is_not_reported_as_travelling(self):
+        self.assertEqual(
+            self.status(active=False, reason="collided_with_star", escaped=True),
+            "destroyed_collided_star",
+        )
+
+    def test_still_flying_after_escape_reads_as_escaped(self):
+        self.assertEqual(
+            self.status(active=True, escaped=True), "escaped_and_travelling"
+        )
+
+    def test_still_flying_without_escape_reads_as_travelling(self):
+        self.assertEqual(self.status(active=True, escaped=False), "traveling")
+
+    def test_terminal_and_transient_are_mutually_exclusive_in_the_output(self):
+        terminal = {"arrived", "destroyed", "destroyed_collided_star"}
+        for escaped in (True, False):
+            with self.subTest(escaped=escaped):
+                self.assertIn(
+                    self.status(active=False, reason="entered_effective_hill",
+                                escaped=escaped),
+                    terminal,
+                )
+
+    def test_the_collision_reason_the_exporter_expects_is_the_one_written(self):
+        """These two strings live in different modules and must agree."""
+        import inspect
+
+        from microbe_radiation_model.simulation import scenarios
+
+        source = inspect.getsource(scenarios._check_asteroid_collisions)
+        self.assertIn("collided_with_star", source)
+
+
+
 if __name__ == "__main__":
     unittest.main()

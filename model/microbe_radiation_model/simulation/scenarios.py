@@ -80,7 +80,19 @@ def _check_asteroid_collisions(
             dz = body.z - target.z
             distance_au = sqrt(dx * dx + dy * dy + dz * dz)
             if distance_au < threshold_au:
-                asteroid_state_store.update(body_index, active=False)
+                # Recording the reason is what distinguishes hitting a star from
+                # any other end. Without it the collided-with-a-star status in
+                # visualizer_export was unreachable, and every collision looked
+                # the same in the aggregate counts.
+                asteroid_state_store.update(
+                    body_index,
+                    active=False,
+                    termination_reason=(
+                        "collided_with_star"
+                        if target_index in star_indices
+                        else "collided_with_planet"
+                    ),
+                )
                 break
 
 
@@ -540,7 +552,7 @@ def _build_visualizer_payload(
                 "frames.aggregates.time_years": "Simulation time for this frame [yr] (duplicate of frames.time for convenience).",
                 "frames.aggregates.uv_local_flux_sum": "Sum of UV flux at microbe locations over all reported bodies [W/m^2].",
                 "frames.aggregates.gcr_local_flux_sum": "Sum of cosmic ray flux at microbe locations over all reported bodies (model units).",
-                "frames.aggregates.gamma_local_flux_sum": "Sum of gamma-ray flux at microbe locations over all reported bodies [W/m^2].",
+                "frames.aggregates.gamma_local_flux_sum": "Sum over reported bodies of the internal gamma dose rate from the rock's own U/Th/K [Gy/year]. Previously labelled W/m^2, which it never was.",
                 "frames.aggregates.T_surface_K_min": "Minimum surface temperature among reported bodies [K].",
                 "frames.aggregates.T_surface_K_mean": "Mean surface temperature among reported bodies [K].",
                 "frames.aggregates.T_surface_K_max": "Maximum surface temperature among reported bodies [K].",
@@ -963,10 +975,16 @@ def run_mars_ejecta_pipeline_demo(
             env_updates["T_center_K"] = body_report.center_temperature_k
             env_updates["uv_local_flux"] = body_report.local_flux
             env_updates["gcr_local_flux"] = gcr_local_flux
-            # gamma_local_flux is not yet propagated; keep placeholder 0.0
-            env_updates["gamma_local_flux"] = 0.0
+            # The internal gamma dose is produced by the rock itself, so there
+            # is no separate surface and core value at this level of the model -
+            # the same figure applies throughout the body. It used to be hard
+            # coded to 0.0 here and summed as 0.0 in the aggregates, so the
+            # visualizer always displayed no internal radiation at all while the
+            # export carried a real number.
+            gamma_dose = radiation_decay_gy_per_year_from_rock(rock)
+            env_updates["gamma_local_flux"] = gamma_dose
             env_updates["hydrolysis_rate_s_inv"] = body_report.hydrolysis_rate_s_inv
-            env_updates["radiation_decay_gy_per_year"] = radiation_decay_gy_per_year_from_rock(rock)
+            env_updates["radiation_decay_gy_per_year"] = gamma_dose
             asteroid_state_store.update(
                 body_index,
                 **env_updates,
@@ -1043,16 +1061,24 @@ def run_mars_ejecta_pipeline_demo(
             destroyed_count = 0
             arrived_count = 0
             for state in all_states:
-                # Escaped from the Solar System but still dynamically active.
-                if state.extra.get("escaped_sun", False):
-                    escaped_and_travelling_count += 1
-                    continue
+                # Terminal outcomes are checked FIRST. `escaped_sun` marks a
+                # transient condition - unbound from the Sun but still in
+                # flight - and is never cleared, while arrival and destruction
+                # are final. Testing the flag first meant `continue` skipped the
+                # terminal check entirely, and since any real interstellar
+                # transfer must pass 240 AU to reach another star, every arrival
+                # already carried the flag. arrived_count was therefore
+                # structurally always zero: the measure the whole simulation
+                # exists to produce could never be non-zero.
                 if not state.active:
                     reason = getattr(state, "termination_reason", None)
                     if reason in ("entered_effective_hill", "entered_hill_sphere"):
                         arrived_count += 1
                     else:
                         destroyed_count += 1
+                    continue
+                if state.extra.get("escaped_sun", False):
+                    escaped_and_travelling_count += 1
 
             aggregates["escaped_and_travelling_count"] = escaped_and_travelling_count
             aggregates["destroyed_count"] = destroyed_count
@@ -1075,8 +1101,15 @@ def run_mars_ejecta_pipeline_demo(
                 gcr_local_sum = sum(
                     float(r.gcr_local_flux or 0.0) for r in current_body_reports
                 )
-                # Gamma local flux is not yet propagated; keep placeholder sum = 0.0.
-                gamma_local_sum = 0.0
+                gamma_local_sum = sum(
+                    float(
+                        asteroid_state_store.get(r.body_index).extra.get(
+                            "gamma_local_flux", 0.0
+                        )
+                        or 0.0
+                    )
+                    for r in current_body_reports
+                )
 
                 aggregates["uv_local_flux_sum"] = uv_local_sum
                 aggregates["gcr_local_flux_sum"] = gcr_local_sum

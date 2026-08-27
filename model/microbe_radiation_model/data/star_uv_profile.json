@@ -47,16 +47,16 @@
   },
   "provenance": {
     "schema_version": "1.0",
-    "generated_utc": "2026-08-27T06:29:26+00:00",
+    "generated_utc": "2026-08-27T06:32:13+00:00",
     "scenario": "mars_ejecta_pipeline",
-    "seed": 11,
+    "seed": 3,
     "source": {
       "available": true,
-      "commit": "7f45b4be4c791132d5d5363b32891b64c9cf3125",
-      "commit_short": "7f45b4be4c79",
+      "commit": "889883cfe7757b63d7c8c9e0ea95f888dedfa387",
+      "commit_short": "889883cfe775",
       "branch": "main",
       "dirty": true,
-      "describe": "7f45b4be-dirty"
+      "describe": "889883cf-dirty"
     },
     "environment": {
       "python": "3.14.5",
@@ -90,7 +90,7 @@
       },
       "run": {
         "dt_yr": 0.05,
-        "n_steps": 9,
+        "n_steps": 5,
         "integration_substeps": 5,
         "add_test_particle": false,
         "gaia": {
@@ -135,7 +135,7 @@
         },
         "impact": {
           "enabled": true,
-          "n_asteroids": 5,
+          "n_asteroids": 3,
           "mars_index": 4,
           "cone_half_angle": 60.0,
           "v_min_kms": 5.03,
@@ -153,7 +153,7 @@
             0.0,
             180.0
           ],
-          "seed": 11
+          "seed": 3
         },
         "thermal": {
           "enabled": true,
@@ -182,8 +182,8 @@
         }
       }
     },
-    "parameters_sha256": "6f3b065d3bd5d0a494974ceb9c7b3e9efed05e118c24e5b17f5a4dd2674d08bc",
-    "reproduce": "python -m microbe_radiation_model --asteroids 5 --years 0.4 --dt 0.05 --substeps 5 --seed 11 --v-min 5.03 --v-max 20 --cone-angle 60 --fragment-radius 0.5 --bio-fraction 0.01 --dust-flux 1e-12 --no-radiation-pressure",
+    "parameters_sha256": "4e8870f5078edc80c968958a36102d677b6c4fbd650d0e0c3c85dc64dcb81490",
+    "reproduce": "python -m microbe_radiation_model --asteroids 3 --years 0.2 --dt 0.05 --substeps 5 --seed 3 --v-min 5.03 --v-max 20 --cone-angle 60 --fragment-radius 0.5 --bio-fraction 0.01 --dust-flux 1e-12 --no-radiation-pressure",
     "coefficients_under_audit": {
       "note": "These coefficients are not settled. Trends and relative comparisons in this file are meaningful; absolute doses and survival fractions are provisional.",
       "unresolved_count": 4,
@@ -238,8 +238,8 @@
       "reproduce": "Run this to regenerate the file."
     },
     "scenario_details": {
-      "frames": 9,
-      "objects": 64
+      "frames": 5,
+      "objects": 62
     }
   }
 }
