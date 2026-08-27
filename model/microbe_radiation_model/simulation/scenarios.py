@@ -40,7 +40,12 @@ from ..biology.survival import survival_function
 from ..radiation.exposure_model import ExposureState, update_exposure
 from ..radiation.shielding_model import radiation_at_point_in_rock_with_bio_core
 from ..thermal import equilibrium_temperature_from_flux, temperature_profile_surface_mid_center
-from .config import SimulationMaterialConfig, SimulationRunConfig, default_material_config
+from .config import (
+    DEFAULT_GCR_ATTENUATION_K_M2_KG,
+    SimulationMaterialConfig,
+    SimulationRunConfig,
+    default_material_config,
+)
 
 # Collision: stars (Sun + Gaia) = 2× radius, planets = 1× radius
 STAR_COLLISION_RADIUS_MULTIPLIER = 2.0
@@ -578,6 +583,10 @@ def _build_visualizer_payload(
 # biology/survival.py::survival_function and below the 0.157-0.441 slopes
 # fitted in analysis/radiation_to_survival.R. It very nearly cancels the
 # inflated gamma dose coefficients, so the two must be corrected together.
+# Fallback radiation inactivation coefficient [1/Gy], used only for fragments
+# that reach the biology stage without one of their own. The value the pipeline
+# actually uses is sampled per fragment in impacts/mars_impact.py, which is also
+# where the unit trap behind this number is written up.
 DEFAULT_RADIATION_SURV_COEFF: float = 5e-6
 
 
@@ -884,8 +893,16 @@ def run_mars_ejecta_pipeline_demo(
                     bio_density=bio_material.density,
                     bio_mass_fraction=material_config.bio_mass_fraction,
                 ),
-                rock_material=rock_material,
-                bio_material=bio_material,
+                # Cosmic rays are charged particles and penetrate about
+                # sixteen times deeper than photons of the same rock thickness,
+                # so they need their own attenuation coefficient rather than the
+                # photon one carried on the material.
+                rock_material=replace(
+                    rock_material, k=DEFAULT_GCR_ATTENUATION_K_M2_KG
+                ),
+                bio_material=replace(
+                    bio_material, k=DEFAULT_GCR_ATTENUATION_K_M2_KG
+                ),
                 surface_flux=gcr_surface_flux,
             )
             gcr_local_flux = gcr_shielding_result.local_flux
@@ -922,7 +939,17 @@ def run_mars_ejecta_pipeline_demo(
                 # Hydrolysis contributes only when the thermal stage ran.
                 hydrolysis_rate = body_report.hydrolysis_rate_s_inv or 0.0
                 # Dose from radionuclide decay inside the rock [Gy/year].
-                radiation_decay_gy_per_year = radiation_decay_gy_per_year_from_rock(rock)
+                # This fragment's own radius, not the configuration default.
+                # The GCR shielding path a few lines up already uses
+                # asteroid_state.radius_m, so taking the internal dose from
+                # material_config.rock_radius meant one fragment was modelled at
+                # two different sizes at the same instant - a pebble for cosmic
+                # rays and a half-metre boulder for its own radioactivity.
+                radiation_decay_gy_per_year = radiation_decay_gy_per_year_from_rock(
+                    rock,
+                    radius_m=asteroid_state.radius_m,
+                    density_kg_m3=material_config.rock_material.density,
+                )
                 # Cosmic ray dose after shielding.
                 # Calibration: 1.0 model GCR unit = 0.194 Gy/year (Mileikowsky et al. 2000).
                 radiation_space_gy_per_year = (
@@ -981,7 +1008,14 @@ def run_mars_ejecta_pipeline_demo(
             # coded to 0.0 here and summed as 0.0 in the aggregates, so the
             # visualizer always displayed no internal radiation at all while the
             # export carried a real number.
-            gamma_dose = radiation_decay_gy_per_year_from_rock(rock)
+            # Passing the geometry applies the finite-size correction: a small
+            # fragment loses gamma dose out through its own surface, and below
+            # about 20 cm radius that is most of it.
+            gamma_dose = radiation_decay_gy_per_year_from_rock(
+                rock,
+                radius_m=asteroid_state.radius_m,
+                density_kg_m3=material_config.rock_material.density,
+            )
             env_updates["gamma_local_flux"] = gamma_dose
             env_updates["hydrolysis_rate_s_inv"] = body_report.hydrolysis_rate_s_inv
             env_updates["radiation_decay_gy_per_year"] = gamma_dose

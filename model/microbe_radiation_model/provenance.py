@@ -194,20 +194,32 @@ def audit_coefficients() -> dict[str, Any]:
 
     entries: dict[str, Any] = {}
 
-    entries["gamma_dose_coefficients"] = {
-        "values_gy_per_year_per_ppm": {
-            "k40": gamma_mod._GAMMA_DOSE_COEFF_K40_PPM,
-            "th232": gamma_mod._GAMMA_DOSE_COEFF_TH232_PPM,
-            "u238": gamma_mod._GAMMA_DOSE_COEFF_U238_PPM,
-            "u235": gamma_mod._GAMMA_DOSE_COEFF_U235_PPM,
+    entries["internal_dose_coefficients"] = {
+        "values": {
+            "gamma_gy_per_year_per_ppm_u": gamma_mod.GAMMA_DOSE_PER_PPM_U,
+            "gamma_gy_per_year_per_ppm_th": gamma_mod.GAMMA_DOSE_PER_PPM_TH,
+            "gamma_gy_per_year_per_percent_k": gamma_mod.GAMMA_DOSE_PER_PERCENT_K,
+            "alpha_gy_per_year_per_ppm_u": gamma_mod.ALPHA_DOSE_PER_PPM_U,
+            "alpha_gy_per_year_per_ppm_th": gamma_mod.ALPHA_DOSE_PER_PPM_TH,
+            "beta_gy_per_year_per_ppm_u": gamma_mod.BETA_DOSE_PER_PPM_U,
+            "beta_gy_per_year_per_ppm_th": gamma_mod.BETA_DOSE_PER_PPM_TH,
+            "beta_gy_per_year_per_percent_k": gamma_mod.BETA_DOSE_PER_PERCENT_K,
+            "gamma_mass_attenuation_cm2_g": gamma_mod.GAMMA_MASS_ATTENUATION_CM2_G,
         },
         "module": "radiation.radionuclide_model.gamma",
-        "status": "unresolved",
-        "issue": (
-            "Uncited. For basalt these give 46.6 Gy/yr against 1.07e-3 Gy/yr "
-            "computed from activity times decay-chain energy in an infinite "
-            "medium - a factor of ~4.4e4, reaching ~6.2e5 across the catalog. "
-            "The K-40 term supplies 99.8% of the inflated total."
+        "status": "resolved",
+        "source": (
+            "Cresswell, Carter & Sanderson (2018), Radiation Measurements "
+            "120:195-201, doi:10.1016/j.radmeas.2018.02.007, Table 5 "
+            "(infinite-matrix conversion factors). Finite-size gamma "
+            "correction calibrated to Riedesel & Autzen (2020), Radiation "
+            "Measurements 133:106295."
+        ),
+        "note": (
+            "These replaced an uncited table that overstated the dose by 4e4 "
+            "to 6e5 across the rock catalog. Residual uncertainty is the ~7% "
+            "the source itself reports for the underlying nuclear data, which "
+            "is smaller than the spread between rock compositions."
         ),
     }
 
@@ -231,36 +243,50 @@ def audit_coefficients() -> dict[str, Any]:
 
     entries["radiation_survival_coefficient"] = {
         "default_value": DEFAULT_RADIATION_SURV_COEFF,
-        "documented_range": [0.15, 0.5],
-        "fitted_range": [0.157, 0.441],
-        "module": "simulation.scenarios",
-        "status": "unresolved",
-        "issue": (
-            "The default is five orders of magnitude below the range its own "
-            "docstring gives, and below the slopes fitted in "
-            "analysis/radiation_to_survival.R from Mileikowsky et al. (2000). "
-            "It very nearly cancels the inflated gamma dose above, so the two "
-            "must be corrected together or not at all."
-        ),
-        "source_of_range": (
+        "sampled_range": [1e-6, 1e-5],
+        "module": "impacts.mars_impact",
+        "status": "resolved",
+        "source": (
             "Mileikowsky, C. et al. (2000), Icarus 145(2), 391-427, "
-            "doi:10.1006/icar.1999.6317"
+            "doi:10.1006/icar.1999.6317, via analysis/radiation_to_survival.R. "
+            "Corroborated by Valtonen et al. (2009), ApJ 690:210, whose "
+            "internal-radioactivity kill term of 0.075/Myr against a ~6e-4 "
+            "Gy/yr internal dose implies about 1e-4 1/Gy."
+        ),
+        "note": (
+            "An earlier audit called this five orders of magnitude too small, "
+            "on the reading that the R script's fitted slopes of 0.157-0.441 "
+            "are in 1/Gy. They are not: that script's x axis is labelled Gy "
+            "but holds dose rates in cGy/year, and its kill frequencies are "
+            "per Myr despite the variable names. With the corrected dose "
+            "coefficients this range reproduces Mileikowsky's t ~ 75 l^2 Myr "
+            "survival times to within a factor of about five, and reproduces "
+            "the scaling with fragment size."
         ),
     }
 
-    from .simulation.config import DEFAULT_ROCK_ATTENUATION_K_M2_KG
+    from .simulation.config import (
+        DEFAULT_GCR_ATTENUATION_K_M2_KG,
+        DEFAULT_ROCK_ATTENUATION_K_M2_KG,
+    )
 
     entries["cosmic_ray_attenuation"] = {
-        "coefficient_in_use_m2_kg": DEFAULT_ROCK_ATTENUATION_K_M2_KG,
-        "appropriate_for_gcr_m2_kg": 1.0e-3,
-        "module": "radiation.shielding_model",
-        "status": "unresolved",
-        "issue": (
-            "Galactic cosmic rays are attenuated with the photon mass "
-            "attenuation coefficient recorded above. Charged particles have an "
-            "attenuation depth near 100 g/cm^2, i.e. about 1e-3 m^2/kg - "
-            "roughly ten times smaller - which changes the dose reaching a "
-            "0.5 m fragment's core by about 4e4."
+        "photon_coefficient_m2_kg": DEFAULT_ROCK_ATTENUATION_K_M2_KG,
+        "cosmic_ray_coefficient_m2_kg": DEFAULT_GCR_ATTENUATION_K_M2_KG,
+        "module": "simulation.config",
+        "status": "resolved",
+        "source": (
+            "Gosse & Phillips (2001), Quaternary Science Reviews 20:1475. "
+            "Attenuation length for the hadronic component in silicate rock is "
+            "about 160 g/cm^2, i.e. 1600 kg/m^2, so k = 1/1600 m^2/kg."
+        ),
+        "note": (
+            "Cosmic rays were previously attenuated with the photon "
+            "coefficient, which is sixteen times larger and made fragments "
+            "look far more protective than they are. The published value is "
+            "calibrated for spallation-nuclide production rather than absorbed "
+            "dose - very close, but not identical, so this carries a residual "
+            "systematic."
         ),
     }
 

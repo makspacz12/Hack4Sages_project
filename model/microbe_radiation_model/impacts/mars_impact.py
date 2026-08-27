@@ -103,9 +103,25 @@ def create_mars_impact(sim, config: ImpactEjectaConfig | None = None) -> ImpactR
             vz=vz[idx],
         )
 
-        # Random radiation sensitivity coefficient for this asteroid, independent
-        # of its physical properties. Kept small so that survival decays over
-        # Myr timescales rather than in a few steps.
+        # Radiation inactivation coefficient for the organism this fragment
+        # carries [1/Gy], independent of its physical properties.
+        #
+        # Beware: the fitted slopes in analysis/radiation_to_survival.R are NOT in
+        # 1/Gy. That script's x axis is labelled "[Gy]" but the values it holds
+        # (19.4, 22.2 ... 24.9) are Mileikowsky's dose rates in cGy/YEAR, and
+        # its kill frequencies are per Myr rather than the "per year" the
+        # variable names claim. Reading the slopes as 1/Gy inflates them by
+        # about 1e4. The audit note that called 5e-6 "five orders of magnitude
+        # too small" made exactly that misreading.
+        #
+        # Read with the right units the coefficient is of order 1e-5 1/Gy, and
+        # Valtonen et al. (2009) corroborate that independently: their internal-
+        # radioactivity kill term of 0.075 per Myr against an internal dose near
+        # 6e-4 Gy/yr implies about 1e-4 1/Gy.
+        #
+        # With this range and the corrected dose coefficients the model
+        # reproduces Mileikowsky's t ~ 75 l^2 Myr survival times to within a
+        # factor of about five, and reproduces the scaling with fragment size.
         radiation_surv_coeff = rng.uniform(1e-6, 1e-5)
 
         asteroids.append(

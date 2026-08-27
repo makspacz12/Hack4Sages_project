@@ -83,7 +83,16 @@ def build_parser() -> argparse.ArgumentParser:
 
     frag = parser.add_argument_group("fragment")
     frag.add_argument("--fragment-radius", type=float, metavar="M",
-                      help="radius of the tracked fragment [m] (default 0.5)")
+                      help="radius for the single-fragment summary report [m] "
+                           "(default 0.5); the swarm samples its own sizes, see "
+                           "--radius-min/--radius-max")
+    frag.add_argument("--radius-min", type=float, metavar="M",
+                      help="smallest fragment in the swarm [m] (default 0.001)")
+    frag.add_argument("--radius-max", type=float, metavar="M",
+                      help="largest fragment in the swarm [m] (default 5.0). "
+                           "Cosmic-ray shielding only becomes appreciable above "
+                           "about 0.2 m, so a swarm capped below that will show "
+                           "little protection")
     frag.add_argument("--bio-fraction", type=float, metavar="F",
                       help="biological core mass fraction, 0..1 (default 0.01)")
 
@@ -123,7 +132,7 @@ def build_parser() -> argparse.ArgumentParser:
 _SCENARIO_KEYS = (
     "dt", "years", "steps", "substeps",
     "asteroids", "v_min", "v_max", "cone_angle", "alpha_v", "seed",
-    "fragment_radius", "bio_fraction",
+    "fragment_radius", "radius_min", "radius_max", "bio_fraction",
     "dust_flux", "no_erosion", "no_radiation_pressure", "no_planets", "no_thermal",
     "out", "no_export",
 )
@@ -239,6 +248,20 @@ def build_configs(args: argparse.Namespace) -> tuple[SimulationMaterialConfig, S
         impact_changes["alpha_v"] = args.alpha_v
     if args.seed is not None:
         impact_changes["seed"] = args.seed
+
+    if args.radius_min is not None:
+        impact_changes["radius_min_m"] = args.radius_min
+    if args.radius_max is not None:
+        impact_changes["radius_max_m"] = args.radius_max
+
+    r_min = impact_changes.get("radius_min_m", run.impact.radius_min_m)
+    r_max = impact_changes.get("radius_max_m", run.impact.radius_max_m)
+    if r_min <= 0:
+        raise ValueError(f"--radius-min ({r_min}) must be positive")
+    if r_min >= r_max:
+        raise ValueError(
+            f"--radius-min ({r_min}) must be below --radius-max ({r_max})"
+        )
 
     v_min = impact_changes.get("v_min_kms", run.impact.v_min_kms)
     v_max = impact_changes.get("v_max_kms", run.impact.v_max_kms)

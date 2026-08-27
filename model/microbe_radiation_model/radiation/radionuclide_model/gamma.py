@@ -6,22 +6,53 @@ from ...materials.rocks import Rock, get_rock_param
 from .activity import activity_from_rock, volumetric_activity_bq_m3
 from .geometry import geometry_from_rock
 
-# Empirical coefficients: c(ppm) x f -> dose rate [Gy/year] (uncited "user table").
+# Dose-rate conversion factors for U, Th and K, from
 #
-# AUDIT WARNING - these coefficients do not reproduce first-principles values.
-# For basalt_vtype (U 0.15 ppm, Th 0.6 ppm, K 0.05%) they give 46.6 Gy/yr.
-# Computing the same quantity from activity x decay-chain energy in an infinite
-# medium (12.4 Bq/kg per ppm U x 51.7 MeV, 4.1 x 42.7 MeV, 313 Bq/kg per %K x
-# 0.6 MeV) gives 1.07e-3 Gy/yr - a factor of ~4.4e4 lower. Across the rock
-# catalog the discrepancy ranges from 4.4e4x to 6.2e5x, and the K-40 term alone
-# supplies 99.8% of the inflated total.
+#   Cresswell, Carter & Sanderson (2018), "Dose rate conversion parameters:
+#   Assessment of nuclear data", Radiation Measurements 120:195-201,
+#   doi:10.1016/j.radmeas.2018.02.007, Table 5.
 #
-# Do not treat the absolute Gy/year values as physical until these are re-derived
-# or a source is attached. See the repository audit notes.
-_GAMMA_DOSE_COEFF_K40_PPM = 0.093   # Potassium 40K, c(ppm) x 0.093
-_GAMMA_DOSE_COEFF_TH232_PPM = 0.084  # Thorium 232Th, c(ppm) x 0.084
-_GAMMA_DOSE_COEFF_U238_PPM = 0.300   # Uranium 238U, c(ppm) x 0.300
-_GAMMA_DOSE_COEFF_U235_PPM = 1.81    # Uranium 235U, c(ppm) x 1.81
+# These replace an uncited "user table" that was flagged in this file's own audit
+# note. Those coefficients overstated the dose by a factor of 4e4 to 6e5 across
+# the rock catalog, with the potassium term alone supplying 99.8% of the inflated
+# total. The published values below reproduce the independent first-principles
+# estimate that the audit note computed, so the discrepancy is resolved rather
+# than merely re-labelled.
+#
+# The factors are INFINITE-MATRIX values: they already give the dose absorbed
+# inside the rock, which is the quantity this model wants. They are not "dose in
+# air 1 m above the ground", which is the other convention in this literature and
+# a common way to be wrong by a large factor.
+#
+# The uranium column covers natural uranium - 238U and 235U together at the
+# natural isotopic ratio - so there is no separate 235U term to add. The old code
+# had one, which would have double-counted had any catalog entry ever set it.
+#
+# Units: Gy/year per ppm for U and Th, Gy/year per weight-% for K.
+GAMMA_DOSE_PER_PPM_U = 1.12e-4
+GAMMA_DOSE_PER_PPM_TH = 4.89e-5
+GAMMA_DOSE_PER_PERCENT_K = 2.48e-4
+
+# Alpha and beta from the same table. They matter here because the microbes are
+# embedded in the rock matrix rather than sitting in a cavity, so they absorb the
+# short-range radiation too - and it dominates: alpha alone is roughly 25x the
+# gamma contribution for uranium.
+ALPHA_DOSE_PER_PPM_U = 2.79e-3
+ALPHA_DOSE_PER_PPM_TH = 7.38e-4
+BETA_DOSE_PER_PPM_U = 1.42e-4
+BETA_DOSE_PER_PPM_TH = 2.80e-5
+BETA_DOSE_PER_PERCENT_K = 8.54e-4
+
+# Effective mass attenuation coefficient for the U/Th/K gamma spectrum in
+# silicate rock, including build-up from Compton scattering [cm^2/g].
+#
+# Calibrated so that the saturation curve below reaches 99% of the infinite-
+# matrix value at 60 g/cm^2, which is where Riedesel & Autzen (2020),
+# Radiation Measurements 133:106295, place saturation in their Geant4
+# simulations. This is the quantitative form of the "30 cm rule" from Aitken's
+# luminescence-dating texts.
+GAMMA_MASS_ATTENUATION_CM2_G = 0.077
+
 _POTASSIUM_PERCENT_TO_PPM = 10000.0  # 1% = 10^4 ppm by mass
 
 
@@ -112,8 +143,37 @@ def internal_gamma_rate_from_rock(
     )
 
 
+def gamma_self_dose_fraction(radius_m: float, density_kg_m3: float) -> float:
+    """
+    Fraction of the infinite-matrix gamma dose actually reached at the centre of
+    a sphere of this size.
+
+    A small rock loses gamma dose out of its own surface. Integrating an
+    unattenuated point-source kernel over a uniformly radioactive sphere gives
+    the closed form exactly:
+
+        D(R) / D_inf = 1 - exp(-(mu/rho) * rho * R)
+
+    so the answer saturates rather than growing without bound. For basalt at
+    3000 kg/m^3 that is 50% of the infinite-matrix dose at ~3 cm radius, 90% at
+    ~10 cm and 99% at ~20 cm; above that the dose stops depending on size at all.
+
+    This is the centre, which is the maximum. At the surface the fraction falls
+    towards a half, because only a hemisphere of rock is contributing.
+    """
+    if radius_m <= 0.0:
+        return 0.0
+    if density_kg_m3 <= 0.0:
+        raise ValueError("density_kg_m3 must be positive")
+    # cm^2/g * g/cm^3 * cm, all three converted from SI at once.
+    mass_depth_g_cm2 = (density_kg_m3 * 0.001) * (radius_m * 100.0)
+    return 1.0 - math.exp(-GAMMA_MASS_ATTENUATION_CM2_G * mass_depth_g_cm2)
+
+
 def radiation_decay_gy_per_year_from_rock(
     rock: Rock,
+    radius_m: float | None = None,
+    density_kg_m3: float | None = None,
     uranium238_ppm: float | None = None,
     uranium235_ppm: float | None = None,
     thorium232_ppm: float | None = None,
@@ -124,13 +184,19 @@ def radiation_decay_gy_per_year_from_rock(
     potassium_hook=None,
 ) -> float:
     """
-    Empirical gamma dose rate from U, Th, K in rock [Gy/year].
+    Internal dose rate absorbed inside the rock from its own U, Th and K
+    [Gy/year].
 
-    Formula: sum of c(ppm)×f for each radionuclide:
-      - 40K:   c(ppm)×0.093  (K from rock: potassium_percent converted to ppm)
-      - 232Th: c(ppm)×0.084
-      - 238U:  c(ppm)×0.300
-      - 235U:  c(ppm)×1.81   (optional; if not on Rock, 0)
+    This is the total of alpha, beta and gamma, not gamma alone, because the
+    microbes are embedded in the mineral matrix rather than sitting in a void.
+    Alpha and beta are short-ranged and dominate: for uranium the alpha term is
+    about twenty-five times the gamma term.
+
+    Pass `radius_m` and `density_kg_m3` to apply the finite-size correction to
+    the gamma component. Without them the infinite-matrix value is returned,
+    which is an upper bound.
+
+    Conversion factors: Cresswell, Carter & Sanderson (2018), Table 5.
     """
     c_u238 = get_rock_param(
         rock, "uranium238_ppm",
@@ -148,10 +214,30 @@ def radiation_decay_gy_per_year_from_rock(
         rock, "potassium_percent",
         value=potassium_percent, hook=potassium_hook, default=0.0,
     )
-    k_ppm = k_pct * _POTASSIUM_PERCENT_TO_PPM
-    return (
-        (k_ppm * _GAMMA_DOSE_COEFF_K40_PPM)
-        + (c_th * _GAMMA_DOSE_COEFF_TH232_PPM)
-        + (c_u238 * _GAMMA_DOSE_COEFF_U238_PPM)
-        + (c_u235 * _GAMMA_DOSE_COEFF_U235_PPM)
+    # Natural uranium is one column in the source table; adding a separate 235U
+    # term on top of it would count the same decay chain twice.
+    c_u = c_u238 + c_u235
+
+    # Alpha and beta stop within millimetres of where they are emitted, so a
+    # rock of any interesting size is already an infinite matrix for them and no
+    # geometry correction applies. Gamma is the only component that leaks out.
+    alpha = ALPHA_DOSE_PER_PPM_U * c_u + ALPHA_DOSE_PER_PPM_TH * c_th
+    beta = (
+        BETA_DOSE_PER_PPM_U * c_u
+        + BETA_DOSE_PER_PPM_TH * c_th
+        + BETA_DOSE_PER_PERCENT_K * k_pct
+    )
+    gamma_infinite = (
+        GAMMA_DOSE_PER_PPM_U * c_u
+        + GAMMA_DOSE_PER_PPM_TH * c_th
+        + GAMMA_DOSE_PER_PERCENT_K * k_pct
+    )
+
+    if radius_m is None or density_kg_m3 is None:
+        # No geometry supplied: report the infinite-matrix value, which is the
+        # upper bound and the conventional figure to quote.
+        return alpha + beta + gamma_infinite
+
+    return alpha + beta + gamma_infinite * gamma_self_dose_fraction(
+        radius_m, density_kg_m3
     )

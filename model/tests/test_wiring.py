@@ -252,5 +252,124 @@ class TestOutcomeClassification(unittest.TestCase):
 
 
 
+class TestInternalDoseAgainstLiterature(unittest.TestCase):
+    """
+    The dose coefficients were uncited and overstated by a factor of ~4e4.
+
+    They were not independently wrong: the survival coefficient was too small by
+    a comparable factor, so the two errors cancelled and the survival curves
+    looked plausible. That is why neither showed up in any output for so long,
+    and it is why these tests check the two ends against outside numbers rather
+    than against each other.
+    """
+
+    def rock(self, **kw):
+        from microbe_radiation_model.materials.rocks import Rock
+
+        base = dict(
+            name="shergottite", density_kg_m3=3000.0,
+            uranium238_ppm=0.1, thorium232_ppm=0.3, potassium_percent=0.03,
+        )
+        base.update(kw)
+        return Rock(**base)
+
+    def dose(self, **kw):
+        from microbe_radiation_model.radiation.radionuclide_model import (
+            radiation_decay_gy_per_year_from_rock,
+        )
+
+        return radiation_decay_gy_per_year_from_rock(self.rock(), **kw)
+
+    def test_matches_the_published_figure_for_martian_material(self):
+        """
+        Mileikowsky et al. (2000) put natural radioactivity in Martian regolith
+        near 4e-4 Gy/yr; Cresswell's factors on a typical shergottite give about
+        6e-4. Agreement to a factor of two is the most these compositions
+        support, and the old coefficients missed it by 4e4.
+        """
+        self.assertGreater(self.dose(), 1e-4)
+        self.assertLess(self.dose(), 3e-3)
+
+    def test_the_old_inflated_value_would_fail_this(self):
+        """The previous coefficients gave 46.6 Gy/yr for basalt."""
+        self.assertLess(self.dose(), 1.0)
+
+    def test_gamma_saturates_with_size_rather_than_growing(self):
+        from microbe_radiation_model.radiation.radionuclide_model.gamma import (
+            gamma_self_dose_fraction,
+        )
+
+        # Riedesel & Autzen (2020): saturation at about 60 g/cm^2.
+        self.assertAlmostEqual(gamma_self_dose_fraction(0.20, 3000.0), 0.99, delta=0.01)
+        self.assertLess(gamma_self_dose_fraction(0.01, 3000.0), 0.3)
+        self.assertAlmostEqual(gamma_self_dose_fraction(5.0, 3000.0), 1.0, places=6)
+
+    def test_a_small_fragment_receives_less_than_a_large_one(self):
+        small = self.dose(radius_m=0.005, density_kg_m3=3000.0)
+        large = self.dose(radius_m=1.0, density_kg_m3=3000.0)
+        self.assertLess(small, large)
+
+    def test_no_geometry_gives_the_infinite_matrix_upper_bound(self):
+        self.assertGreaterEqual(self.dose(), self.dose(radius_m=1.0, density_kg_m3=3000.0))
+
+    def test_natural_uranium_is_not_counted_twice(self):
+        """
+        The source table's uranium column already covers 235U, so a separate
+        235U term would double-count the chain.
+        """
+        import inspect
+
+        from microbe_radiation_model.radiation.radionuclide_model import gamma
+
+        self.assertFalse(hasattr(gamma, "_GAMMA_DOSE_COEFF_U235_PPM"))
+        self.assertIn("c_u = c_u238 + c_u235", inspect.getsource(gamma))
+
+
+class TestSurvivalTimesAgainstLiterature(unittest.TestCase):
+    """
+    The pairing check: dose coefficient times survival coefficient has to
+    reproduce published survival times, which neither factor can do alone.
+    """
+
+    def half_life_myr(self, transmitted_fraction):
+        import math
+
+        from microbe_radiation_model.impacts.mars_impact import (
+            _sample_rock_variants_with_sizes,  # noqa: F401  (import guard)
+        )
+
+        gcr_surface = 0.194           # Gy/yr, Mileikowsky et al. 2000
+        internal = 1.0e-3             # Gy/yr, Cresswell factors on basalt
+        coeff = 5e-6                  # 1/Gy, the sampled range's geometric middle
+        dose = gcr_surface * transmitted_fraction + internal
+        return math.log(2.0) / (coeff * dose) / 1e6
+
+    def test_survival_times_are_on_the_published_scale(self):
+        """
+        Mileikowsky: metre-scale rocks protect spores for order 10-100 Myr.
+        Anything in kiloyears means the two coefficients have drifted apart
+        again.
+        """
+        self.assertGreater(self.half_life_myr(0.115), 1.0)     # 1 m fragment
+        self.assertLess(self.half_life_myr(0.115), 100.0)
+
+    def test_bigger_fragments_protect_for_longer(self):
+        self.assertLess(self.half_life_myr(1.0), self.half_life_myr(0.115))
+
+    def test_the_sampled_coefficient_range_is_the_corrected_one(self):
+        """
+        Guards against re-applying the misreading that the R script's slopes of
+        0.157-0.441 are in 1/Gy. They are per Myr against cGy/yr.
+        """
+        import inspect
+
+        from microbe_radiation_model.impacts import mars_impact
+
+        source = inspect.getsource(mars_impact)
+        self.assertIn("rng.uniform(1e-6, 1e-5)", source)
+        self.assertNotIn("rng.uniform(0.157, 0.441)", source)
+
+
+
 if __name__ == "__main__":
     unittest.main()

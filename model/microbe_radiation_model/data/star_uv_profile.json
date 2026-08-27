@@ -47,16 +47,16 @@
   },
   "provenance": {
     "schema_version": "1.0",
-    "generated_utc": "2026-08-27T06:32:13+00:00",
+    "generated_utc": "2026-08-27T06:54:21+00:00",
     "scenario": "mars_ejecta_pipeline",
-    "seed": 3,
+    "seed": 99,
     "source": {
       "available": true,
-      "commit": "889883cfe7757b63d7c8c9e0ea95f888dedfa387",
-      "commit_short": "889883cfe775",
+      "commit": "8e6ff802785a85e4f6ea781424b08242173e8dd9",
+      "commit_short": "8e6ff802785a",
       "branch": "main",
       "dirty": true,
-      "describe": "889883cf-dirty"
+      "describe": "8e6ff802-dirty"
     },
     "environment": {
       "python": "3.14.5",
@@ -89,8 +89,8 @@
         "rock_thermal_conductivity_w_mk": 2.0
       },
       "run": {
-        "dt_yr": 0.05,
-        "n_steps": 5,
+        "dt_yr": 2.0,
+        "n_steps": 11,
         "integration_substeps": 5,
         "add_test_particle": false,
         "gaia": {
@@ -135,7 +135,7 @@
         },
         "impact": {
           "enabled": true,
-          "n_asteroids": 3,
+          "n_asteroids": 4,
           "mars_index": 4,
           "cone_half_angle": 60.0,
           "v_min_kms": 5.03,
@@ -153,7 +153,7 @@
             0.0,
             180.0
           ],
-          "seed": 3
+          "seed": 99
         },
         "thermal": {
           "enabled": true,
@@ -182,22 +182,28 @@
         }
       }
     },
-    "parameters_sha256": "4e8870f5078edc80c968958a36102d677b6c4fbd650d0e0c3c85dc64dcb81490",
-    "reproduce": "python -m microbe_radiation_model --asteroids 3 --years 0.2 --dt 0.05 --substeps 5 --seed 3 --v-min 5.03 --v-max 20 --cone-angle 60 --fragment-radius 0.5 --bio-fraction 0.01 --dust-flux 1e-12 --no-radiation-pressure",
+    "parameters_sha256": "5b5d8484119a4b9585f7261537636e632baeefcecf1d2d805df62e782907b5e0",
+    "reproduce": "python -m microbe_radiation_model --asteroids 4 --years 20 --dt 2 --substeps 5 --seed 99 --v-min 5.03 --v-max 20 --cone-angle 60 --fragment-radius 0.5 --bio-fraction 0.01 --dust-flux 1e-12 --no-radiation-pressure",
     "coefficients_under_audit": {
       "note": "These coefficients are not settled. Trends and relative comparisons in this file are meaningful; absolute doses and survival fractions are provisional.",
-      "unresolved_count": 4,
+      "unresolved_count": 1,
       "entries": {
-        "gamma_dose_coefficients": {
-          "values_gy_per_year_per_ppm": {
-            "k40": 0.093,
-            "th232": 0.084,
-            "u238": 0.3,
-            "u235": 1.81
+        "internal_dose_coefficients": {
+          "values": {
+            "gamma_gy_per_year_per_ppm_u": 0.000112,
+            "gamma_gy_per_year_per_ppm_th": 4.89e-05,
+            "gamma_gy_per_year_per_percent_k": 0.000248,
+            "alpha_gy_per_year_per_ppm_u": 0.00279,
+            "alpha_gy_per_year_per_ppm_th": 0.000738,
+            "beta_gy_per_year_per_ppm_u": 0.000142,
+            "beta_gy_per_year_per_ppm_th": 2.8e-05,
+            "beta_gy_per_year_per_percent_k": 0.000854,
+            "gamma_mass_attenuation_cm2_g": 0.077
           },
           "module": "radiation.radionuclide_model.gamma",
-          "status": "unresolved",
-          "issue": "Uncited. For basalt these give 46.6 Gy/yr against 1.07e-3 Gy/yr computed from activity times decay-chain energy in an infinite medium - a factor of ~4.4e4, reaching ~6.2e5 across the catalog. The K-40 term supplies 99.8% of the inflated total."
+          "status": "resolved",
+          "source": "Cresswell, Carter & Sanderson (2018), Radiation Measurements 120:195-201, doi:10.1016/j.radmeas.2018.02.007, Table 5 (infinite-matrix conversion factors). Finite-size gamma correction calibrated to Riedesel & Autzen (2020), Radiation Measurements 133:106295.",
+          "note": "These replaced an uncited table that overstated the dose by 4e4 to 6e5 across the rock catalog. Residual uncertainty is the ~7% the source itself reports for the underlying nuclear data, which is smaller than the spread between rock compositions."
         },
         "hydrolysis": {
           "pre_exponential_s_inv": 1000000000000.0,
@@ -209,25 +215,22 @@
         },
         "radiation_survival_coefficient": {
           "default_value": 5e-06,
-          "documented_range": [
-            0.15,
-            0.5
+          "sampled_range": [
+            1e-06,
+            1e-05
           ],
-          "fitted_range": [
-            0.157,
-            0.441
-          ],
-          "module": "simulation.scenarios",
-          "status": "unresolved",
-          "issue": "The default is five orders of magnitude below the range its own docstring gives, and below the slopes fitted in analysis/radiation_to_survival.R from Mileikowsky et al. (2000). It very nearly cancels the inflated gamma dose above, so the two must be corrected together or not at all.",
-          "source_of_range": "Mileikowsky, C. et al. (2000), Icarus 145(2), 391-427, doi:10.1006/icar.1999.6317"
+          "module": "impacts.mars_impact",
+          "status": "resolved",
+          "source": "Mileikowsky, C. et al. (2000), Icarus 145(2), 391-427, doi:10.1006/icar.1999.6317, via analysis/radiation_to_survival.R. Corroborated by Valtonen et al. (2009), ApJ 690:210, whose internal-radioactivity kill term of 0.075/Myr against a ~6e-4 Gy/yr internal dose implies about 1e-4 1/Gy.",
+          "note": "An earlier audit called this five orders of magnitude too small, on the reading that the R script's fitted slopes of 0.157-0.441 are in 1/Gy. They are not: that script's x axis is labelled Gy but holds dose rates in cGy/year, and its kill frequencies are per Myr despite the variable names. With the corrected dose coefficients this range reproduces Mileikowsky's t ~ 75 l^2 Myr survival times to within a factor of about five, and reproduces the scaling with fragment size."
         },
         "cosmic_ray_attenuation": {
-          "coefficient_in_use_m2_kg": 0.01,
-          "appropriate_for_gcr_m2_kg": 0.001,
-          "module": "radiation.shielding_model",
-          "status": "unresolved",
-          "issue": "Galactic cosmic rays are attenuated with the photon mass attenuation coefficient recorded above. Charged particles have an attenuation depth near 100 g/cm^2, i.e. about 1e-3 m^2/kg - roughly ten times smaller - which changes the dose reaching a 0.5 m fragment's core by about 4e4."
+          "photon_coefficient_m2_kg": 0.01,
+          "cosmic_ray_coefficient_m2_kg": 0.000625,
+          "module": "simulation.config",
+          "status": "resolved",
+          "source": "Gosse & Phillips (2001), Quaternary Science Reviews 20:1475. Attenuation length for the hadronic component in silicate rock is about 160 g/cm^2, i.e. 1600 kg/m^2, so k = 1/1600 m^2/kg.",
+          "note": "Cosmic rays were previously attenuated with the photon coefficient, which is sixteen times larger and made fragments look far more protective than they are. The published value is calibrated for spallation-nuclide production rather than absorbed dose - very close, but not identical, so this carries a residual systematic."
         }
       }
     },
@@ -238,8 +241,8 @@
       "reproduce": "Run this to regenerate the file."
     },
     "scenario_details": {
-      "frames": 5,
-      "objects": 62
+      "frames": 11,
+      "objects": 63
     }
   }
 }

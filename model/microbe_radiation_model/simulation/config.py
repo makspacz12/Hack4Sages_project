@@ -183,6 +183,19 @@ DEFAULT_FRAGMENT_RADIUS_M: float = 0.5
 # rounds to exactly zero flux at the biological core.
 DEFAULT_ROCK_ATTENUATION_K_M2_KG: float = 0.01
 
+# Attenuation coefficient for GALACTIC COSMIC RAYS in silicate rock [m^2/kg].
+#
+# Charged particles and photons are stopped by quite different amounts of rock,
+# and this model was using the photon coefficient above for both. Cosmic rays
+# have an attenuation length of about 160 g/cm^2 in silicate - Gosse & Phillips
+# (2001), Quaternary Science Reviews 20:1475, from cosmogenic-nuclide dating -
+# which is 1600 kg/m^2, so k = 1/1600.
+#
+# That is sixteen times smaller than the photon coefficient, meaning cosmic rays
+# penetrate sixteen times deeper. Using the photon value made a half-metre
+# fragment look far more protective against cosmic rays than it is.
+DEFAULT_GCR_ATTENUATION_K_M2_KG: float = 1.0 / 1600.0
+
 # Fallback thermal conductivity when the rock variant does not define one [W/(m*K)].
 DEFAULT_ROCK_THERMAL_CONDUCTIVITY_W_MK: float = 2.0
 

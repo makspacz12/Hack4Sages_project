@@ -176,7 +176,7 @@ class TestAuditCoefficients(unittest.TestCase):
     def test_all_four_open_items_are_listed(self):
         entries = audit_coefficients()["entries"]
         for key in (
-            "gamma_dose_coefficients",
+            "internal_dose_coefficients",
             "hydrolysis",
             "radiation_survival_coefficient",
             "cosmic_ray_attenuation",
@@ -188,13 +188,24 @@ class TestAuditCoefficients(unittest.TestCase):
         unresolved = [e for e in block["entries"].values() if e.get("status") == "unresolved"]
         self.assertEqual(block["unresolved_count"], len(unresolved))
 
-    def test_gamma_values_are_read_from_the_module(self):
+    def test_dose_values_are_read_from_the_module(self):
         from microbe_radiation_model.radiation.radionuclide_model import gamma
 
-        recorded = audit_coefficients()["entries"]["gamma_dose_coefficients"]
+        recorded = audit_coefficients()["entries"]["internal_dose_coefficients"]
         self.assertEqual(
-            recorded["values_gy_per_year_per_ppm"]["k40"], gamma._GAMMA_DOSE_COEFF_K40_PPM
+            recorded["values"]["gamma_gy_per_year_per_ppm_u"],
+            gamma.GAMMA_DOSE_PER_PPM_U,
         )
+        self.assertEqual(
+            recorded["values"]["gamma_mass_attenuation_cm2_g"],
+            gamma.GAMMA_MASS_ATTENUATION_CM2_G,
+        )
+
+    def test_the_dose_coefficients_now_carry_a_citation(self):
+        """They were the largest unresolved item in the audit."""
+        entry = audit_coefficients()["entries"]["internal_dose_coefficients"]
+        self.assertEqual(entry["status"], "resolved")
+        self.assertIn("Cresswell", entry["source"])
 
     def test_hydrolysis_values_are_read_from_the_module(self):
         from microbe_radiation_model.chemistry import constants as chem
@@ -202,9 +213,17 @@ class TestAuditCoefficients(unittest.TestCase):
         recorded = audit_coefficients()["entries"]["hydrolysis"]
         self.assertEqual(recorded["activation_energy_j_mol"], chem.HYDROLYSIS_EA_J_MOL)
 
-    def test_every_entry_explains_what_is_wrong(self):
+    def test_every_entry_justifies_itself_one_way_or_the_other(self):
+        """
+        An open entry has to say what is wrong with it; a resolved one has to
+        say where its number came from. Neither may be silent.
+        """
         for name, entry in audit_coefficients()["entries"].items():
-            self.assertTrue(entry.get("issue"), f"{name} has no issue description")
+            with self.subTest(coefficient=name):
+                if entry["status"] == "unresolved":
+                    self.assertTrue(entry.get("issue"), f"{name}: no issue stated")
+                else:
+                    self.assertTrue(entry.get("source"), f"{name}: no source cited")
 
 
 class TestProvenanceBlock(unittest.TestCase):
