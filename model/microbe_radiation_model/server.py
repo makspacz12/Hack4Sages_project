@@ -81,9 +81,13 @@ PARAMETERS: list[dict[str, Any]] = [
     {"key": "dust_flux", "label": "Dust flux", "type": "float",
      "min": 0.0, "max": 1e-9, "step": 1e-13, "default": 1e-12, "unit": "kg/m²/s",
      "help": "Incident dust mass flux that drives erosion."},
+    # Full 32-bit range. The cap was 999999, which silently clamped any larger
+    # seed - including the ones this project's own runs record, which are dates.
+    # A seed you cannot type back in is not a reproducibility mechanism.
     {"key": "seed", "label": "Random seed", "type": "int",
-     "min": 0, "max": 999999, "step": 1, "default": 42,
-     "help": "Same seed gives the same swarm. Change it to resample."},
+     "min": 0, "max": 2147483647, "step": 1, "default": 42,
+     "help": "Same seed gives the same swarm. Change it to resample. "
+             "Type an exact value to reproduce a published run."},
     {"key": "radiation_pressure", "label": "Radiation pressure", "type": "bool",
      "default": True, "help": "REBOUNDx radiation force on each fragment."},
     {"key": "erosion", "label": "Dust erosion", "type": "bool",

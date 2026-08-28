@@ -80,6 +80,35 @@ function injectStyles() {
       font-size: 11.5px; color: var(--ink-bright);
     }
     #run-console .rc-field-value .u { color: var(--ink-faint); margin-left: 3px; font-size: 10px; }
+    /* The typed value is the control; the slider beneath it is the coarse one. */
+    #run-console .rc-num {
+      background: transparent;
+      border: 1px solid transparent;
+      border-bottom-color: var(--line);
+      color: var(--ink);
+      font-family: inherit;
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+      width: 8ch;
+      padding: 1px 3px;
+      border-radius: 2px;
+    }
+    #run-console .rc-num:hover { border-color: var(--line); }
+    #run-console .rc-num:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: rgba(0, 0, 0, 0.35);
+    }
+    /* Not a number: keep what was typed so it can be corrected, and say so. */
+    #run-console .rc-num.invalid {
+      border-color: var(--bad, #e2683c);
+      color: var(--bad, #e2683c);
+    }
+    /* Accepted but moved to the nearest legal value - never silently. */
+    #run-console .rc-num.out-of-range { border-color: var(--warn, #d8a33c); }
+    #run-console .rc-num-lo, #run-console .rc-num-hi { width: 6.5ch; }
+    #run-console .rc-dash { color: var(--ink-faint); margin: 0 2px; }
 
     #run-console input[type=range] {
       -webkit-appearance: none; appearance: none;
@@ -307,13 +336,22 @@ export function createControlPanel({ onFinished }) {
     wrap.innerHTML = `
       <div class="rc-field-head">
         <span class="rc-field-label" title="${escapeAttr(help)}">${meta.label}</span>
-        <span class="rc-field-value"><span class="v"></span>${unit ? `<span class="u">${unit}</span>` : ''}</span>
+        <span class="rc-field-value">
+          <input class="rc-num rc-num-lo" type="text" inputmode="decimal" spellcheck="false">
+          <span class="rc-dash">–</span>
+          <input class="rc-num rc-num-hi" type="text" inputmode="decimal" spellcheck="false">
+          ${unit ? `<span class="u">${unit}</span>` : ''}
+        </span>
       </div>
       <div class="rc-dual"><div class="rc-dual-track"><div class="rc-dual-fill"></div></div></div>
     `;
     const dual = wrap.querySelector('.rc-dual');
     const fill = wrap.querySelector('.rc-dual-fill');
-    const valueEl = wrap.querySelector('.v');
+    const loNum = wrap.querySelector('.rc-num-lo');
+    const hiNum = wrap.querySelector('.rc-num-hi');
+    loNum.setAttribute('aria-label', `${meta.label} minimum${unit ? ` in ${unit}` : ''}`);
+    hiNum.setAttribute('aria-label', `${meta.label} maximum${unit ? ` in ${unit}` : ''}`);
+    loNum.title = hiNum.title = `${absMin} to ${absMax}`;
 
     const mkThumb = (cls, label) => {
       const input = document.createElement('input');
@@ -322,7 +360,8 @@ export function createControlPanel({ onFinished }) {
       input.min = '0';
       input.max = String(DUAL_STEPS);
       input.step = '1';
-      input.setAttribute('aria-label', label);
+      input.setAttribute('aria-label', `${label} (coarse)`);
+      input.tabIndex = -1;
       return input;
     };
     const loInput = mkThumb('rc-dual-lo', `${meta.label} minimum`);
@@ -336,8 +375,36 @@ export function createControlPanel({ onFinished }) {
       hiInput.value = String(Math.round(hiPos * DUAL_STEPS));
       fill.style.left = `${loPos * 100}%`;
       fill.style.width = `${Math.max(0, hiPos - loPos) * 100}%`;
-      valueEl.textContent = `${fmt(values[minSpec.key])} – ${fmt(values[maxSpec.key])}`;
+      // Untouched boxes carry the full value; the abbreviated form used by the
+      // slider readout cannot be typed back in.
+      if (document.activeElement !== loNum) loNum.value = String(values[minSpec.key]);
+      if (document.activeElement !== hiNum) hiNum.value = String(values[maxSpec.key]);
+      loNum.classList.remove('invalid');
+      hiNum.classList.remove('invalid');
     };
+
+    /** Accept a typed bound, keeping lo below hi and both inside the range. */
+    const commitBound = (which) => {
+      const el = which === 'lo' ? loNum : hiNum;
+      const parsed = parseFloat(el.value.trim().replace(',', '.'));
+      if (!Number.isFinite(parsed)) { el.classList.add('invalid'); return; }
+      const inRange = Math.min(absMax, Math.max(absMin, parsed));
+      values[which === 'lo' ? minSpec.key : maxSpec.key] = which === 'lo'
+        ? clampMin(inRange, values[maxSpec.key], absMin, absMax)
+        : clampMax(inRange, values[minSpec.key], absMin, absMax);
+      paint();
+      refreshCost();
+    };
+
+    for (const [which, el] of [['lo', loNum], ['hi', hiNum]]) {
+      el.addEventListener('change', () => commitBound(which));
+      el.addEventListener('blur', () => commitBound(which));
+      el.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); commitBound(which); el.blur(); }
+        if (e.key === 'Escape') { paint(); el.blur(); }
+      });
+      el.addEventListener('input', () => el.classList.remove('invalid'));
+    }
 
     loInput.addEventListener('input', () => {
       const raw = toVal(Number(loInput.value) / DUAL_STEPS, absMin, absMax);
@@ -362,10 +429,21 @@ export function createControlPanel({ onFinished }) {
 
     const wrap = document.createElement('div');
     wrap.className = 'rc-field';
+    // The number box is the primary control and the slider is the coarse one.
+    //
+    // A slider alone cannot express an exact value, and for this tool that is
+    // disqualifying: a seed spans four thousand million integers, so a pixel of
+    // travel covers millions of them and a specific run can never be requested
+    // again by dragging. An ejection speed of 5.03 km/s is likewise unreachable
+    // if the step is 0.1. Anyone reproducing a published run has a number, not
+    // a gesture.
     wrap.innerHTML = `
       <div class="rc-field-head">
-        <span class="rc-field-label" title="${escapeAttr(spec.help ?? '')}">${spec.label}</span>
-        <span class="rc-field-value"><span class="v"></span>${spec.unit ? `<span class="u">${spec.unit}</span>` : ''}</span>
+        <label class="rc-field-label" title="${escapeAttr(spec.help ?? '')}">${spec.label}</label>
+        <span class="rc-field-value">
+          <input class="rc-num" type="text" inputmode="decimal" spellcheck="false">
+          ${spec.unit ? `<span class="u">${spec.unit}</span>` : ''}
+        </span>
       </div>
     `;
     const input = document.createElement('input');
@@ -374,20 +452,63 @@ export function createControlPanel({ onFinished }) {
     input.max = spec.max;
     input.step = spec.step;
     input.value = values[spec.key];
-    input.setAttribute('aria-label', spec.label);
+    input.setAttribute('aria-label', `${spec.label} (coarse)`);
+    input.tabIndex = -1;          // the number box is the tab stop
     wrap.appendChild(input);
 
-    const valueEl = wrap.querySelector('.v');
-    const paint = () => { valueEl.textContent = formatValue(spec, values[spec.key]); };
+    const numEl = wrap.querySelector('.rc-num');
+    numEl.setAttribute('aria-label', `${spec.label}${spec.unit ? ` in ${spec.unit}` : ''}`);
+    numEl.title = `${spec.min} to ${spec.max}`;
+    wrap.querySelector('.rc-field-label').htmlFor = numEl.id
+      = `rc-${spec.key}-${Math.random().toString(36).slice(2, 7)}`;
+
+    const paint = () => {
+      // Full precision in the box, not the display rounding: a field that shows
+      // 0.3 for a value of 0.25 cannot be typed back in.
+      if (document.activeElement !== numEl) numEl.value = String(values[spec.key]);
+      input.value = String(values[spec.key]);
+      numEl.classList.remove('invalid');
+    };
+
+    /** Accept a typed value, clamping to the declared range. */
+    const commit = () => {
+      const raw = numEl.value.trim().replace(',', '.');
+      const parsed = spec.type === 'int' ? parseInt(raw, 10) : parseFloat(raw);
+      if (!Number.isFinite(parsed)) {
+        numEl.classList.add('invalid');
+        return;
+      }
+      const clamped = Math.min(spec.max, Math.max(spec.min, parsed));
+      const wasClamped = clamped !== parsed;
+      values[spec.key] = clamped;
+      numEl.value = String(clamped);
+      input.value = String(clamped);
+      // Say so when a value was moved rather than silently accepting it. The
+      // marker is only cleared by typing again: `blur` fires a second commit
+      // on the already-clamped text, which would otherwise erase the warning
+      // the instant the field loses focus.
+      if (wasClamped) numEl.classList.add('out-of-range');
+      refreshCost();
+    };
+
+    numEl.addEventListener('change', commit);
+    numEl.addEventListener('blur', commit);
+    numEl.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); commit(); numEl.blur(); }
+      if (e.key === 'Escape') { paint(); numEl.blur(); }
+    });
+    numEl.addEventListener('input',
+      () => numEl.classList.remove('invalid', 'out-of-range'));
 
     input.addEventListener('input', () => {
       values[spec.key] = spec.type === 'int' ? parseInt(input.value, 10) : parseFloat(input.value);
-      paint();
+      numEl.value = String(values[spec.key]);
+      numEl.classList.remove('out-of-range', 'invalid');
       refreshCost();
     });
 
     paint();
-    inputs.set(spec.key, { input, paint });
+    inputs.set(spec.key, { input, paint, numEl });
     return wrap;
   }
 
