@@ -17,6 +17,9 @@ import {
   depthProfileChart, parseDepthProfile, penetrationRatio,
 } from './charts/depthProfile.js';
 import {
+  openChartWindow, redrawChartWindows, selectInChartWindows, updateChartWindows,
+} from './charts/popout.js';
+import {
   COEFF_BANDS, bandFor, cumulativeDoseSeries, sampledCoefficients,
   supportsRescaling, survivalAtCoefficient,
 } from './charts/doseModel.js';
@@ -102,6 +105,13 @@ function injectStyles() {
       padding: 2px 6px; cursor: pointer;
     }
     .lc-coeff-reset:hover { border-color: #45c2ca; color: #f2ebe4; }
+    #live-charts .lc-fig-btns { display: flex; gap: 3px; }
+    #live-charts .lc-popout {
+      background: none; border: 1px solid transparent; color: transparent;
+      font-size: 12px; cursor: pointer; padding: 0 3px; line-height: 1.4;
+    }
+    #live-charts .lc-fig:hover .lc-popout { border-color: #3a2f29; color: #98897d; }
+    #live-charts .lc-popout:hover { color: #2ba3ab; border-color: #2ba3ab; }
     .lc-depth { border-top: 1px solid #3a2f29; padding-top: 8px; }
     .lc-depth-plot svg { display: block; max-width: 100%; }
     .dp-empty { font-size: 10.5px; color: #8d7f74; padding: 6px 0; }
@@ -400,7 +410,10 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
           <div class="lc-fig-title">${spec.title}</div>
           <div class="lc-fig-note">${spec.note}</div>
         </div>
-        <button class="lc-expand" title="Enlarge">&#9974;</button>
+        <div class="lc-fig-btns">
+          <button class="lc-expand" title="Enlarge in place">&#9974;</button>
+          <button class="lc-popout" title="Open in its own window">&#10696;</button>
+        </div>
       </div>
       <div class="lc-plot"></div>
       <div class="lc-readout">—</div>
@@ -409,6 +422,7 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
     const plotEl = fig.querySelector('.lc-plot');
     const readoutEl = fig.querySelector('.lc-readout');
     fig.querySelector('.lc-expand').addEventListener('click', () => openModal(spec));
+    fig.querySelector('.lc-popout').addEventListener('click', () => detach(spec));
 
     live.push({ spec, plotEl, readoutEl, chart: null });
   }
@@ -468,6 +482,9 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
       });
     }
     paintCoefficient();
+    // The detached windows hold the previous series, so they are rebuilt from
+    // the new one rather than merely advanced.
+    redrawChartWindows();
     // Redraw through the normal path so the numeric readouts refresh too;
     // updating the chart alone leaves them showing the previous coefficient.
     update(frameIndex);
@@ -502,6 +519,7 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
     selectedId = selectedId === id ? null : id;
     for (const item of live) item.chart?.setSelected(selectedId);
     modal?.chart?.setSelected(selectedId);
+    selectInChartWindows(selectedId);
     paintSelection();
     if (selectedId) onSelectFragment?.(selectedId);
   }
@@ -518,6 +536,41 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
   }
 
   /** Click the enlarge glyph to inspect one chart at full size. */
+  /**
+   * Move a chart into its own window, still driven by this one.
+   *
+   * The detached window is redrawn on every frame from the same series the
+   * docked chart uses, so it is a second view of one dataset rather than a
+   * copy that can drift.
+   */
+  function detach(spec) {
+    const opened = openChartWindow(spec.title, {
+      title: spec.title,
+      note: spec.note,
+      footer: 'follows the replay in the main window · click a line to select a fragment',
+      render: (container, w, h) => liveLinePlot(container, {
+        series: spec.series,
+        xLabel: `time [${timeUnit}]`,
+        yLabel: spec.yLabel,
+        yFormat: spec.yFormat,
+        yDomain: spec.yDomain,
+        pinDomain: overrideCoeff !== null && spec.rescalable,
+        xFormat: v => fmt(v),
+        xUnit: timeUnit,
+        width: w,
+        height: h,
+        selected: selectedId,
+        onPick: (s) => { if (s.pickId) select(s.pickId); },
+      }),
+    });
+    if (!opened) {
+      // Popup blocked. Fall back rather than leaving a dead button.
+      openModal(spec);
+      return;
+    }
+    opened.chart?.update?.(frameIndex);
+  }
+
   function openModal(spec) {
     closeModal();
     const overlay = document.createElement('div');
@@ -575,6 +628,8 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
         ? `t=${t.toFixed(2)} ${timeUnit} · ${text}`
         : text;
     }
+    // Detached windows are views of the same run, so they advance with it.
+    updateChartWindows(index);
   }
 
   function setVisible(visible) {

@@ -208,7 +208,7 @@ export function liveLinePlot(container, options) {
   const {
     series = [], xLabel, yLabel, yScale = 'linear',
     xFormat, yFormat, height = 148, xUnit, onPick, selected = null,
-    yDomain = null, pinDomain = false,
+    yDomain = null, pinDomain = false, width: fixedWidth = null,
   } = options;
   let selectedId = selected;
 
@@ -220,7 +220,9 @@ export function liveLinePlot(container, options) {
     : { top: 14, right: 16, bottom: 40, left: 62 };
 
   container.textContent = '';
-  const width = Math.max(240, container.clientWidth || 300);
+  // A detached window sizes its chart explicitly; a docked one measures its
+  // container, which is zero-width until it has been laid out.
+  const width = Math.max(240, fixedWidth || container.clientWidth || 300);
 
   const allX = series.flatMap(s => s.points.map(p => p[0]));
   const allY = series.flatMap(s => s.points.map(p => p[1]));

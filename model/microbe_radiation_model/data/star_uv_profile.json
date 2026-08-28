@@ -47,16 +47,16 @@
   },
   "provenance": {
     "schema_version": "1.0",
-    "generated_utc": "2026-08-28T23:12:18+00:00",
+    "generated_utc": "2026-08-28T23:21:46+00:00",
     "scenario": "mars_ejecta_pipeline",
-    "seed": 20260829,
+    "seed": 7,
     "source": {
       "available": true,
-      "commit": "23bb77ed15ceea8be5a67ea01bef9002bfa48805",
-      "commit_short": "23bb77ed15ce",
+      "commit": "76a4a774a4f02355597261cf9197e0352931d54b",
+      "commit_short": "76a4a774a4f0",
       "branch": "main",
       "dirty": true,
-      "describe": "23bb77ed-dirty"
+      "describe": "76a4a774-dirty"
     },
     "environment": {
       "python": "3.14.4",
@@ -89,9 +89,9 @@
         "rock_thermal_conductivity_w_mk": 2.0
       },
       "run": {
-        "dt_yr": 20.0,
-        "n_steps": 151,
-        "integration_substeps": 3,
+        "dt_yr": 0.025,
+        "n_steps": 81,
+        "integration_substeps": 10,
         "add_test_particle": false,
         "gaia": {
           "mode": "csv",
@@ -120,7 +120,7 @@
           "refresh_interval_steps": 1
         },
         "dust_erosion": {
-          "enabled": true,
+          "enabled": false,
           "dust_mass_flux_kg_m2_s": 1e-12,
           "excavation_yield": 10.0,
           "flux_definition": "cross_section",
@@ -135,14 +135,14 @@
         },
         "impact": {
           "enabled": true,
-          "n_asteroids": 14,
+          "n_asteroids": 8,
           "mars_index": 4,
           "cone_half_angle": 60.0,
           "v_min_kms": 5.03,
           "v_max_kms": 20.0,
           "alpha_v": 2.5,
-          "radius_min_m": 0.02,
-          "radius_max_m": 2.5,
+          "radius_min_m": 0.001,
+          "radius_max_m": 5.0,
           "q_size": 2.0,
           "size_velocity_corr": true,
           "spin_period_range": [
@@ -153,7 +153,7 @@
             0.0,
             180.0
           ],
-          "seed": 20260829
+          "seed": 7
         },
         "thermal": {
           "enabled": true,
@@ -165,7 +165,7 @@
         "output": {
           "export_json": true,
           "export_visualizer_json": true,
-          "visualizer_output_path": "cosmos_visualizer_simulation.json",
+          "visualizer_output_path": "/tmp/audit/x.json",
           "visualizer_name": "Hack4Sages Mars ejecta simulation",
           "visualizer_description": "Solar System plus nearby Gaia stars and Mars ejecta propagated with REBOUND.",
           "visualizer_playback_fps": 30,
@@ -180,10 +180,11 @@
             10.0
           ]
         }
-      }
+      },
+      "overrides": null
     },
-    "parameters_sha256": "6501f241e70c6a0612fe2de94656167dd6f366a7754f6ebc60597d20d3fdd8f9",
-    "reproduce": "python -m microbe_radiation_model --asteroids 14 --years 3000 --dt 20 --substeps 3 --seed 20260829 --v-min 5.03 --v-max 20 --cone-angle 60 --fragment-radius 0.5 --bio-fraction 0.01 --dust-flux 1e-12",
+    "parameters_sha256": "819b6f5bf3c18fbc77e1bc258429e5b3c8398b972831716cb9fd4004c84d8037",
+    "reproduce": "python -m microbe_radiation_model --asteroids 8 --years 2 --dt 0.025 --substeps 10 --seed 7 --v-min 5.03 --v-max 20 --cone-angle 60 --fragment-radius 0.5 --bio-fraction 0.01 --no-erosion",
     "coefficients_under_audit": {
       "note": "These coefficients are not settled. Trends and relative comparisons in this file are meaningful; absolute doses and survival fractions are provisional.",
       "unresolved_count": 1,
@@ -252,8 +253,8 @@
       "reproduce": "Run this to regenerate the file."
     },
     "scenario_details": {
-      "frames": 151,
-      "objects": 73
+      "frames": 81,
+      "objects": 67
     }
   }
 }
