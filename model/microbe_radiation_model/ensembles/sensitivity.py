@@ -341,3 +341,107 @@ def run_oat_sensitivity(
         "knobs": knob_results,
         "tornado": tornado,
     }
+
+
+# ── Morris screening ───────────────────────────────────────────────────────
+#
+# Ranges each factor over the uncertainty it actually carries, not over a
+# shared percentage. A +/-10% nudge on a coefficient uncertain by a factor of
+# seventeen measures a local derivative at a point nobody claims to know; that
+# is the substantive objection to the tornado, on top of the geometric one in
+# morris.py.
+#
+# Where a factor's uncertainty is multiplicative - which is most of them, since
+# they are known "to within a factor of N" - it is sampled logarithmically.
+MORRIS_RANGES: dict[str, dict[str, object]] = {
+    # Published chronic band through to the acute low-LET bound.
+    "radiation_surv_coeff": {"low": 2.5e-5, "high": 1.5e-3, "log": True},
+    # Attenuation length 100-250 g/cm^2 in silicate, around the 160 in use.
+    "gcr_attenuation_k": {"low": 1.0 / 2500, "high": 1.0 / 1000, "log": True},
+    # Uncited scale factor; the only coefficient still marked unresolved.
+    "hydrolysis_surv_coeff": {"low": 120.0, "high": 12000.0, "log": True},
+    # Lindahl & Nyberg give 130 kJ/mol; fossil matrices 130-155.
+    "hydrolysis_ea": {"low": 1.10e5, "high": 1.55e5, "log": False},
+}
+
+
+def morris_factors(knob_specs, base_values):
+    """
+    Turn knobs into Morris factors over their real uncertainty ranges.
+
+    A knob with no declared range falls back to a factor of three either side
+    of its baseline, which is wide enough to be a screening range rather than a
+    derivative and narrow enough to stay physical.
+    """
+    from .morris import MorrisFactor
+
+    physics_baseline = physics_baseline_values()
+    factors = []
+    for spec in knob_specs:
+        declared = MORRIS_RANGES.get(spec.id)
+        if spec.kind == "physics":
+            base = spec.physics_baseline(physics_baseline)
+        else:
+            meta = _spec_for_server_key(spec.server_key)
+            base = float(base_values.get(spec.server_key, meta["default"]))
+        if declared:
+            low, high, log = declared["low"], declared["high"], declared["log"]
+        elif spec.kind == "server":
+            meta = _spec_for_server_key(spec.server_key)
+            low = max(float(meta["min"]), base / 3.0)
+            high = min(float(meta["max"]), base * 3.0)
+            log = low > 0
+        else:
+            low, high, log = base / 3.0, base * 3.0, base > 0
+        if not (high > low):
+            continue        # a knob pinned at a bound cannot be screened
+        factors.append(MorrisFactor(
+            id=spec.id, label=spec.label, unit=spec.unit,
+            low=float(low), high=float(high), log=bool(log),
+        ))
+    return factors
+
+
+def run_morris_screening(
+    seeds,
+    *,
+    base_values,
+    knob_specs,
+    trajectories: int = 8,
+    levels: int = 4,
+    seed: int = 0,
+    progress=None,
+):
+    """
+    Screen every knob with elementary effects, through the real pipeline.
+    """
+    from .morris import run_morris
+
+    factors = morris_factors(knob_specs, base_values)
+    by_id = {s.id: s for s in knob_specs}
+    total = trajectories * (len(factors) + 1)
+    done = {"n": 0}
+
+    def evaluate(values: dict[str, float]) -> float:
+        server_values = dict(base_values)
+        overrides = RunOverrides()
+        for fid, value in values.items():
+            spec = by_id[fid]
+            if spec.kind == "server":
+                server_values[spec.server_key] = value
+            else:
+                overrides = replace(overrides, **{spec.override_key: value})
+        case = _run_case(
+            seeds, values=server_values, overrides=overrides,
+            progress=None, progress_base=0, progress_total=1,
+        )
+        done["n"] += 1
+        if progress is not None:
+            progress(done["n"], total)
+        return float(case["percentiles"]["p50"])
+
+    result = run_morris(factors, evaluate, trajectories, levels, seed)
+    result["metric"] = "median_population_fraction"
+    result["seeds"] = list(seeds)
+    result["base_values"] = dict(base_values)
+    return result

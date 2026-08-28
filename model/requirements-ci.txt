@@ -1,0 +1,36 @@
+# Pinned dependencies for the model and its test suite.
+#
+# requirements.txt lists what the whole project can use, unpinned, including the
+# analysis notebooks. This file is the smaller set the physics actually needs,
+# with exact versions.
+#
+# Pinning matters here more than in most projects. The provenance block claims
+# that a run reproduces bit for bit from its digest, and it records the package
+# versions to make that checkable — but recording a version is only half of the
+# guarantee. Without pins, two people following the same instructions install
+# different builds of numpy and get different floating-point results from the
+# same seed, and the digest says they should have matched.
+#
+# Versions are the ones this project is developed and tested against. Raise them
+# deliberately, and rerun the suite when you do: the tests anchor several
+# physical constants to published values, so a numerical change that shifts a
+# result will be caught rather than absorbed.
+#
+# Install:  pip install -r requirements-ci.txt
+
+numpy==2.5.2
+scipy==1.18.1
+pandas==3.0.5
+
+astropy==8.0.1
+astropy-iers-data==0.2026.8.24.0.24.29
+pyerfa==2.0.1.5
+
+# The N-body integrator. reboundx adds the radiation-pressure force; the model
+# runs without it, and --no-radiation-pressure exists for exactly that case.
+rebound==5.1.1
+reboundx==5.1.0
+
+# Pulled in by astropy, pinned so the resolved set is fully determined.
+packaging==26.3
+PyYAML==6.0.3

@@ -641,7 +641,10 @@ def _dose_depth_section(material_config, asteroid_state_store) -> dict:
         bio_radius_m=bio_radius,
         rock_material=material_config.rock_material,
         bio_material=material_config.bio_material,
-        rock_type=getattr(material_config, "rock_name", None),
+        # material_config has no `rock_name`; the rock is named on the material
+        # itself. The getattr default silently returned None every time, so the
+        # depth-profile caption never said which rock it described.
+        rock_type=getattr(material_config.rock_material, "name", None),
     )
     payload["note"] = (
         "Transmitted fraction of surface radiation against depth, for a "

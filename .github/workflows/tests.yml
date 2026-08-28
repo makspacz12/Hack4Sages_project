@@ -1,0 +1,116 @@
+name: Tests
+
+# The physics was untested by CI until now.
+#
+# The deploy workflow runs `npm test` and nothing else, so every Python test in
+# this repository — the ones that pin the radiation coefficients against
+# published tables, that check the survival factorisation, that assert an
+# override reaches the provenance digest — ran only when somebody remembered to
+# run them locally. "The physics is under test" was true of the repository and
+# false of the process.
+#
+# This runs both suites on every push and pull request, and separately checks
+# that the model still imports and produces a run without REBOUND installed
+# being a silent excuse for skipping anything.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    name: Python model
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 3.12 is what the pinned environment targets; 3.13 catches deprecations
+        # before they become failures.
+        python-version: ['3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: model/requirements-ci.txt
+
+      - name: Install
+        working-directory: model
+        # The CI set is deliberately smaller than requirements.txt: the model
+        # needs numpy, scipy, pandas, astropy and rebound. matplotlib,
+        # jupyterlab, scikit-bio and the rest belong to the analysis notebooks
+        # and installing them here would triple the run for no coverage.
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-ci.txt
+
+      - name: Report what is installed
+        working-directory: model
+        # Printed so a failure caused by a dependency version is diagnosable
+        # from the log alone.
+        run: pip freeze
+
+      - name: Run the test suite
+        working-directory: model
+        run: python -m unittest discover tests -v
+
+      - name: Smoke-test the CLI end to end
+        working-directory: model
+        # A green unit suite does not prove the pipeline runs: several defects
+        # in this project's history lived in wiring that no unit test touched.
+        run: |
+          python -m microbe_radiation_model \
+            --asteroids 4 --years 20 --dt 5 --substeps 2 --seed 7 \
+            --radius-min 0.05 --radius-max 1.0 --no-radiation-pressure
+          python - <<'PY'
+          import io, json
+          path = "microbe_radiation_model/data/cosmos_visualizer_simulation.json"
+          d = json.load(io.open(path, encoding="utf-8"))
+          frames = d["frames"]
+          assert len(frames) >= 2, "no frames written"
+          assert d.get("provenance", {}).get("parameters_sha256"), "no provenance digest"
+          assert d.get("dose_depth_profile"), "no depth profile"
+          frag = [p for p in frames[-1]["properties"] if "population_fraction" in p]
+          assert frag, "no fragments in the final frame"
+          for field in ("dose_cumulative_gy", "radiation_surv_coeff", "rock_type"):
+              assert field in frag[0], f"missing {field}"
+          print(f"OK: {len(frames)} frames, {len(frag)} fragments, digest present")
+          PY
+
+  web:
+    name: Web visualizer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install
+        working-directory: web
+        run: npm ci
+
+      - name: Test
+        working-directory: web
+        run: npm test
+
+      - name: Build
+        working-directory: web
+        # A suite that passes while the bundle fails to build is not a green
+        # build; the deploy workflow would be the first to find out.
+        run: npm run build

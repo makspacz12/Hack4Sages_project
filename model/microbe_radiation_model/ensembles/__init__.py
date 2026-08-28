@@ -22,3 +22,15 @@ __all__ = [
     "select_knob_specs",
     "write_ensemble_json",
 ]
+
+from .morris import (  # noqa: E402
+    MorrisFactor,
+    explored_fraction,
+    run_morris,
+)
+
+__all__ = list(globals().get("__all__", [])) + [
+    "MorrisFactor",
+    "explored_fraction",
+    "run_morris",
+]

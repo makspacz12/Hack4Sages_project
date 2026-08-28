@@ -22,7 +22,8 @@ def _parse_seeds(text: str) -> list[int]:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Ensemble runs: seeds, velocity×radius grid, or OAT tornado.",
+        description="Ensemble runs: seeds, velocity x radius grid, OAT tornado, "
+                    "or Morris elementary-effects screening.",
     )
     parser.add_argument(
         "--seeds",
@@ -34,6 +35,20 @@ def main(argv: list[str] | None = None) -> int:
         "--grid",
         action="store_true",
         help="2D grid over velocity and radius (default: seed-only ensemble)",
+    )
+    parser.add_argument(
+        "--morris",
+        action="store_true",
+        help="elementary-effects screening; supersedes --tornado, which samples "
+             "3.1e-7 of an 18-factor space and cannot detect interactions",
+    )
+    parser.add_argument(
+        "--trajectories", type=int, default=8,
+        help="Morris trajectories; cost is trajectories x (factors + 1) runs",
+    )
+    parser.add_argument(
+        "--levels", type=int, default=4,
+        help="Morris grid levels per factor (default 4)",
     )
     parser.add_argument("--asteroids", type=int, default=8)
     parser.add_argument("--years", type=float, default=1.0)
@@ -70,11 +85,18 @@ def main(argv: list[str] | None = None) -> int:
         run_seed_ensemble,
         write_ensemble_json,
     )
-    from .sensitivity import baseline_parameter_values, run_oat_sensitivity, select_knob_specs
+    from .sensitivity import (
+        baseline_parameter_values,
+        run_morris_screening,
+        run_oat_sensitivity,
+        select_knob_specs,
+    )
 
-    modes = int(args.grid) + int(args.tornado)
+    modes = int(args.grid) + int(args.tornado) + int(args.morris)
     if modes > 1:
-        parser.error("use only one of --grid or --tornado")
+        parser.error("use only one of --grid, --tornado or --morris")
+    if args.morris and (args.trajectories < 1 or args.levels < 2):
+        parser.error("--trajectories must be >= 1 and --levels >= 2")
 
     if args.dt <= 0 or args.years <= 0 or args.asteroids < 1:
         parser.error("invalid --dt, --years, or --asteroids")
@@ -105,6 +127,18 @@ def main(argv: list[str] | None = None) -> int:
             velocity_kms=velocities,
             radius_m=radii,
             run_config=run,
+            progress=_progress,
+        )
+    elif args.morris:
+        result = run_morris_screening(
+            args.seeds,
+            base_values=baseline_parameter_values(
+                years=args.years, dt=args.dt, asteroids=args.asteroids,
+            ),
+            knob_specs=select_knob_specs(None, quick=args.quick),
+            trajectories=args.trajectories,
+            levels=args.levels,
+            seed=args.seeds[0] if args.seeds else 0,
             progress=_progress,
         )
     elif args.tornado:
