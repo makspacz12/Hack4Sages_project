@@ -208,6 +208,7 @@ export function liveLinePlot(container, options) {
   const {
     series = [], xLabel, yLabel, yScale = 'linear',
     xFormat, yFormat, height = 148, xUnit, onPick, selected = null,
+    yDomain = null,
   } = options;
   let selectedId = selected;
 
@@ -241,7 +242,7 @@ export function liveLinePlot(container, options) {
     yHi = 10 ** Math.ceil(Math.log10(yHi));
   } else {
     const raw = extent(allY);
-    const full = domainAwareRange(raw, config.yDomain);
+    const full = domainAwareRange(raw, yDomain);
     [yLo, yHi] = full || padRange(raw);
   }
 
