@@ -282,6 +282,10 @@ export function liveLinePlot(container, options) {
       'stroke-opacity': s.opacity ?? 1,
       'stroke-linejoin': 'round', 'stroke-linecap': 'round',
     });
+    // Dash carries category alongside hue, so a series stays identifiable
+    // without colour - required by WCAG 1.4.1 and by the AAS figure guidance,
+    // and the only way to separate more categories than hue can hold.
+    if (s.dash) path.setAttribute('stroke-dasharray', s.dash);
     svg.appendChild(path);
     return path;
   });

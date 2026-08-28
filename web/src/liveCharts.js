@@ -38,34 +38,72 @@ const PALETTE = {
 };
 
 /**
- * Hue by rock type, because rock type is what actually decides the outcome.
+ * Rock type by class hue plus dash pattern, not by twelve separate hues.
  *
- * The internal dose from a fragment's own U/Th/K exceeds the shielded galactic
- * cosmic-ray dose by several orders of magnitude, so two fragments on identical
- * trajectories diverge entirely on composition. Drawing every fragment in one
- * colour hides the only variable that explains the result.
+ * Twelve hues was the wrong shape of answer. Measured with CIEDE2000 under the
+ * Machado, Oliveira & Fernandes (2009) deficiency matrices, the previous set
+ * separated by only 1.7 under protanopia: basalt_vtype and organic_rich were
+ * literally the same colour for roughly one man in twelve in the room, and two
+ * of the three chondrite groups were indistinguishable under deuteranopia.
+ * Those are exactly the contrasts this simulation is about.
  *
- * Hue is an identity channel, which is the right one for a categorical
- * attribute. Assignment is by fixed order rather than by cycling a generator,
- * so a given rock keeps its colour when the fragment count changes.
+ * Nor was it fixable by picking better hues. Optimising twelve colours against
+ * the worst of normal, protan, deutan and tritan vision, subject to 3:1
+ * contrast on this background, tops out around 11.7 — below what six colours
+ * get for free. Twelve categories is not a job for colour.
+ *
+ * So the twelve rock types collapse to six physically meaningful classes, each
+ * taking a colour from a published colourblind-safe palette (Okabe & Ito; Paul
+ * Tol), and members within a class are separated by dash pattern instead. That
+ * measures 15.2 in the worst deficiency, against 1.7 before.
+ *
+ * Encoding a category by line style as well as hue is also required rather than
+ * merely advisable: WCAG 1.4.1, and the AAS Journals figure guidance — "the use
+ * of color as the only distinguishing delimiter in a figure should be generally
+ * avoided. Colored lines should also use different line styles."
  */
-const ROCK_COLORS = {
-  basalt_vtype:       '#e2683c',
-  ordinary_chondrite: '#4aa3c7',
-  ci_chondrite:       '#d8a33c',
-  cm_chondrite:       '#9b7fc4',
-  enstatite:          '#5fb37a',
-  stony_iron:         '#c25f8e',
-  iron_nickel:        '#8d8d8d',
-  ice_rich:           '#7fd4e0',
-  organic_rich:       '#b5713a',
-  hydrated_silicate:  '#6f9f4f',
-  olivine:            '#a8b44a',
-  rubble_pile:        '#a08878',
+const ROCK_CLASSES = {
+  silicate:  { color: '#F0E442', label: 'silicates' },   // Okabe & Ito yellow
+  chondrite: { color: '#66CCEE', label: 'chondrites' },  // Tol bright cyan
+  metal:     { color: '#DDDDDD', label: 'metallic' },    // Tol light grey
+  organic:   { color: '#EE3377', label: 'organic-rich' },// Tol vibrant magenta
+  icy:       { color: '#009988', label: 'icy' },         // Tol vibrant teal
+  rubble:    { color: '#AAAA00', label: 'rubble pile' }, // Tol light olive
+};
+
+/** Dash separates members within a class; hue separates classes. */
+const ROCK_STYLE = {
+  basalt_vtype:       { cls: 'silicate',  dash: null },
+  olivine:            { cls: 'silicate',  dash: '6 3' },
+  enstatite:          { cls: 'silicate',  dash: '2 3' },
+  hydrated_silicate:  { cls: 'silicate',  dash: '9 3 2 3' },
+  ordinary_chondrite: { cls: 'chondrite', dash: null },
+  ci_chondrite:       { cls: 'chondrite', dash: '6 3' },
+  cm_chondrite:       { cls: 'chondrite', dash: '2 3' },
+  iron_nickel:        { cls: 'metal',     dash: null },
+  stony_iron:         { cls: 'metal',     dash: '6 3' },
+  organic_rich:       { cls: 'organic',   dash: null },
+  ice_rich:           { cls: 'icy',       dash: null },
+  rubble_pile:        { cls: 'rubble',    dash: null },
 };
 
 export function colorForRockType(rockType) {
-  return ROCK_COLORS[rockType] ?? PALETTE.trace;
+  const style = ROCK_STYLE[rockType];
+  return style ? ROCK_CLASSES[style.cls].color : PALETTE.trace;
+}
+
+export function dashForRockType(rockType) {
+  return ROCK_STYLE[rockType]?.dash ?? null;
+}
+
+export function rockClassLabel(rockType) {
+  const style = ROCK_STYLE[rockType];
+  return style ? ROCK_CLASSES[style.cls].label : 'unclassified';
+}
+
+/** The six classes, for a legend. */
+export function rockClasses() {
+  return Object.entries(ROCK_CLASSES).map(([id, c]) => ({ id, ...c }));
 }
 
 /** rock type of each fragment, taken from the first frame that names it. */
@@ -314,12 +352,14 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
 
   const traces = map => [...map].map(([id, points]) => ({
     color: colorForRockType(rockTypes.get(id)),
+    dash: dashForRockType(rockTypes.get(id)),
     points, width: 1, opacity: 0.42, faint: true,
     selectedColor: PALETTE.selected,
     pickId: id,
     rockType: rockTypes.get(id) ?? null,
     label: `${id.replace('asteroid_', 'fragment ')}`
       + (rockTypes.get(id) ? ` · ${rockTypes.get(id)}` : ''),
+    rockClass: rockClassLabel(rockTypes.get(id)),
   }));
   const withMean = (map, meanName) => [
     ...traces(map),

@@ -16,17 +16,26 @@
  */
 
 /**
- * Sequential ramp, dark to bright, monotonic in perceived lightness.
+ * Sequential ramp, monotonic in perceived lightness.
  *
- * Single-hue with a warm shift at the top rather than a hue cycle: magnitude is
- * an ordered quantity, and lightness is the channel the eye orders reliably.
+ * These are the upper stops of `batlow` from Crameri's scientific colour maps,
+ * which is perceptually uniform, colourblind-safe and readable in greyscale.
+ *
+ * The lower stops are deliberately cut. The first version of this ramp started
+ * near black at L* = 8, which measured 1.11:1 against the scene background —
+ * the bottom 55% of it fell below 3:1, so the least irradiated half of the
+ * swarm was invisible on a black sky. The comment above cited Crameri while
+ * the ramp broke his guidance, because it was designed as if it would be drawn
+ * on white. Starting at L* = 45 keeps the whole range readable against the
+ * scene, at the cost of the very darkest stops, which were unusable here
+ * anyway.
  */
 const RAMP = [
-  [0.00, [26, 22, 20]],
-  [0.25, [72, 45, 38]],
-  [0.50, [140, 70, 45]],
-  [0.75, [206, 120, 55]],
-  [1.00, [245, 205, 130]],
+  [0.00, [ 77, 115,  77]],
+  [0.25, [130, 130,  49]],
+  [0.50, [192, 144,  54]],
+  [0.75, [242, 157, 109]],
+  [1.00, [253, 204, 250]],
 ];
 
 function lerp(a, b, t) {
