@@ -551,10 +551,15 @@ export function createControlPanel({ onFinished }) {
         To choose parameters and run your own simulation, start the local solver:
         <br><br>
         <code>cd model</code><br>
-        <code>python -m microbe_radiation_model.server</code>
+        <code>.venv/bin/python -m microbe_radiation_model.server</code>
         <br><br>
-        Then reload this page. The solver runs the real REBOUND integration, so it
-        needs <code>rebound</code> installed — see <code>RUNNING.md</code>.
+        Use the interpreter from the project's virtual environment, not a bare
+        <code>python</code>: the solver runs the real REBOUND integration and
+        needs <code>rebound</code> and <code>astropy</code>, which a system
+        Python usually does not have. On Windows the environment lives at
+        <code>.venv\Scripts\python.exe</code>.
+        <br><br>
+        Then reload this page — see <code>RUNNING.md</code> for the full setup.
       </div>
     `;
     framesOut.textContent = 'bundled replay';
