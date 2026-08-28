@@ -44,5 +44,217 @@
         }
       ]
     }
+  },
+  "provenance": {
+    "schema_version": "1.0",
+    "generated_utc": "2026-08-28T23:41:30+00:00",
+    "scenario": "mars_ejecta_pipeline",
+    "seed": 20260829,
+    "source": {
+      "available": true,
+      "commit": "c54876dc431eeacac89c3ccedf7b9aa9cb4be845",
+      "commit_short": "c54876dc431e",
+      "branch": "main",
+      "dirty": true,
+      "describe": "c54876dc-dirty"
+    },
+    "environment": {
+      "python": "3.14.4",
+      "implementation": "CPython",
+      "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+      "machine": "x86_64",
+      "packages": {
+        "rebound": "5.1.1",
+        "reboundx": "5.1.0",
+        "numpy": "2.5.2",
+        "scipy": "1.18.1",
+        "astropy": "8.0.1",
+        "spiceypy": null
+      }
+    },
+    "parameters": {
+      "material": {
+        "rock_radius": 0.5,
+        "bio_mass_fraction": 0.01,
+        "rock_material": {
+          "name": "basalt_vtype",
+          "density": 3460.0,
+          "k": 0.01
+        },
+        "bio_material": {
+          "name": "bio",
+          "density": 1100.0,
+          "k": 0.02
+        },
+        "rock_thermal_conductivity_w_mk": 2.0
+      },
+      "run": {
+        "dt_yr": 0.02,
+        "n_steps": 401,
+        "integration_substeps": 6,
+        "add_test_particle": false,
+        "gaia": {
+          "mode": "csv",
+          "csv_path": "nearest_50_gaia.csv",
+          "csv_cwd": null,
+          "top_n": 50,
+          "overwrite_csv": true,
+          "main_table": "gaiadr3.gaia_source",
+          "reference_time_utc": "2026-01-01T00:00:00"
+        },
+        "solar_system": {
+          "mode": "simple_builtin",
+          "observation_time_utc": "2026-01-01T00:00:00",
+          "kernel_dir": "kernels",
+          "download_kernels": true,
+          "use_planets": true,
+          "use_cache": true,
+          "cache_path": "microbe_radiation_model/data/solar_system_horizons_cache.json"
+        },
+        "barycenter": {
+          "enabled": false
+        },
+        "radiation_pressure": {
+          "enabled": true,
+          "dynamic_refresh": true,
+          "refresh_interval_steps": 1
+        },
+        "dust_erosion": {
+          "enabled": true,
+          "dust_mass_flux_kg_m2_s": 1e-12,
+          "excavation_yield": 10.0,
+          "flux_definition": "cross_section",
+          "refresh_interval_steps": 1,
+          "distance_flux_exponent": 0.0,
+          "reference_distance_au": 1.0,
+          "minimum_distance_au": 0.1,
+          "porosity_yield_coeff": 1.0,
+          "hydrolysis_yield_coeff": 0.25,
+          "hydrolysis_reference_rate_s_inv": 0.01,
+          "hydrolysis_rate_cap": 2.0
+        },
+        "impact": {
+          "enabled": true,
+          "n_asteroids": 25,
+          "mars_index": 4,
+          "cone_half_angle": 60.0,
+          "v_min_kms": 5.03,
+          "v_max_kms": 20.0,
+          "alpha_v": 2.5,
+          "radius_min_m": 0.05,
+          "radius_max_m": 3.0,
+          "q_size": 2.0,
+          "size_velocity_corr": true,
+          "spin_period_range": [
+            2.0,
+            20.0
+          ],
+          "obliquity_range": [
+            0.0,
+            180.0
+          ],
+          "seed": 20260829
+        },
+        "thermal": {
+          "enabled": true,
+          "compute_internal_profile": true
+        },
+        "hydrolysis": {
+          "enabled": true
+        },
+        "output": {
+          "export_json": true,
+          "export_visualizer_json": true,
+          "visualizer_output_path": "/home/maksg/audit/fact.json",
+          "visualizer_name": "Hack4Sages Mars ejecta simulation",
+          "visualizer_description": "Solar System plus nearby Gaia stars and Mars ejecta propagated with REBOUND.",
+          "visualizer_playback_fps": 30,
+          "visualizer_position_scale": 60.0,
+          "export_star_uv_profile": true,
+          "star_profile_distances_au": [
+            0.1,
+            0.5,
+            1.0,
+            2.0,
+            5.0,
+            10.0
+          ]
+        }
+      },
+      "overrides": null
+    },
+    "parameters_sha256": "dcd37aa99747401967357875e0d112b7a1ea3de1a42e8dc30566bdc621dc26d1",
+    "reproduce": "python -m microbe_radiation_model --asteroids 25 --years 8 --dt 0.02 --substeps 6 --seed 20260829 --v-min 5.03 --v-max 20 --cone-angle 60 --fragment-radius 0.5 --bio-fraction 0.01 --dust-flux 1e-12",
+    "coefficients_under_audit": {
+      "note": "These coefficients are not settled. Trends and relative comparisons in this file are meaningful; absolute doses and survival fractions are provisional.",
+      "unresolved_count": 1,
+      "entries": {
+        "internal_dose_coefficients": {
+          "values": {
+            "gamma_gy_per_year_per_ppm_u": 0.000112,
+            "gamma_gy_per_year_per_ppm_th": 4.89e-05,
+            "gamma_gy_per_year_per_percent_k": 0.000248,
+            "alpha_gy_per_year_per_ppm_u": 0.00279,
+            "alpha_gy_per_year_per_ppm_th": 0.000738,
+            "beta_gy_per_year_per_ppm_u": 0.000142,
+            "beta_gy_per_year_per_ppm_th": 2.8e-05,
+            "beta_gy_per_year_per_percent_k": 0.000854,
+            "gamma_mass_attenuation_cm2_g": 0.077
+          },
+          "module": "radiation.radionuclide_model.gamma",
+          "status": "resolved",
+          "source": "Cresswell, Carter & Sanderson (2018), Radiation Measurements 120:195-201, doi:10.1016/j.radmeas.2018.02.007, Table 5 (infinite-matrix conversion factors). Finite-size gamma correction calibrated to Riedesel & Autzen (2020), Radiation Measurements 133:106295.",
+          "note": "These replaced an uncited table that overstated the dose by 4e4 to 6e5 across the rock catalog. Residual uncertainty is the ~7% the source itself reports for the underlying nuclear data, which is smaller than the spread between rock compositions."
+        },
+        "hydrolysis": {
+          "pre_exponential_s_inv": 230000000000.0,
+          "activation_energy_j_mol": 130000.0,
+          "freezing_cutoff_k": 273.15,
+          "module": "chemistry.constants",
+          "status": "resolved",
+          "source": "Lindahl, T., & Nyberg, B. (1972), Biochemistry 11(19):3610-3618, doi:10.1021/bi00769a018. Ea ≈ 130 kJ/mol, A ≈ 2.3e11 1/s for DNA depurination at pH 7.4. Supported by Allentoft et al. (2012), Proc. R. Soc. B 279:4724, doi:10.1098/rspb.2012.1745 (Ea 130-155 kJ/mol in fossil matrices).",
+          "note": "Half-life still depends on strand length and water activity; the Arrhenius constants themselves are now cited rather than free."
+        },
+        "hydrolysis_survival_coefficient": {
+          "value": 1200.0,
+          "module": "biology.constants",
+          "status": "unresolved",
+          "issue": "Hard-coded as 1.2/0.001 = 1200 with no cited source. Literature models depurination via Arrhenius and genome size, not this scale factor. Kept as an audit / sensitivity parameter until replaced."
+        },
+        "radiation_survival_coefficient": {
+          "default_value_per_gy": 0.00025,
+          "sampled_range_per_gy": [
+            2.5e-05,
+            0.00043
+          ],
+          "acute_low_let_band_not_used": [
+            0.00061,
+            0.0015
+          ],
+          "module": "biology.constants",
+          "status": "resolved",
+          "source": "Mileikowsky, C. et al. (2000), Icarus 145(2), 391-427, doi:10.1006/icar.1999.6317, table 'Effects of GCR and Natural Radioactivity', as (kill frequency per year) / (dose rate in Gy/yr). The kill-frequency columns carry header multipliers of 1e-5 (B. subtilis) and 1e-6 (D. radiodurans) and the dose column is in cGy/yr; the reading is confirmed by the table's own arithmetic, e.g. ln(1e6)/2.1e-5 = 0.66 Ma against a tabulated 0.66. Cross-checks against Valtonen et al. (2009), ApJ 690:210, natural-radioactivity term 0.075/Myr, to within a factor of two.",
+          "note": "Runtime previously sampled 1e-6 to 1e-5, 11x to 250x too small, described in-code as an engineering under-tune for demo timescales. An earlier note in this file blamed the discrepancy on the regression slopes in analysis/radiation_to_survival.R being per Myr; that was wrong. They are per year, but the script drops the header multiplier and the cGy conversion, which is why they read 1e3 to 1e4 too high. c_rad is not truly constant: it varies about 4x with shielding depth and about 3x between species, so a single value carries a factor-of-2 systematic."
+        },
+        "cosmic_ray_attenuation": {
+          "photon_coefficient_m2_kg": 0.01,
+          "cosmic_ray_coefficient_m2_kg": 0.000625,
+          "module": "simulation.config",
+          "status": "resolved",
+          "source": "Gosse & Phillips (2001), Quaternary Science Reviews 20:1475. Attenuation length for the hadronic component in silicate rock is about 160 g/cm^2, i.e. 1600 kg/m^2, so k = 1/1600 m^2/kg.",
+          "note": "Cosmic rays were previously attenuated with the photon coefficient, which is sixteen times larger and made fragments look far more protective than they are. The published value is calibrated for spallation-nuclide production rather than absorbed dose - very close, but not identical, so this carries a residual systematic."
+        }
+      }
+    },
+    "field_notes": {
+      "seed": "Resolved before the run; there is no unseeded run.",
+      "parameters_sha256": "Equal digests mean identical inputs.",
+      "source.dirty": "True means the working tree had uncommitted changes.",
+      "reproduce": "Run this to regenerate the file."
+    },
+    "scenario_details": {
+      "frames": 401,
+      "objects": 84
+    }
   }
 }

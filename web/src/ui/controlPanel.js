@@ -81,6 +81,17 @@ function injectStyles() {
     }
     #run-console .rc-field-value .u { color: var(--ink-faint); margin-left: 3px; font-size: 10px; }
     /* The typed value is the control; the slider beneath it is the coarse one. */
+    #run-console .rc-msg-sub {
+      color: var(--ink-faint); font-size: 11px; margin: 6px 0 10px;
+    }
+    #run-console .rc-howto {
+      background: none; border: 1px solid var(--line); color: var(--ink-dim);
+      font-family: inherit; font-size: 11px; padding: 4px 9px;
+      cursor: pointer; border-radius: 2px;
+    }
+    #run-console .rc-howto:hover { border-color: var(--accent); color: var(--ink); }
+    #run-console .rc-howto:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    #run-console .rc-howto-body { margin-top: 10px; font-size: 11px; line-height: 1.5; }
     #run-console .rc-num {
       background: transparent;
       border: 1px solid transparent;
@@ -666,23 +677,45 @@ export function createControlPanel({ onFinished }) {
   }
 
   function renderOffline() {
+    // One line and a button, not a wall of instructions.
+    //
+    // The replay is the normal way to look at this: it needs no setup and it is
+    // what most visitors will ever use. Telling everyone how to start a solver
+    // they have not asked for buries that. The setup lives behind a disclosure
+    // for the people who want it.
     body.innerHTML = `
       <div class="rc-msg">
-        <b style="color:var(--ink)">Showing the bundled replay.</b><br><br>
-        To choose parameters and run your own simulation, start the local solver:
-        <br><br>
-        <code>cd model</code><br>
-        <code>.venv/bin/python -m microbe_radiation_model.server</code>
-        <br><br>
-        Use the interpreter from the project's virtual environment, not a bare
-        <code>python</code>: the solver runs the real REBOUND integration and
-        needs <code>rebound</code> and <code>astropy</code>, which a system
-        Python usually does not have. On Windows the environment lives at
-        <code>.venv\Scripts\python.exe</code>.
-        <br><br>
-        Then reload this page — see <code>RUNNING.md</code> for the full setup.
+        <b style="color:var(--ink)">Showing the bundled replay.</b>
+        <div class="rc-msg-sub">Everything below works. Run your own to change parameters.</div>
+        <button class="rc-howto" type="button" aria-expanded="false">
+          How do I run my own?
+        </button>
+        <div class="rc-howto-body" hidden>
+          Start the local solver, then reload:
+          <br><br>
+          <code>cd model</code><br>
+          <code>.venv/bin/python -m microbe_radiation_model.server</code>
+          <br><br>
+          Use the interpreter from the project's virtual environment, not a bare
+          <code>python</code> — the solver runs the real REBOUND integration and
+          needs <code>rebound</code> and <code>astropy</code>. On Windows that is
+          <code>.venv&#92;Scripts&#92;python.exe</code>.
+          <br><br>
+          If port 8000 is taken, start it with <code>--port 8010</code> and open
+          this page with <code>?api=http://127.0.0.1:8010</code>.
+          <br><br>
+          Full setup: <code>RUNNING.md</code>.
+        </div>
       </div>
     `;
+    const howto = body.querySelector('.rc-howto');
+    const howtoBody = body.querySelector('.rc-howto-body');
+    howto?.addEventListener('click', () => {
+      const open = howtoBody.hidden;
+      howtoBody.hidden = !open;
+      howto.setAttribute('aria-expanded', String(open));
+      howto.textContent = open ? 'Hide' : 'How do I run my own?';
+    });
     framesOut.textContent = 'bundled replay';
     bodiesOut.textContent = '';
   }
