@@ -8,6 +8,7 @@ Grid = 2D sweep of ejection speed × fragment radius, seeds per cell.
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 from dataclasses import replace
 from pathlib import Path
 from typing import Any, Callable, Sequence
@@ -225,8 +226,42 @@ def run_parameter_grid(
     }
 
 
+def ensemble_provenance(overrides: Any = None) -> dict[str, Any]:
+    """
+    The reproducibility record for a sweep.
+
+    A sweep has no single parameter set to digest - that is the point of it -
+    so this records the environment, the source version and the coefficient
+    audit, which are what a reader needs to know whether two sweeps are
+    comparable. Any active physics overrides are recorded too: without them a
+    file produced under an override would state the module constant and quietly
+    misreport its own calibration.
+    """
+    from dataclasses import asdict
+
+    from ..provenance import (
+        audit_coefficients, collect_environment, collect_source_version,
+    )
+    from ..run_overrides import active_overrides
+
+    resolved = overrides if overrides is not None else active_overrides()
+    return {
+        "schema_version": 1,
+        "generated_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "environment": collect_environment(),
+        "source": collect_source_version(),
+        "coefficients_under_audit": audit_coefficients(),
+        "physics_overrides": asdict(resolved) if resolved is not None else None,
+    }
+
+
 def write_ensemble_json(result: dict[str, Any], path: str | Path) -> Path:
     out = Path(path)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(result, indent=2), encoding="utf-8")
+    # Stamped here rather than by the caller so no sweep can be written without
+    # one. Every other output in this project carries provenance; these did not,
+    # which meant the files a figure would come from were the untraceable ones.
+    payload = dict(result)
+    payload.setdefault("provenance", ensemble_provenance())
+    out.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     return out

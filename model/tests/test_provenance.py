@@ -265,5 +265,97 @@ class TestProvenanceBlock(unittest.TestCase):
         self.assertEqual(block["scenario_details"]["frames"], 10)
 
 
+class TestOverridesReachTheRecord(unittest.TestCase):
+    """
+    Ensemble and sensitivity runs replace physics constants through
+    thread-local state. Because that state lives in neither config object, it
+    was invisible to both the digest and the coefficient audit: two runs whose
+    hydrolysis rates differed by twelve orders of magnitude produced the same
+    digest, and a file written under an override asserted a cited, resolved
+    calibration for numbers the run never used.
+
+    The file already had five tests asserting that a changed input changes the
+    digest. This is the sixth, and the one that was missing.
+    """
+
+    def configs(self):
+        from microbe_radiation_model.server import build_configs, validate
+
+        return build_configs(validate({"seed": 42}))
+
+    def digest(self):
+        from microbe_radiation_model.provenance import (
+            capture_parameters, parameters_digest,
+        )
+
+        material, run = self.configs()
+        return parameters_digest(capture_parameters(material, run))
+
+    def test_an_active_override_changes_the_digest(self):
+        from microbe_radiation_model.run_overrides import RunOverrides, apply_overrides
+
+        before = self.digest()
+        with apply_overrides(RunOverrides(hydrolysis_ea_j_mol=1.0e4)):
+            self.assertNotEqual(before, self.digest())
+
+    def test_the_digest_is_restored_when_the_override_is_released(self):
+        from microbe_radiation_model.run_overrides import RunOverrides, apply_overrides
+
+        before = self.digest()
+        with apply_overrides(RunOverrides(radiation_surv_coeff=1e-3)):
+            pass
+        self.assertEqual(before, self.digest())
+
+    def test_different_overrides_give_different_digests(self):
+        from microbe_radiation_model.run_overrides import RunOverrides, apply_overrides
+
+        with apply_overrides(RunOverrides(radiation_surv_coeff=1e-3)):
+            a = self.digest()
+        with apply_overrides(RunOverrides(radiation_surv_coeff=2e-3)):
+            b = self.digest()
+        self.assertNotEqual(a, b)
+
+    def test_the_audit_reports_the_value_the_run_used(self):
+        from microbe_radiation_model.provenance import audit_coefficients
+        from microbe_radiation_model.run_overrides import RunOverrides, apply_overrides
+
+        with apply_overrides(RunOverrides(hydrolysis_ea_j_mol=1.0e4)):
+            entry = audit_coefficients()["entries"]["hydrolysis"]
+            self.assertAlmostEqual(entry["activation_energy_j_mol"], 1.0e4)
+            self.assertTrue(entry.get("overridden_run"))
+
+    def test_an_overridden_run_says_so(self):
+        from microbe_radiation_model.provenance import audit_coefficients
+        from microbe_radiation_model.run_overrides import RunOverrides, apply_overrides
+
+        self.assertNotIn("_overrides", audit_coefficients()["entries"])
+        with apply_overrides(RunOverrides(gcr_attenuation_k_m2_kg=0.5)):
+            entries = audit_coefficients()["entries"]
+            self.assertIn("_overrides", entries)
+            self.assertAlmostEqual(
+                entries["_overrides"]["values"]["gcr_attenuation_k_m2_kg"], 0.5
+            )
+
+    def test_ensemble_output_carries_provenance(self):
+        """
+        Sweep outputs had none at all, so the files a published figure would
+        come from were the only untraceable ones in the project.
+        """
+        from microbe_radiation_model.ensembles.runner import ensemble_provenance
+
+        block = ensemble_provenance()
+        for key in ("environment", "source", "coefficients_under_audit"):
+            self.assertIn(key, block)
+
+    def test_the_ensemble_writer_stamps_it_without_being_asked(self):
+        import inspect
+
+        from microbe_radiation_model.ensembles import runner
+
+        source = inspect.getsource(runner.write_ensemble_json)
+        self.assertIn("provenance", source)
+
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -47,16 +47,16 @@
   },
   "provenance": {
     "schema_version": "1.0",
-    "generated_utc": "2026-08-28T22:58:00+00:00",
+    "generated_utc": "2026-08-28T23:12:18+00:00",
     "scenario": "mars_ejecta_pipeline",
     "seed": 20260829,
     "source": {
       "available": true,
-      "commit": "a7fb0d83c247d3717504b11b8c4d0c75f2c84705",
-      "commit_short": "a7fb0d83c247",
+      "commit": "23bb77ed15ceea8be5a67ea01bef9002bfa48805",
+      "commit_short": "23bb77ed15ce",
       "branch": "main",
       "dirty": true,
-      "describe": "a7fb0d83-dirty"
+      "describe": "23bb77ed-dirty"
     },
     "environment": {
       "python": "3.14.4",

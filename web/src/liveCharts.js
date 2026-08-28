@@ -14,6 +14,9 @@
 
 import { liveLinePlot, fmt } from './charts/plot.js';
 import {
+  depthProfileChart, parseDepthProfile, penetrationRatio,
+} from './charts/depthProfile.js';
+import {
   COEFF_BANDS, bandFor, cumulativeDoseSeries, sampledCoefficients,
   supportsRescaling, survivalAtCoefficient,
 } from './charts/doseModel.js';
@@ -99,6 +102,9 @@ function injectStyles() {
       padding: 2px 6px; cursor: pointer;
     }
     .lc-coeff-reset:hover { border-color: #45c2ca; color: #f2ebe4; }
+    .lc-depth { border-top: 1px solid #3a2f29; padding-top: 8px; }
+    .lc-depth-plot svg { display: block; max-width: 100%; }
+    .dp-empty { font-size: 10.5px; color: #8d7f74; padding: 6px 0; }
     #live-charts {
       position: fixed; top: 0; right: 0; bottom: 72px;
       width: 330px; z-index: 860;
@@ -581,9 +587,46 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
   panel.querySelector('.lc-close').addEventListener('click', () => setVisible(false));
   toggle.addEventListener('click', () => setVisible(panel.classList.contains('hidden')));
 
+  /**
+   * The mechanism figure: transmitted radiation against depth.
+   *
+   * Appended once, after the time series, and labelled as static so nobody
+   * waits for it to animate. It is a property of the fragment's geometry, and
+   * it is the only figure here that explains the outcome rather than reporting
+   * it.
+   */
+  function renderDepthProfile() {
+    const profile = parseDepthProfile(simData);
+    if (!profile) return;
+    const fig = document.createElement('figure');
+    fig.className = 'lc-fig lc-depth';
+    const ratio = penetrationRatio(profile);
+    fig.innerHTML = `
+      <figcaption>
+        <div class="lc-fig-title">Shielding against depth</div>
+        <div class="lc-fig-note">
+          static · ${profile.rockRadius} m fragment${profile.rockType ? ` · ${profile.rockType}` : ''}
+        </div>
+      </figcaption>
+      <div class="lc-depth-plot"></div>
+      <div class="lc-readout">${
+        ratio
+          ? `cosmic rays reach ${ratio.toFixed(0)}× deeper than photons `
+            + `(1/e at ${profile.cosmicDepth.toFixed(3)} m vs `
+            + `${profile.photonDepth.toFixed(3)} m)`
+          : ''
+      }</div>
+    `;
+    body.appendChild(fig);
+    depthProfileChart(fig.querySelector('.lc-depth-plot'), profile, {
+      width: 300, height: 190,
+    });
+  }
+
   function mount() {
     document.body.append(panel, toggle);
     renderAll();
+    renderDepthProfile();
     const slider = panel.querySelector('.lc-coeff-slider');
     const reset = panel.querySelector('.lc-coeff-reset');
     if (slider) {

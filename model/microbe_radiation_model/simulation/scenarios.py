@@ -610,7 +610,46 @@ def _build_visualizer_payload(
         },
         "objects": objects,
         "frames": frames,
+        # Static for the run, so exported once rather than per frame. This is
+        # the only output that shows the mechanism instead of the outcome:
+        # everything else reports the dose at the centre, which is the most
+        # shielded point in the rock.
+        "dose_depth_profile": _dose_depth_section(material_config, asteroid_state_store),
     }
+
+
+def _dose_depth_section(material_config, asteroid_state_store) -> dict:
+    """
+    Transmitted fraction against depth, for one representative fragment size.
+
+    Uses the configured fragment radius rather than a sampled one so the curve
+    is reproducible from the configuration alone, and states which radius it
+    used so nobody reads it as applying to the whole swarm.
+    """
+    from ..physics.geometry import biological_core_radius
+    from .dose_profile import profile_payload
+
+    rock_radius = float(material_config.rock_radius)
+    bio_radius = biological_core_radius(
+        rock_radius=rock_radius,
+        rock_density=material_config.rock_material.density,
+        bio_density=material_config.bio_material.density,
+        bio_mass_fraction=material_config.bio_mass_fraction,
+    )
+    payload = profile_payload(
+        rock_radius_m=rock_radius,
+        bio_radius_m=bio_radius,
+        rock_material=material_config.rock_material,
+        bio_material=material_config.bio_material,
+        rock_type=getattr(material_config, "rock_name", None),
+    )
+    payload["note"] = (
+        "Transmitted fraction of surface radiation against depth, for a "
+        "fragment of the configured radius. Photons and cosmic rays are shown "
+        "separately because they attenuate on scales that differ by a factor "
+        "of about sixteen."
+    )
+    return payload
 
 
 # Per-asteroid radiation sensitivity used when an asteroid carries no override.

@@ -1,16 +1,16 @@
 {
   "provenance": {
     "schema_version": "1.0",
-    "generated_utc": "2026-08-28T22:58:00+00:00",
+    "generated_utc": "2026-08-28T23:12:18+00:00",
     "scenario": "mars_ejecta_pipeline",
     "seed": 20260829,
     "source": {
       "available": true,
-      "commit": "a7fb0d83c247d3717504b11b8c4d0c75f2c84705",
-      "commit_short": "a7fb0d83c247",
+      "commit": "23bb77ed15ceea8be5a67ea01bef9002bfa48805",
+      "commit_short": "23bb77ed15ce",
       "branch": "main",
       "dirty": true,
-      "describe": "a7fb0d83-dirty"
+      "describe": "23bb77ed-dirty"
     },
     "environment": {
       "python": "3.14.4",
@@ -247702,5 +247702,256 @@
         "total_asteroid_mass_kg": 5112.280326969951
       }
     }
-  ]
+  ],
+  "dose_depth_profile": {
+    "rock_type": null,
+    "rock_radius_m": 0.5,
+    "bio_radius_m": 0.15783299907792211,
+    "density_kg_m3": 3460.0,
+    "photon_attenuation_depth_m": 0.028901734104046242,
+    "cosmic_ray_attenuation_depth_m": 0.4624277456647399,
+    "samples": [
+      {
+        "depth_m": 0.0,
+        "radius_fraction": 1.0,
+        "photon_fraction": 1.0,
+        "cosmic_ray_fraction": 1.0
+      },
+      {
+        "depth_m": 0.01282051282051283,
+        "radius_fraction": 0.9743589743589743,
+        "photon_fraction": 0.6417286401181806,
+        "cosmic_ray_fraction": 0.9726564338714372
+      },
+      {
+        "depth_m": 0.02564102564102566,
+        "radius_fraction": 0.9487179487179487,
+        "photon_fraction": 0.41181564754792943,
+        "cosmic_ray_fraction": 0.9460605383515015
+      },
+      {
+        "depth_m": 0.038461538461538436,
+        "radius_fraction": 0.9230769230769231,
+        "photon_fraction": 0.2642738954803212,
+        "cosmic_ray_fraction": 0.9201918694594635
+      },
+      {
+        "depth_m": 0.051282051282051266,
+        "radius_fraction": 0.8974358974358975,
+        "photon_fraction": 0.1695921275653208,
+        "cosmic_ray_fraction": 0.8950305422259329
+      },
+      {
+        "depth_m": 0.0641025641025641,
+        "radius_fraction": 0.8717948717948718,
+        "photon_fraction": 0.1088321253972423,
+        "cosmic_ray_fraction": 0.8705572154074946
+      },
+      {
+        "depth_m": 0.07692307692307693,
+        "radius_fraction": 0.8461538461538461,
+        "photon_fraction": 0.06984069183234362,
+        "cosmic_ray_fraction": 0.8467530766193023
+      },
+      {
+        "depth_m": 0.08974358974358976,
+        "radius_fraction": 0.8205128205128205,
+        "photon_fraction": 0.04481877219448281,
+        "cosmic_ray_fraction": 0.8235998278741984
+      },
+      {
+        "depth_m": 0.10256410256410253,
+        "radius_fraction": 0.7948717948717949,
+        "photon_fraction": 0.02876148973213204,
+        "cosmic_ray_fraction": 0.8010796715172473
+      },
+      {
+        "depth_m": 0.11538461538461542,
+        "radius_fraction": 0.7692307692307692,
+        "photon_fraction": 0.01845707169357407,
+        "cosmic_ray_fraction": 0.7791752965448681
+      },
+      {
+        "depth_m": 0.1282051282051282,
+        "radius_fraction": 0.7435897435897436,
+        "photon_fraction": 0.011844431518481073,
+        "cosmic_ray_fraction": 0.757869865298051
+      },
+      {
+        "depth_m": 0.14102564102564102,
+        "radius_fraction": 0.717948717948718,
+        "photon_fraction": 0.007600910931327778,
+        "cosmic_ray_fraction": 0.7371470005194287
+      },
+      {
+        "depth_m": 0.15384615384615385,
+        "radius_fraction": 0.6923076923076923,
+        "photon_fraction": 0.00487772223562039,
+        "cosmic_ray_fraction": 0.716990772764254
+      },
+      {
+        "depth_m": 0.16666666666666663,
+        "radius_fraction": 0.6666666666666667,
+        "photon_fraction": 0.0031301740571388907,
+        "cosmic_ray_fraction": 0.6973856881556054
+      },
+      {
+        "depth_m": 0.17948717948717952,
+        "radius_fraction": 0.641025641025641,
+        "photon_fraction": 0.0020087223410209455,
+        "cosmic_ray_fraction": 0.6783166764744092
+      },
+      {
+        "depth_m": 0.1923076923076923,
+        "radius_fraction": 0.6153846153846154,
+        "photon_fraction": 0.0012890546562783823,
+        "cosmic_ray_fraction": 0.6597690795751243
+      },
+      {
+        "depth_m": 0.20512820512820512,
+        "radius_fraction": 0.5897435897435898,
+        "photon_fraction": 0.0008272232916115352,
+        "cosmic_ray_fraction": 0.6417286401181809
+      },
+      {
+        "depth_m": 0.21794871794871795,
+        "radius_fraction": 0.5641025641025641,
+        "photon_fraction": 0.0005308528779999554,
+        "cosmic_ray_fraction": 0.6241814906105168
+      },
+      {
+        "depth_m": 0.23076923076923078,
+        "radius_fraction": 0.5384615384615384,
+        "photon_fraction": 0.0003406634955017339,
+        "cosmic_ray_fraction": 0.6071141427457831
+      },
+      {
+        "depth_m": 0.2435897435897436,
+        "radius_fraction": 0.5128205128205128,
+        "photon_fraction": 0.00021861352170623387,
+        "cosmic_ray_fraction": 0.5905134770360282
+      },
+      {
+        "depth_m": 0.2564102564102564,
+        "radius_fraction": 0.4871794871794872,
+        "photon_fraction": 0.00014029055799598785,
+        "cosmic_ray_fraction": 0.574366732726886
+      },
+      {
+        "depth_m": 0.2692307692307692,
+        "radius_fraction": 0.46153846153846156,
+        "photon_fraction": 9.002846900418606e-05,
+        "cosmic_ray_fraction": 0.5586614979885218
+      },
+      {
+        "depth_m": 0.28205128205128205,
+        "radius_fraction": 0.4358974358974359,
+        "photon_fraction": 5.777384698597811e-05,
+        "cosmic_ray_fraction": 0.5433857003747907
+      },
+      {
+        "depth_m": 0.2948717948717949,
+        "radius_fraction": 0.41025641025641024,
+        "photon_fraction": 3.707513226070759e-05,
+        "cosmic_ray_fraction": 0.5285275975432772
+      },
+      {
+        "depth_m": 0.3076923076923077,
+        "radius_fraction": 0.3846153846153846,
+        "photon_fraction": 2.3792174207865573e-05,
+        "cosmic_ray_fraction": 0.5140757682290822
+      },
+      {
+        "depth_m": 0.32051282051282054,
+        "radius_fraction": 0.3589743589743589,
+        "photon_fraction": 1.526811959986843e-05,
+        "cosmic_ray_fraction": 0.5000191034654186
+      },
+      {
+        "depth_m": 0.3333333333333333,
+        "radius_fraction": 0.33333333333333337,
+        "photon_fraction": 9.797989627985328e-06,
+        "cosmic_ray_fraction": 0.4863467980442672
+      },
+      {
+        "depth_m": 0.34615384615384615,
+        "radius_fraction": 0.3076923076923077,
+        "photon_fraction": 6.611573876961604e-06,
+        "cosmic_ray_fraction": 0.4758383441365501
+      },
+      {
+        "depth_m": 0.358974358974359,
+        "radius_fraction": 0.28205128205128205,
+        "photon_fraction": 4.986680454978507e-06,
+        "cosmic_ray_fraction": 0.47166268554227836
+      },
+      {
+        "depth_m": 0.3717948717948718,
+        "radius_fraction": 0.2564102564102564,
+        "photon_fraction": 3.761128957012042e-06,
+        "cosmic_ray_fraction": 0.4675236699065046
+      },
+      {
+        "depth_m": 0.38461538461538464,
+        "radius_fraction": 0.23076923076923073,
+        "photon_fraction": 2.83677511703233e-06,
+        "cosmic_ray_fraction": 0.46342097567362817
+      },
+      {
+        "depth_m": 0.3974358974358974,
+        "radius_fraction": 0.20512820512820518,
+        "photon_fraction": 2.139595094076971e-06,
+        "cosmic_ray_fraction": 0.4593542841098183
+      },
+      {
+        "depth_m": 0.41025641025641024,
+        "radius_fraction": 0.17948717948717952,
+        "photon_fraction": 1.6137575161006552e-06,
+        "cosmic_ray_fraction": 0.45532327927825256
+      },
+      {
+        "depth_m": 0.4230769230769231,
+        "radius_fraction": 0.15384615384615385,
+        "photon_fraction": 1.2171524079395135e-06,
+        "cosmic_ray_fraction": 0.45132764801457154
+      },
+      {
+        "depth_m": 0.4358974358974359,
+        "radius_fraction": 0.1282051282051282,
+        "photon_fraction": 9.180189522727235e-07,
+        "cosmic_ray_fraction": 0.4473670799025498
+      },
+      {
+        "depth_m": 0.44871794871794873,
+        "radius_fraction": 0.10256410256410253,
+        "photon_fraction": 6.924020288951277e-07,
+        "cosmic_ray_fraction": 0.4434412672499796
+      },
+      {
+        "depth_m": 0.46153846153846156,
+        "radius_fraction": 0.07692307692307687,
+        "photon_fraction": 5.222338476032503e-07,
+        "cosmic_ray_fraction": 0.4395499050647671
+      },
+      {
+        "depth_m": 0.47435897435897434,
+        "radius_fraction": 0.05128205128205132,
+        "photon_fraction": 3.938870485658312e-07,
+        "cosmic_ray_fraction": 0.43569269103123753
+      },
+      {
+        "depth_m": 0.48717948717948717,
+        "radius_fraction": 0.02564102564102566,
+        "photon_fraction": 2.970833999748117e-07,
+        "cosmic_ray_fraction": 0.4318693254866486
+      },
+      {
+        "depth_m": 0.5,
+        "radius_fraction": 0.0,
+        "photon_fraction": 2.2407069961286912e-07,
+        "cosmic_ray_fraction": 0.42807951139791023
+      }
+    ],
+    "note": "Transmitted fraction of surface radiation against depth, for a fragment of the configured radius. Photons and cosmic rays are shown separately because they attenuate on scales that differ by a factor of about sixteen."
+  }
 }

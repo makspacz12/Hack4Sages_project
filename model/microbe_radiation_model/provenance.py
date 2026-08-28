@@ -160,9 +160,19 @@ def capture_parameters(material_config: Any, run_config: Any) -> dict[str, Any]:
     Both config objects are frozen dataclasses, so this is a faithful record
     rather than a hand-maintained subset that can fall behind the code.
     """
+    from dataclasses import asdict
+
+    from .run_overrides import active_overrides
+
+    overrides = active_overrides()
     return {
         "material": _plain(material_config),
         "run": _plain(run_config),
+        # Physics overrides are part of the input state even though they live
+        # in thread-local storage rather than in either config object. Leaving
+        # them out made the digest claim that two runs with different physics
+        # were the same run - which is exactly the guarantee it exists to give.
+        "overrides": asdict(overrides) if overrides is not None else None,
     }
 
 
@@ -191,6 +201,23 @@ def audit_coefficients() -> dict[str, Any]:
     """
     from .chemistry import constants as chem
     from .radiation.radionuclide_model import gamma as gamma_mod
+    from .run_overrides import (
+        active_overrides,
+        effective_gcr_attenuation_k_m2_kg,
+        effective_hydrolysis_a_s_inv,
+        effective_hydrolysis_ea_j_mol,
+        effective_hydrolysis_surv_coeff,
+        effective_radiation_surv_coeff,
+    )
+
+    # Read through the same accessors the physics reads through.
+    #
+    # Ensemble and sensitivity runs can override these constants in
+    # thread-local state. Reporting the module constant instead of the value
+    # actually used meant a file produced under an override asserted a cited,
+    # resolved calibration for numbers the run never touched - the audit block
+    # misreporting the very thing it exists to report.
+    overrides = active_overrides()
 
     entries: dict[str, Any] = {}
 
@@ -224,8 +251,8 @@ def audit_coefficients() -> dict[str, Any]:
     }
 
     entries["hydrolysis"] = {
-        "pre_exponential_s_inv": chem.HYDROLYSIS_A_S_INV,
-        "activation_energy_j_mol": chem.HYDROLYSIS_EA_J_MOL,
+        "pre_exponential_s_inv": effective_hydrolysis_a_s_inv(),
+        "activation_energy_j_mol": effective_hydrolysis_ea_j_mol(),
         "freezing_cutoff_k": chem.FREEZING_TEMPERATURE_K,
         "module": "chemistry.constants",
         "status": "resolved",
@@ -252,7 +279,7 @@ def audit_coefficients() -> dict[str, Any]:
     )
 
     entries["hydrolysis_survival_coefficient"] = {
-        "value": HYDROLYSIS_SURV_COEFF,
+        "value": effective_hydrolysis_surv_coeff(),
         "module": "biology.constants",
         "status": "unresolved",
         "issue": (
@@ -263,7 +290,9 @@ def audit_coefficients() -> dict[str, Any]:
     }
 
     entries["radiation_survival_coefficient"] = {
-        "default_value_per_gy": DEFAULT_RADIATION_SURV_COEFF_PER_GY,
+        "default_value_per_gy": (
+            effective_radiation_surv_coeff() or DEFAULT_RADIATION_SURV_COEFF_PER_GY
+        ),
         "sampled_range_per_gy": [
             RADIATION_SURV_COEFF_MIN_PER_GY,
             RADIATION_SURV_COEFF_MAX_PER_GY,
@@ -305,7 +334,7 @@ def audit_coefficients() -> dict[str, Any]:
 
     entries["cosmic_ray_attenuation"] = {
         "photon_coefficient_m2_kg": DEFAULT_ROCK_ATTENUATION_K_M2_KG,
-        "cosmic_ray_coefficient_m2_kg": DEFAULT_GCR_ATTENUATION_K_M2_KG,
+        "cosmic_ray_coefficient_m2_kg": effective_gcr_attenuation_k_m2_kg(),
         "module": "simulation.config",
         "status": "resolved",
         "source": (
@@ -322,6 +351,22 @@ def audit_coefficients() -> dict[str, Any]:
             "systematic."
         ),
     }
+
+    if overrides is not None:
+        from dataclasses import asdict
+
+        # Flagged as well as folded in, so a reader does not have to compare
+        # every value against the source to notice a run was overridden.
+        for entry in entries.values():
+            entry["overridden_run"] = True
+        entries["_overrides"] = {
+            "values": asdict(overrides),
+            "note": (
+                "A sensitivity or ensemble run replaced one or more physics "
+                "constants. The values above are the ones this run used, not "
+                "the module defaults."
+            ),
+        }
 
     return {
         "note": (
