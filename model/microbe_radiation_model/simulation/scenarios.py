@@ -1005,9 +1005,32 @@ def run_mars_ejecta_pipeline_demo(
                     hdna_rate_per_s=hydrolysis_rate,
                 )
                 new_population_fraction = asteroid_state.population_fraction * step_survival
+
+                # Accumulate the dose separately from the survival it causes.
+                #
+                # Survival factorises exactly: multiplying step survivals gives
+                # exp(-c_rad * D_cum - c_hyd * H_cum), because both coefficients
+                # are constant per fragment. Carrying D_cum and H_cum in the
+                # output therefore lets a reader recompute the whole survival
+                # curve for any other coefficient without rerunning anything -
+                # which is the only honest way to show a constant known to
+                # within a factor of seventeen.
+                dose_cumulative = float(
+                    asteroid_state.extra.get("dose_cumulative_gy", 0.0) or 0.0
+                ) + (radiation_space_gy_per_year + radiation_decay_gy_per_year) * t_years
+                hydrolysis_cumulative = float(
+                    asteroid_state.extra.get("hydrolysis_cumulative", 0.0) or 0.0
+                ) + (hydrolysis_rate or 0.0) * dt_s
+
+                # Passed as plain keyword arguments: the store routes unknown
+                # names into `extra` one at a time, whereas handing it an
+                # `extra=` dict would replace the whole mapping and drop
+                # everything else the fragment carries.
                 asteroid_state_store.update(
                     body_index,
                     population_fraction=new_population_fraction,
+                    dose_cumulative_gy=dose_cumulative,
+                    hydrolysis_cumulative=hydrolysis_cumulative,
                 )
 
             # Cache latest per-asteroid environment and biology in the state

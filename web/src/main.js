@@ -331,6 +331,7 @@ async function mainReplay(source) {
 
   // ── Searchable object list ───────────────────────────────────────────
   const objectSearch = createObjectSearch(nodes, simData, (node, simObj) => {
+    if (simObj?.id) liveCharts.select(simObj.id);
     setFocusTarget(focusCtrl, node.mesh);
     activateOrbit(focusCtrl);
     if (followBtn) {
@@ -372,6 +373,10 @@ async function mainReplay(source) {
     () => nodes.map(n => n.mesh),
     (mesh) => {
       const body = bodyByMesh.get(mesh);
+      // Linking was one-way: clicking a chart line focused the 3D object, but
+      // clicking the object left the charts untouched. Connected views are only
+      // useful if the connection runs both ways.
+      if (body?.id) liveCharts.select(body.id);
       setFocusTarget(focusCtrl, mesh);
       activateOrbit(focusCtrl);
       if (followBtn) {

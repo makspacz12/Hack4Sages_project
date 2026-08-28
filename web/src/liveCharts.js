@@ -14,6 +14,10 @@
 
 import { liveLinePlot, fmt } from './charts/plot.js';
 import {
+  COEFF_BANDS, bandFor, cumulativeDoseSeries, sampledCoefficients,
+  supportsRescaling, survivalAtCoefficient,
+} from './charts/doseModel.js';
+import {
   fragmentSeries, meanAcross, relativeChangePpm, distanceFromBody, speedSeries,
 } from './charts/series.js';
 
@@ -22,16 +26,79 @@ const PALETTE = {
   // are one hue at two emphases rather than two categories: iron oxide drawn
   // faint for each fragment, regolith-bright for the aggregate over them.
   // Selection borrows the instrument accent, the one cool colour on the page.
-  trace: '#e2683c',      // iron oxide - the rock being simulated
+  trace: '#e2683c',      // iron oxide - fallback when the rock type is unknown
   mean: '#f2ebe4',       // regolith, lit - the aggregate
   selected: '#45c2ca',   // instrument teal - what you are pointing at
 };
+
+/**
+ * Hue by rock type, because rock type is what actually decides the outcome.
+ *
+ * The internal dose from a fragment's own U/Th/K exceeds the shielded galactic
+ * cosmic-ray dose by several orders of magnitude, so two fragments on identical
+ * trajectories diverge entirely on composition. Drawing every fragment in one
+ * colour hides the only variable that explains the result.
+ *
+ * Hue is an identity channel, which is the right one for a categorical
+ * attribute. Assignment is by fixed order rather than by cycling a generator,
+ * so a given rock keeps its colour when the fragment count changes.
+ */
+const ROCK_COLORS = {
+  basalt_vtype:       '#e2683c',
+  ordinary_chondrite: '#4aa3c7',
+  ci_chondrite:       '#d8a33c',
+  cm_chondrite:       '#9b7fc4',
+  enstatite:          '#5fb37a',
+  stony_iron:         '#c25f8e',
+  iron_nickel:        '#8d8d8d',
+  ice_rich:           '#7fd4e0',
+  organic_rich:       '#b5713a',
+  hydrated_silicate:  '#6f9f4f',
+  olivine:            '#a8b44a',
+  rubble_pile:        '#a08878',
+};
+
+export function colorForRockType(rockType) {
+  return ROCK_COLORS[rockType] ?? PALETTE.trace;
+}
+
+/** rock type of each fragment, taken from the first frame that names it. */
+export function rockTypeById(frames) {
+  const out = new Map();
+  for (const frame of frames ?? []) {
+    for (const prop of frame?.properties ?? []) {
+      if (prop?.id && prop.rock_type && !out.has(prop.id)) {
+        out.set(prop.id, prop.rock_type);
+      }
+    }
+  }
+  return out;
+}
 
 function injectStyles() {
   if (document.getElementById('live-charts-style')) return;
   const s = document.createElement('style');
   s.id = 'live-charts-style';
   s.textContent = `
+    .lc-coeff {
+      padding: 8px 10px; border-bottom: 1px solid #3a2f29;
+      background: rgba(12, 10, 9, 0.6);
+    }
+    .lc-coeff-label {
+      display: block; font-size: 10px; letter-spacing: 0.04em;
+      text-transform: uppercase; color: #8d7f74; margin-bottom: 4px;
+    }
+    .lc-coeff-val { color: #f2ebe4; text-transform: none; letter-spacing: 0; }
+    .lc-coeff-slider { width: 100%; margin: 2px 0; accent-color: #45c2ca; }
+    .lc-coeff-slider:focus-visible { outline: 2px solid #45c2ca; outline-offset: 2px; }
+    .lc-coeff-band { font-size: 10px; color: #8d7f74; }
+    .lc-coeff-band[data-warn="true"] { color: #e2683c; }
+    .lc-coeff-reset {
+      margin-top: 5px; background: none; border: 1px solid #3a2f29;
+      color: #cbbfb4; font-family: monospace; font-size: 10px;
+      padding: 2px 6px; cursor: pointer;
+    }
+    .lc-coeff-reset:hover { border-color: #45c2ca; color: #f2ebe4; }
     #live-charts {
       position: fixed; top: 0; right: 0; bottom: 72px;
       width: 330px; z-index: 860;
@@ -203,6 +270,16 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
       <button class="lc-close" title="Hide">&times;</button>
     </div>
     <div class="lc-selection" hidden></div>
+    <div class="lc-coeff" hidden>
+      <label class="lc-coeff-label" for="lc-crad">
+        radiation inactivation <span class="lc-coeff-val"></span>
+      </label>
+      <input class="lc-coeff-slider" id="lc-crad" type="range"
+             min="0" max="1000" value="0" step="1"
+             aria-describedby="lc-coeff-band">
+      <div class="lc-coeff-band" id="lc-coeff-band"></div>
+      <button class="lc-coeff-reset" type="button">use each fragment's own value</button>
+    </div>
     <div class="lc-body"></div>
   `;
   const body = panel.querySelector('.lc-body');
@@ -217,21 +294,57 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
   const erosion = relativeChangePpm(fragmentSeries(frames, 'radius'));
   const speed = speedSeries(frames);
 
+  const rockTypes = rockTypeById(frames);
+
   const traces = map => [...map].map(([id, points]) => ({
-    color: PALETTE.trace, points, width: 1, opacity: 0.32, faint: true,
+    color: colorForRockType(rockTypes.get(id)),
+    points, width: 1, opacity: 0.42, faint: true,
     selectedColor: PALETTE.selected,
-    pickId: id, label: id.replace('asteroid_', 'fragment '),
+    pickId: id,
+    rockType: rockTypes.get(id) ?? null,
+    label: `${id.replace('asteroid_', 'fragment ')}`
+      + (rockTypes.get(id) ? ` · ${rockTypes.get(id)}` : ''),
   }));
   const withMean = (map, meanName) => [
     ...traces(map),
     { name: meanName, color: PALETTE.mean, points: meanAcross(map), width: 2 },
   ];
 
+  // ── Coefficient control ────────────────────────────────────────────────
+  //
+  // c_rad is the least certain number in the model - the published chronic
+  // band alone spans a factor of seventeen. Rather than draw that as an error
+  // bar, which the literature shows even professional readers misread, the
+  // panel lets it be moved and redraws the survival curve from the exported
+  // cumulative dose. The recomputation is exact, not an approximation.
+  const doseSeries = cumulativeDoseSeries(frames);
+  const sampledCoeffs = sampledCoefficients(frames);
+  const canRescale = supportsRescaling(frames);
+
+  // Log mapping: the range covers nearly two decades, so a linear slider would
+  // spend most of its travel in the top half of the band.
+  const C_LO = COEFF_BANDS.chronicMin;
+  const C_HI = COEFF_BANDS.acuteMax;
+  const posToCoeff = pos =>
+    C_LO * Math.pow(C_HI / C_LO, Math.min(1, Math.max(0, pos / 1000)));
+  const coeffToPos = c =>
+    Math.round(1000 * Math.log(c / C_LO) / Math.log(C_HI / C_LO));
+
+  // null means "each fragment keeps the coefficient the run sampled for it".
+  let overrideCoeff = null;
+
+  /** Survival at the current coefficient, or as recorded if unchanged. */
+  function currentSurvival() {
+    if (!canRescale || overrideCoeff === null) return survival;
+    return survivalAtCoefficient(doseSeries, overrideCoeff, sampledCoeffs);
+  }
+
   const specs = [
     {
       title: 'Surviving microbial fraction',
       note: `N/N₀ · ${survival.size} fragments`,
-      series: withMean(survival, 'swarm mean'),
+      series: withMean(currentSurvival(), 'swarm mean'),
+      rescalable: true,
       yLabel: 'N / N₀',
       // A surviving fraction lives in [0, 1]. Without this the axis fits
       // itself to the data, and a run where essentially nothing dies is drawn
@@ -312,6 +425,69 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
         selected: selectedId,
         onPick: (s) => { if (s.pickId) select(s.pickId); },
       });
+    }
+  }
+
+  /**
+   * Rebuild only the charts whose data depends on the coefficient.
+   *
+   * Distance, speed and erosion are unaffected by biology, so they are left
+   * alone rather than torn down and rebuilt on every slider step.
+   */
+  function applyCoefficient(value) {
+    overrideCoeff = value;
+    const recomputed = currentSurvival();
+    for (const item of live) {
+      if (!item.spec.rescalable) continue;
+      item.spec.series = withMean(recomputed, 'swarm mean');
+      item.spec.source = recomputed;
+      item.chart?.destroy?.();
+      item.chart = liveLinePlot(item.plotEl, {
+        series: item.spec.series,
+        xLabel: `time [${timeUnit}]`,
+        yLabel: item.spec.yLabel,
+        yFormat: item.spec.yFormat,
+        // While the coefficient is being moved the axis is pinned to the full
+        // [0, 1] scale. Letting it refit on every slider step would rescale the
+        // frame around the curve, so the curve would appear to stand still
+        // while the numbers underneath it changed - which defeats the entire
+        // point of being able to drag the coefficient.
+        yDomain: item.spec.yDomain,
+        pinDomain: value !== null,
+        xFormat: v => fmt(v),
+        xUnit: timeUnit,
+        height: 126,
+        selected: selectedId,
+        onPick: (s) => { if (s.pickId) select(s.pickId); },
+      });
+    }
+    paintCoefficient();
+    // Redraw through the normal path so the numeric readouts refresh too;
+    // updating the chart alone leaves them showing the previous coefficient.
+    update(frameIndex);
+  }
+
+  function paintCoefficient() {
+    const box = panel.querySelector('.lc-coeff');
+    if (!box) return;
+    // Hidden entirely for replays generated before the cumulative dose was
+    // exported: a control that silently does nothing is worse than no control.
+    box.hidden = !canRescale;
+    if (!canRescale) return;
+    const valEl = box.querySelector('.lc-coeff-val');
+    const bandEl = box.querySelector('.lc-coeff-band');
+    if (overrideCoeff === null) {
+      valEl.textContent = 'as sampled per fragment';
+      bandEl.textContent =
+        `${COEFF_BANDS.chronicMin.toExponential(1)}–`
+        + `${COEFF_BANDS.chronicMax.toExponential(1)} 1/Gy, drawn per fragment`;
+      bandEl.dataset.warn = 'false';
+    } else {
+      valEl.textContent = `${overrideCoeff.toExponential(2)} 1/Gy, all fragments`;
+      const band = bandFor(overrideCoeff);
+      bandEl.textContent = band;
+      bandEl.dataset.warn = String(band.includes('not applicable')
+        || band.includes('above') || band.includes('below'));
     }
   }
 
@@ -408,6 +584,19 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
   function mount() {
     document.body.append(panel, toggle);
     renderAll();
+    const slider = panel.querySelector('.lc-coeff-slider');
+    const reset = panel.querySelector('.lc-coeff-reset');
+    if (slider) {
+      slider.value = String(coeffToPos(COEFF_BANDS.default));
+      slider.addEventListener('input', () => {
+        applyCoefficient(posToCoeff(Number(slider.value)));
+      });
+    }
+    reset?.addEventListener('click', () => {
+      applyCoefficient(null);
+      if (slider) slider.value = String(coeffToPos(COEFF_BANDS.default));
+    });
+    paintCoefficient();
     setVisible(true);
     update(0);
     paintSelection();

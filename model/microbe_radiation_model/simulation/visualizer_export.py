@@ -211,6 +211,13 @@ def build_frame_payload(
                 "gamma_local_flux",
                 "hydrolysis_rate_s_inv",
                 "radiation_decay_gy_per_year",
+                # Accumulated dose, and the coefficient it is multiplied by.
+                # Together these let a reader recompute the survival curve for
+                # any other coefficient without rerunning the simulation, since
+                # survival is exp(-c_rad * D_cum - c_hyd * H_cum) exactly.
+                "dose_cumulative_gy",
+                "hydrolysis_cumulative",
+                "radiation_surv_coeff",
             ):
                 val = extra.get(key)
                 if val is not None:

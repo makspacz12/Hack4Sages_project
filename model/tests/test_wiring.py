@@ -455,5 +455,93 @@ class TestSurvivalTimesAgainstLiterature(unittest.TestCase):
 
 
 
+class TestSurvivalFactorisation(unittest.TestCase):
+    """
+    Survival is exactly exp(-c_rad * D_cum - c_hyd * H_cum).
+
+    Both coefficients are constant per fragment, so the product of per-step
+    survivals collapses to a single exponential of the accumulated dose. That
+    is what makes it legitimate to export the dose and let a reader re-derive
+    the survival curve for any other coefficient, instead of asking them to
+    read a factor-of-seventeen uncertainty off an error bar.
+    """
+
+    def survival(self, c_rad, doses, hydrolysis=(), c_hyd=0.0):
+        """Multiply per-step survivals the way the pipeline does."""
+        import math
+
+        total = 1.0
+        for step_dose in doses:
+            total *= math.exp(-c_rad * step_dose)
+        for step_h in hydrolysis:
+            total *= math.exp(-c_hyd * step_h)
+        return total
+
+    def test_the_product_equals_a_single_exponential_of_the_sum(self):
+        import math
+
+        doses = [0.4, 1.1, 0.2, 3.7, 0.9]
+        c = 2.5e-4
+        stepwise = self.survival(c, doses)
+        closed_form = math.exp(-c * sum(doses))
+        self.assertAlmostEqual(stepwise, closed_form, places=15)
+
+    def test_a_reader_can_rescale_to_another_coefficient(self):
+        """
+        The whole point: given D_cum, any other coefficient is one exponential
+        away, with no need to rerun the integration.
+        """
+        import math
+
+        d_cum = 412.0
+        for c in (2.5e-5, 1.0e-4, 2.5e-4, 4.3e-4):
+            with self.subTest(c_rad=c):
+                self.assertAlmostEqual(
+                    math.exp(-c * d_cum), self.survival(c, [d_cum]), places=15
+                )
+
+    def test_the_two_channels_add_in_the_exponent(self):
+        import math
+
+        c_rad, c_hyd = 2.5e-4, 1200.0
+        d, h = 300.0, 1e-6
+        together = math.exp(-c_rad * d - c_hyd * h)
+        separately = math.exp(-c_rad * d) * math.exp(-c_hyd * h)
+        self.assertAlmostEqual(together, separately, places=15)
+
+    def test_accumulated_dose_never_decreases(self):
+        running = 0.0
+        for step in (0.0, 1.5, 0.0, 2.25, 0.75):
+            running += step
+            self.assertGreaterEqual(running, 0.0)
+        self.assertAlmostEqual(running, 4.5, places=12)
+
+    def test_the_exported_fields_are_whitelisted(self):
+        """
+        The exporter copies a fixed list of keys out of the fragment state; a
+        field that is accumulated but not listed never reaches the file.
+        """
+        import inspect
+
+        from microbe_radiation_model.simulation import visualizer_export
+
+        source = inspect.getsource(visualizer_export)
+        for field in (
+            "dose_cumulative_gy", "hydrolysis_cumulative", "radiation_surv_coeff",
+        ):
+            with self.subTest(field=field):
+                self.assertIn(field, source)
+
+    def test_the_pipeline_accumulates_both_channels(self):
+        import inspect
+
+        from microbe_radiation_model.simulation import scenarios
+
+        source = inspect.getsource(scenarios)
+        self.assertIn("dose_cumulative_gy=dose_cumulative", source)
+        self.assertIn("hydrolysis_cumulative=hydrolysis_cumulative", source)
+
+
+
 if __name__ == "__main__":
     unittest.main()

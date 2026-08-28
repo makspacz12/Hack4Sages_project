@@ -208,7 +208,7 @@ export function liveLinePlot(container, options) {
   const {
     series = [], xLabel, yLabel, yScale = 'linear',
     xFormat, yFormat, height = 148, xUnit, onPick, selected = null,
-    yDomain = null,
+    yDomain = null, pinDomain = false,
   } = options;
   let selectedId = selected;
 
@@ -242,7 +242,9 @@ export function liveLinePlot(container, options) {
     yHi = 10 ** Math.ceil(Math.log10(yHi));
   } else {
     const raw = extent(allY);
-    const full = domainAwareRange(raw, yDomain);
+    // pinDomain forces the declared domain even when the data would justify a
+    // tighter fit, so successive redraws share one frame and can be compared.
+    const full = pinDomain && yDomain ? yDomain : domainAwareRange(raw, yDomain);
     [yLo, yHi] = full || padRange(raw);
   }
 
