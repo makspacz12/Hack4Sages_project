@@ -73,6 +73,28 @@ function extent(values) {
   return Number.isFinite(lo) ? [lo, hi] : [0, 1];
 }
 
+/**
+ * Widen an axis to a quantity's natural full scale when the data barely moves.
+ *
+ * A surviving fraction that runs 1.000000 to 0.999457 is a flat line, but an
+ * axis fitted to the data alone renders it as a dramatic collapse across the
+ * full height of the chart, labelled 0.99950 to 1.00000. The reader has to
+ * check the tick labels to discover that nothing happened. That is backwards:
+ * the common case should be legible without reading the axis.
+ *
+ * So when a series declares a natural domain - [0, 1] for a fraction - and the
+ * observed variation is below `threshold` of it, show the whole domain. Real
+ * change still fills the chart; noise correctly looks like noise.
+ */
+export function domainAwareRange([lo, hi], domain, threshold = 0.02) {
+  if (!domain) return null;
+  const [dLo, dHi] = domain;
+  const dSpan = dHi - dLo;
+  if (!(dSpan > 0)) return null;
+  if ((hi - lo) / dSpan >= threshold) return null;
+  return [dLo, dHi];
+}
+
 function padRange([lo, hi], fraction = 0.06) {
   if (lo === hi) {
     const bump = Math.abs(lo) * 1e-3 || 1;
@@ -218,7 +240,9 @@ export function liveLinePlot(container, options) {
     yLo = 10 ** Math.floor(Math.log10(yLo));
     yHi = 10 ** Math.ceil(Math.log10(yHi));
   } else {
-    [yLo, yHi] = padRange(extent(allY));
+    const raw = extent(allY);
+    const full = domainAwareRange(raw, config.yDomain);
+    [yLo, yHi] = full || padRange(raw);
   }
 
   const plotW = width - PAD.left - PAD.right;

@@ -1,6 +1,30 @@
 library(tidyverse)
 
-#loading the data from Mileikowsky et al. (2000) https://doi.org/10.1006/icar.1999.6317
+# Data from Mileikowsky et al. (2000) https://doi.org/10.1006/icar.1999.6317,
+# table "Effects of GCR and Natural Radioactivity".
+#
+# READ THE HEADERS BEFORE USING THESE SLOPES. The numbers below are copied
+# verbatim from the paper and are NOT in SI:
+#
+#   dose_rates            is in cGy/YEAR, not Gy. Divide by 100 for Gy/yr.
+#   kill_freq_..._bs      carries the table's header multiplier x 10^-5.
+#   kill_freq_..._bs_pol  likewise x 10^-5.
+#   kill_freq_..._dr      carries x 10^-6, a different multiplier.
+#   kill_freq_..._hs      multiplier not verified - do not use this column.
+#
+# So the regression slopes below (0.157 for bs, 0.441 for dr) are NOT
+# inactivation coefficients in 1/Gy. Converting properly:
+#
+#   c_rad = slope * (header multiplier) / (0.01 Gy per cGy)
+#   B. subtilis    : 0.1574 * 1e-5 / 1e-2 = 1.57e-4 1/Gy
+#   D. radiodurans : 0.4408 * 1e-6 / 1e-2 = 4.41e-5 1/Gy
+#
+# Reading the raw slopes as 1/Gy overstates them by 1e3 to 1e4. That mistake
+# was made once in this project already - see biology/constants.py.
+#
+# Note also that bs and dr have DIFFERENT header multipliers, so plotting them
+# on shared axes below compares quantities that are not in the same units. The
+# per-organism regressions are meaningful; the combined plot is not.
 dose_rates <- c(19.4, 22.2, 22.6, 22.8, 23.1, 23.8, 24.6, 24.9, 24.6, 23.9, 21.3, 18.3, 15.3, 12.7, 10.5,
                 8.7, 5.9, 4.0, 1.8, 0.8, 0.3, 0.13, 0.06)
 kill_freq_per_year_bs <- c(2.1, 3.9, 3.9, 3.8, 3.8, 3.8, 3.8, 4.4, 4.5, 4.5, 4.4, 4.0, 3.6, 3.2, 2.8, 2.4, 1.8, 1.3, 0.62, 0.29, 0.13, 0.05, 0.02)
@@ -20,8 +44,8 @@ radiation_susceptibility_data_longer <- pivot_longer(radiation_susceptibility_da
 ggplot(radiation_susceptibility_data_longer, aes(x = dose_rates, y = kill_frequency, color = group)) + 
   geom_point() + 
   geom_smooth(method = "lm", se = FALSE) +
-  xlab("Radiation dose recieved [Gy]") +
-  ylab("Kill frequency of the cells per year") +
+  xlab("GCR dose rate [cGy/year]") +
+  ylab("Kill frequency [x 1e-5/yr for bs, x 1e-6/yr for dr]") +
   ggtitle("Linear regression for estimation of radiation susceptibility coefficient")
 
 #coefficent extraction for linear regression

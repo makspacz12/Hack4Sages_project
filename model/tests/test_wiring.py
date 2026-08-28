@@ -379,33 +379,79 @@ class TestSurvivalTimesAgainstLiterature(unittest.TestCase):
         dose = gcr_surface * transmitted_fraction + internal
         return math.log(2.0) / (coeff * dose) / 1e6
 
-    def test_survival_times_are_on_the_demo_scale(self):
+    def time_to_one_in_a_million_myr(self, transmitted_fraction):
         """
-        DEMO c_rad (~1e-6) + GCR gives metre-scale half-lives of order
-        1-100 Myr. Literature D10 band (~6e-4) would be ~50–100× shorter —
-        see biology.constants.
+        Mileikowsky reports survival as the time to reach N/N0 = 1e-6, so
+        compare on his threshold rather than on a half-life.
         """
-        self.assertGreater(self.half_life_myr(0.115), 1.0)
-        self.assertLess(self.half_life_myr(0.115), 100.0)
+        import math
+
+        return self.half_life_myr(transmitted_fraction) * math.log(1e6) / math.log(2.0)
+
+    def test_survival_times_match_the_published_table(self):
+        """
+        At roughly 300 g/cm^2 of shielding - about a metre of 3 g/cm^3 rock,
+        which transmits ~0.115 of the surface cosmic-ray dose - Mileikowsky's
+        table gives 4.0 cGy/yr and a B. subtilis kill frequency of 1.3e-5/yr,
+        so N/N0 = 1e-6 after about 1.1 Myr. Agreement to a factor of a few is
+        all a single-coefficient model can support.
+        """
+        got = self.time_to_one_in_a_million_myr(0.115)
+        self.assertGreater(got, 0.3)
+        self.assertLess(got, 10.0)
+
+    def test_the_demo_under_tune_would_fail_this(self):
+        """
+        The old runtime band of 1e-6 to 1e-5 put the same figure near 300 Myr,
+        two to three orders above the table. It was described in-code as an
+        engineering under-tune; this test is what makes that unavailable.
+        """
+        import math
+
+        dose = 0.194 * 0.115 + 1.0e-3
+        demo = math.log(2.0) / (3.16e-6 * dose) / 1e6 * math.log(1e6) / math.log(2.0)
+        self.assertGreater(demo, 100.0)
 
     def test_bigger_fragments_protect_for_longer(self):
         self.assertLess(self.half_life_myr(1.0), self.half_life_myr(0.115))
 
-    def test_runtime_samples_demo_band_not_literature_d10(self):
-        """Runtime = DEMO 1e-6…1e-5; literature 3.6e-4…1e-3 stays as named aliases."""
+    def test_the_coefficient_is_read_off_the_published_table(self):
+        """
+        Guards both historical misreadings of the same source table: taking the
+        R script's raw regression slopes as 1/Gy (1e3-1e4 too high), and the
+        demo under-tune that replaced them (11x-250x too low).
+        """
         import inspect
 
         from microbe_radiation_model.biology import constants as bio
         from microbe_radiation_model.impacts import mars_impact
 
-        self.assertAlmostEqual(bio.RADIATION_SURV_COEFF_MIN_PER_GY, 1e-6)
-        self.assertAlmostEqual(bio.RADIATION_SURV_COEFF_MAX_PER_GY, 1e-5)
-        self.assertAlmostEqual(bio.LITERATURE_RADIATION_SURV_COEFF_MIN_PER_GY, 3.6e-4)
-        self.assertAlmostEqual(bio.LITERATURE_RADIATION_SURV_COEFF_MAX_PER_GY, 1.0e-3)
+        # sigma-F = 2.50e-6 /yr at 1 cGy/yr for B. subtilis wild-type spores.
+        self.assertAlmostEqual(bio.DEFAULT_RADIATION_SURV_COEFF_PER_GY, 2.5e-4)
+        self.assertAlmostEqual(bio.RADIATION_SURV_COEFF_MIN_PER_GY, 2.5e-5)
+        self.assertAlmostEqual(bio.RADIATION_SURV_COEFF_MAX_PER_GY, 4.3e-4)
+
+        # The whole sampled band must sit inside the published span.
+        self.assertGreaterEqual(bio.RADIATION_SURV_COEFF_MIN_PER_GY, 1e-5)
+        self.assertLessEqual(bio.RADIATION_SURV_COEFF_MAX_PER_GY, 1e-3)
+
         source = inspect.getsource(mars_impact)
         self.assertIn("RADIATION_SURV_COEFF_MIN_PER_GY", source)
         self.assertNotIn("rng.uniform(0.157, 0.441)", source)
-        self.assertNotIn("LITERATURE_RADIATION_SURV_COEFF_MIN_PER_GY", source)
+        self.assertNotIn("rng.uniform(1e-6, 1e-5)", source)
+
+    def test_the_acute_band_is_kept_separate_and_unused(self):
+        """
+        Acute low-LET D10 is 2-10x above the chronic values because the action
+        cross-section saturates for heavy ions. It is a reference bound, not a
+        runtime value.
+        """
+        from microbe_radiation_model.biology import constants as bio
+
+        self.assertGreater(
+            bio.ACUTE_LOW_LET_SURV_COEFF_MIN_PER_GY,
+            bio.RADIATION_SURV_COEFF_MAX_PER_GY,
+        )
 
 
 

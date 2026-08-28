@@ -262,34 +262,39 @@ def audit_coefficients() -> dict[str, Any]:
         ),
     }
 
-    # Imported rather than copied: a literal here could drift away from the
-    # value the physics actually uses, which is precisely what this block
-    # exists to prevent.
-    from .simulation.scenarios import DEFAULT_RADIATION_SURV_COEFF
-
     entries["radiation_survival_coefficient"] = {
-        "default_value": DEFAULT_RADIATION_SURV_COEFF,
-        "sampled_range": [
+        "default_value_per_gy": DEFAULT_RADIATION_SURV_COEFF_PER_GY,
+        "sampled_range_per_gy": [
             RADIATION_SURV_COEFF_MIN_PER_GY,
             RADIATION_SURV_COEFF_MAX_PER_GY,
         ],
-        "geometric_mean_default": DEFAULT_RADIATION_SURV_COEFF_PER_GY,
-        "literature_range_not_used_at_runtime": [
+        "acute_low_let_band_not_used": [
             LITERATURE_RADIATION_SURV_COEFF_MIN_PER_GY,
             LITERATURE_RADIATION_SURV_COEFF_MAX_PER_GY,
         ],
-        "module": "biology.constants / impacts.mars_impact",
+        "module": "biology.constants",
         "status": "resolved",
         "source": (
-            "Runtime DEMO band ~1e-6…1e-5 1/Gy (engineering under-tune for "
-            "demo timescales). Literature band ~3.6e-4…1.0e-3 1/Gy from "
-            "Mileikowsky et al. (2000) D10 slopes via "
-            "c_rad = (slope_per_kGy/1000)*ln(10), doi:10.1006/icar.1999.6317 "
-            "— recorded in biology.constants but not sampled."
+            "Mileikowsky, C. et al. (2000), Icarus 145(2), 391-427, "
+            "doi:10.1006/icar.1999.6317, table 'Effects of GCR and Natural "
+            "Radioactivity', as (kill frequency per year) / (dose rate in "
+            "Gy/yr). The kill-frequency columns carry header multipliers of "
+            "1e-5 (B. subtilis) and 1e-6 (D. radiodurans) and the dose column "
+            "is in cGy/yr; the reading is confirmed by the table's own "
+            "arithmetic, e.g. ln(1e6)/2.1e-5 = 0.66 Ma against a tabulated "
+            "0.66. Cross-checks against Valtonen et al. (2009), ApJ 690:210, "
+            "natural-radioactivity term 0.075/Myr, to within a factor of two."
         ),
         "note": (
-            "Literature band kills ~50–100× faster; using it in short runs "
-            "wipes populations. Dual values are intentional, not a silent bug."
+            "Runtime previously sampled 1e-6 to 1e-5, 11x to 250x too small, "
+            "described in-code as an engineering under-tune for demo "
+            "timescales. An earlier note in this file blamed the discrepancy "
+            "on the regression slopes in analysis/radiation_to_survival.R "
+            "being per Myr; that was wrong. They are per year, but the script "
+            "drops the header multiplier and the cGy conversion, which is why "
+            "they read 1e3 to 1e4 too high. c_rad is not truly constant: it "
+            "varies about 4x with shielding depth and about 3x between "
+            "species, so a single value carries a factor-of-2 systematic."
         ),
     }
 

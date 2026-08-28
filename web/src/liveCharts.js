@@ -233,6 +233,10 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
       note: `N/N₀ · ${survival.size} fragments`,
       series: withMean(survival, 'swarm mean'),
       yLabel: 'N / N₀',
+      // A surviving fraction lives in [0, 1]. Without this the axis fits
+      // itself to the data, and a run where essentially nothing dies is drawn
+      // as a collapse with 0.99950 at the bottom of the scale.
+      yDomain: [0, 1],
       yFormat: v => v.toFixed(5),
       readout: (map, i) => `mean ${fmtAt(meanAcross(map), i, 6)} · worst ${fmtWorst(map, i, 6)}`,
       source: survival,
