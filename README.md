@@ -1,25 +1,63 @@
-# Hack4Sages — Lithopanspermia Digital Twin
+# Lithopanspermia Digital Twin
 
-Live demo: **https://makspacz12.github.io/Hack4Sages_project/**
+**A computational model of interstellar microbial transfer — from impact ejection to
+arrival dose.**
 
-## What this project is
+🥇 **First place worldwide — Hack4Sages** · 🇨🇭 **Selected for presentation at ETH Zürich**
 
-Most origins-of-life research focuses on how life emerges locally within a single
-environment. An alternative view asks whether biological material can be redistributed
-between planetary systems through natural astrophysical processes.
+Live demo: **https://makspacz12.github.io/lithopanspermia-digital-twin/**
 
-The **lithopanspermia** hypothesis suggests that microorganisms embedded in rocky ejecta
-from impact events could survive interstellar travel. Although uncertain, the idea is
-grounded in known physics: ejecta can escape planetary systems, persist on interstellar
-trajectories, and experience radiation-driven decay that can be modeled probabilistically.
+---
 
-This repository is a **minimal digital twin of interstellar biological transfer**,
-combining a simplified gravitational transport model with a trajectory-dependent survival
-function. Rocky ejecta are launched from a source system and propagate toward a target
-system, carrying hypothetical microbial payloads whose survival probability decreases with
-travel time and radiation exposure. Instead of modeling one specific astrophysical system,
-we study how a small set of parameters — ejection speed, travel time, shielding — shapes
-the probability of viable arrival.
+## About
+
+Research into the origin of life has largely asked how biology arises *within* a single
+environment. Lithopanspermia asks a different question: whether living material can be
+**redistributed between planetary systems** by ordinary astrophysical processes — and, if
+so, under what conditions it could still be viable on arrival.
+
+The hypothesis is speculative in its conclusion but not in its premises. Each step is
+independently established: hypervelocity impacts eject competent rock at escape velocity;
+some fraction of that ejecta leaves the system entirely; microorganisms have documented
+tolerances to vacuum, shock and radiation; and the dose accumulated in transit can be
+computed rather than assumed. What has been missing is an end-to-end model that carries a
+fragment from the moment of ejection to the moment of arrival while tracking everything
+that happens to the life inside it.
+
+This project is that model. It couples an N-body gravitational transport layer to a
+physically explicit survival calculation, so that the outcome for any given fragment is
+traceable back to the mechanisms that produced it:
+
+- **Transport** — REBOUND integration of ejecta on escape trajectories, with impact
+  sampling, planetary perturbation, radiation pressure and dust erosion.
+- **Dose** — stellar flux and galactic cosmic rays attenuated through rock by
+  Beer–Lambert, plus the internal dose from the fragment's own U/Th/K, with the
+  finite-size correction that makes small fragments leak gamma out through their surface.
+- **Environment** — surface temperature from radiative equilibrium, interior from
+  radiogenic heating, driving DNA hydrolysis as a second kill channel alongside radiation.
+- **Survival** — an exponential inactivation model applied per fragment, per timestep,
+  against the dose that fragment actually received.
+
+Rather than simulate one named system, the model treats the problem as a parameter study:
+how do ejection speed, fragment size, shielding depth and travel time shape the
+probability of viable arrival? Parameter sweeps and one-at-a-time sensitivity analysis are
+first-class outputs, not afterthoughts.
+
+### Scientific practice
+
+The project is built to be checked rather than trusted:
+
+- **Every run carries a provenance record** — a SHA-256 digest of its complete parameter
+  set, the resolved random seed, the source commit, and a command that reproduces it
+  exactly. Runs reproduce bit-for-bit.
+- **The physics is under test.** 196 Python and 279 JavaScript tests, anchored where
+  possible to published values rather than to the code's own outputs — the failure mode
+  that lets two compensating errors hide each other.
+- **Uncertain constants are declared, not buried.** A live coefficient audit ships inside
+  every output file, stating for each constant whether it is cited and what remains
+  unresolved. Quantities that depend on an open coefficient are marked provisional.
+
+## Repository layout
 
 ## Repository layout
 

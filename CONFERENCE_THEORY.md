@@ -13,7 +13,7 @@ Related: [`TODO.md`](TODO.md) (implementation work).
 
 Hypothesis: microorganisms in rocky fragments ejected by impacts can survive travel between stellar systems. The project does not model one specific system — it explores how a small set of parameters (ejection speed, time, shielding, size) shapes the chance of viable arrival.
 
-Live: https://makspacz12.github.io/Hack4Sages_project/
+Live: https://makspacz12.github.io/lithopanspermia-digital-twin/
 
 Pipeline:
 

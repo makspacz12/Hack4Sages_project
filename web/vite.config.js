@@ -3,7 +3,7 @@ import { defineConfig } from 'vite';
 const isGitHubPages = process.env.GITHUB_ACTIONS === 'true';
 
 export default defineConfig({
-  base: isGitHubPages ? '/Hack4Sages_project/' : '/',
+  base: isGitHubPages ? '/lithopanspermia-digital-twin/' : '/',
   root: '.',
   publicDir: 'public',
   server: {

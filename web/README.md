@@ -77,7 +77,7 @@ index.html?replay=data/test_replay.json
 | Entry point | `main.js` |
 
 Paths are resolved through `import.meta.env.BASE_URL`, so the same build works at the
-site root during development and under `/Hack4Sages_project/` on GitHub Pages.
+site root during development and under `/lithopanspermia-digital-twin/` on GitHub Pages.
 
 ## Tests
 
