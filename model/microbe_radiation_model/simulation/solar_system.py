@@ -11,7 +11,7 @@ from urllib.request import urlretrieve
 
 from astropy import units as u
 from astropy.constants import R_earth, R_jup, R_sun
-from astropy.time import Time
+from datetime import datetime
 
 from .solar_system_cache import load_cached_solar_system, write_cached_solar_system
 
@@ -109,8 +109,10 @@ def build_full_ephemeris_solar_system(sim: Any, config: SolarSystemBuildConfig) 
     for path in kernel_paths:
         sp.furnsh(str(path))
 
-    obs_time = Time(config.observation_time_utc, scale="utc")
-    _ = sp.utc2et(obs_time.utc.isot)
+    # astropy.time only parsed this string; datetime does it without pulling in
+    # a C extension that some Windows policies refuse to load.
+    obs_time = datetime.fromisoformat(config.observation_time_utc.replace("Z", "+00:00"))
+    _ = sp.utc2et(obs_time.isoformat())
     return _add_horizons_solar_system(
         sim=sim,
         observation_time_utc=config.observation_time_utc,
@@ -161,8 +163,8 @@ def _add_horizons_solar_system(
         if cached_names is not None:
             return cached_names
 
-    obs_time = Time(observation_time_utc, scale="utc")
-    date_str = obs_time.utc.datetime.strftime("%Y-%m-%d %H:%M")
+    obs_time = datetime.fromisoformat(observation_time_utc.replace("Z", "+00:00"))
+    date_str = obs_time.strftime("%Y-%m-%d %H:%M")
 
     sim.add("Sun")
     planet_names: list[str] = []

@@ -10,9 +10,9 @@ from typing import Any, Sequence
 
 import numpy as np
 from astropy import units as u
-from astropy.coordinates import SkyCoord
 from astropy.table import Table
-from astropy.time import Time
+
+from .icrs_transform import icrs_position_au, icrs_velocity_au_per_year
 
 
 GAIA_MAIN_TABLE = "gaiadr3.gaia_source"
@@ -220,15 +220,11 @@ def prepare_gaia_table(table: Table) -> Table:
 
     prepared = ensure_distance_pc_column(table).copy()
 
-    coords = SkyCoord(
-        ra=_column_to_float_array(prepared, "ra") * u.deg,
-        dec=_column_to_float_array(prepared, "dec") * u.deg,
-        distance=_column_to_float_array(prepared, "distance_pc") * u.pc,
+    x_au, y_au, z_au = icrs_position_au(
+        _column_to_float_array(prepared, "ra"),
+        _column_to_float_array(prepared, "dec"),
+        _column_to_float_array(prepared, "distance_pc"),
     )
-    cart = coords.cartesian
-    x_au = cart.x.to(u.au).value
-    y_au = cart.y.to(u.au).value
-    z_au = cart.z.to(u.au).value
 
     vx_auyr = np.zeros(len(prepared), dtype=float)
     vy_auyr = np.zeros(len(prepared), dtype=float)
@@ -241,21 +237,16 @@ def prepare_gaia_table(table: Table) -> Table:
 
     if mask_pm.any():
         rv_eff = np.where(np.isnan(radial_velocity), 0.0, radial_velocity)
-        coords_vel = SkyCoord(
-            ra=_column_to_float_array(prepared, "ra")[mask_pm] * u.deg,
-            dec=_column_to_float_array(prepared, "dec")[mask_pm] * u.deg,
-            distance=_column_to_float_array(prepared, "distance_pc")[mask_pm] * u.pc,
-            pm_ra_cosdec=pmra[mask_pm] * u.mas / u.yr,
-            pm_dec=pmdec[mask_pm] * u.mas / u.yr,
-            radial_velocity=rv_eff[mask_pm] * u.km / u.s,
-            obstime=Time("J2000"),
+        vx_auyr[mask_pm], vy_auyr[mask_pm], vz_auyr[mask_pm] = (
+            icrs_velocity_au_per_year(
+                _column_to_float_array(prepared, "ra")[mask_pm],
+                _column_to_float_array(prepared, "dec")[mask_pm],
+                _column_to_float_array(prepared, "distance_pc")[mask_pm],
+                pmra[mask_pm],
+                pmdec[mask_pm],
+                rv_eff[mask_pm],
+            )
         )
-        cart_vel = coords_vel.cartesian
-        if "s" in cart_vel.differentials:
-            diff = cart_vel.differentials["s"]
-            vx_auyr[mask_pm] = diff.d_x.to(u.au / u.yr).value
-            vy_auyr[mask_pm] = diff.d_y.to(u.au / u.yr).value
-            vz_auyr[mask_pm] = diff.d_z.to(u.au / u.yr).value
 
     (
         star_masses,
