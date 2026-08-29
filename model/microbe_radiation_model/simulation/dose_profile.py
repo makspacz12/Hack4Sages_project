@@ -151,6 +151,21 @@ def profile_payload(
         "cosmic_ray_attenuation_depth_m": attenuation_depth_m(
             effective_gcr(), rock_material.density,
         ),
+        # The biological core attenuates on its own terms, and the curve is
+        # NOT a single exponential because of it: outside the core the path is
+        # rock, inside it the path is rock down to the core plus core material
+        # the rest of the way. Without these two numbers a reader - or the
+        # browser - can reproduce the curve near the surface and gets it wrong
+        # at the centre, which is the half that decides whether the microbes
+        # live. Photons see the core's own coefficient; charged particles see
+        # the substituted one, in the core exactly as in the rock.
+        "bio_density_kg_m3": float(bio_material.density),
+        "bio_photon_attenuation_depth_m": attenuation_depth_m(
+            bio_material.k, bio_material.density,
+        ),
+        "bio_cosmic_ray_attenuation_depth_m": attenuation_depth_m(
+            effective_gcr(), bio_material.density,
+        ),
         "samples": [
             {
                 "depth_m": s.depth_m,

@@ -109,10 +109,20 @@ def create_mars_impact(sim, config: ImpactEjectaConfig | None = None) -> ImpactR
             vz=vz[idx],
         )
 
-        # Radiation inactivation [1/Gy]. Runtime = DEMO band (1e-6…1e-5) so
-        # cells do not die too fast in short runs. Literature D10 band
-        # (≈3.6e-4…1.0e-3 1/Gy) is documented next to the constants in
-        # biology.constants — not sampled here.
+        # Radiation inactivation [1/Gy], drawn per fragment to stand for the
+        # organism it carries.
+        #
+        # The band is the CHRONIC one read off Mileikowsky et al. (2000):
+        # 2.5e-5 (D. radiodurans, shallow) to 4.3e-4 (B. subtilis, 600 g/cm^2).
+        # See biology.constants for the derivation and for the two ways the
+        # source table can be misread.
+        #
+        # This comment used to describe a demo band of 1e-6 to 1e-5 and say the
+        # literature values were "not sampled here". Both halves stopped being
+        # true when the constants were corrected; the sampling call below has
+        # been reading the published band ever since. A comment that describes
+        # neither the old behaviour nor the new one is worse than no comment,
+        # because it is the thing a reader trusts.
         if fixed_coeff is not None:
             radiation_surv_coeff = fixed_coeff
         else:

@@ -14,7 +14,7 @@
 
 import { liveLinePlot, fmt } from './charts/plot.js';
 import {
-  depthProfileChart, parseDepthProfile, penetrationRatio,
+  depthProfileChart, parseDepthProfile, penetrationRatio, profileForFragment,
 } from './charts/depthProfile.js';
 import {
   openChartWindow, redrawChartWindows, selectInChartWindows, updateChartWindows,
@@ -632,6 +632,7 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
     selectedId = selectedId === id ? null : id;
     for (const item of live) item.chart?.setSelected(selectedId);
     modal?.chart?.setSelected(selectedId);
+    paintDepthProfile();
     selectInChartWindows(selectedId);
     paintSelection();
     if (selectedId) onSelectFragment?.(selectedId);
@@ -765,30 +766,64 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
    * it is the only figure here that explains the outcome rather than reporting
    * it.
    */
+  // The depth figure is the only one that explains the MECHANISM rather than
+  // reporting an outcome, and it was drawing a configured half-metre stone at
+  // 3460 kg/m3 that appears nowhere in the swarm. It now follows the selection.
+  const baseProfile = parseDepthProfile(simData);
+  let depthFig = null;
+
+  /** The property record of the selected fragment at the current frame. */
+  function selectedProp() {
+    if (!selectedId) return null;
+    for (let i = Math.min(frameIndex, frames.length - 1); i >= 0; i -= 1) {
+      const hit = (frames[i]?.properties ?? []).find(x => x?.id === selectedId);
+      if (hit) return hit;
+    }
+    return null;
+  }
+
   function renderDepthProfile() {
-    const profile = parseDepthProfile(simData);
-    if (!profile) return;
+    if (!baseProfile) return;
     const fig = document.createElement('figure');
     fig.className = 'lc-fig lc-depth';
-    const ratio = penetrationRatio(profile);
     fig.innerHTML = `
       <figcaption>
         <div class="lc-fig-title">Shielding against depth</div>
-        <div class="lc-fig-note">
-          static · ${profile.rockRadius} m fragment${profile.rockType ? ` · ${profile.rockType}` : ''}
-        </div>
+        <div class="lc-fig-note"></div>
       </figcaption>
       <div class="lc-depth-plot"></div>
-      <div class="lc-readout">${
-        ratio
-          ? `cosmic rays reach ${ratio.toFixed(0)}× deeper than photons `
-            + `(1/e at ${profile.cosmicDepth.toFixed(3)} m vs `
-            + `${profile.photonDepth.toFixed(3)} m)`
-          : ''
-      }</div>
+      <div class="lc-readout"></div>
     `;
     body.appendChild(fig);
-    depthProfileChart(fig.querySelector('.lc-depth-plot'), profile, {
+    depthFig = fig;
+    paintDepthProfile();
+  }
+
+  /** Redraw the depth figure for whichever fragment is selected. */
+  function paintDepthProfile() {
+    if (!depthFig || !baseProfile) return;
+    const prop = selectedProp();
+    const profile = prop ? profileForFragment(baseProfile, prop) : baseProfile;
+    const ratio = penetrationRatio(profile);
+    const rho = profile.density ? `${profile.density.toFixed(0)} kg/m³` : '';
+
+    depthFig.querySelector('.lc-fig-note').textContent = prop
+      ? `${selectedId.replace('asteroid_', 'fragment ')} · `
+        + `${profile.rockRadius.toFixed(3)} m · ${profile.rockType} · ${rho}`
+      : `no fragment selected · configured ${baseProfile.rockRadius} m reference `
+        + `stone at ${rho} — click a fragment to use a real one`;
+
+    // The transmitted fraction at the centre is the number that decides
+    // whether shielding matters for THIS stone, and it is the number the
+    // static version could never give.
+    const core = profile.samples.at(-1);
+    depthFig.querySelector('.lc-readout').textContent = ratio
+      ? `cosmic rays reach ${ratio.toFixed(0)}× deeper than photons `
+        + `(1/e at ${profile.cosmicDepth.toFixed(3)} m vs ${profile.photonDepth.toFixed(3)} m)`
+        + ` · centre keeps ${(core.cosmic * 100).toFixed(1)}% of the cosmic-ray flux`
+      : '';
+
+    depthProfileChart(depthFig.querySelector('.lc-depth-plot'), profile, {
       width: 300, height: 190,
     });
   }

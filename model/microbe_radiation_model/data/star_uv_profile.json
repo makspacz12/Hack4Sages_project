@@ -47,16 +47,16 @@
   },
   "provenance": {
     "schema_version": "1.0",
-    "generated_utc": "2026-08-29T08:34:23+00:00",
+    "generated_utc": "2026-08-29T20:48:28+00:00",
     "scenario": "mars_ejecta_pipeline",
-    "seed": 7,
+    "seed": 20260829,
     "source": {
       "available": true,
-      "commit": "2115af51037d8979e4944c5d1d89ce2ac6299bec",
-      "commit_short": "2115af51037d",
+      "commit": "1db27e62dc14a107775bb8d21fe590dd3d256916",
+      "commit_short": "1db27e62dc14",
       "branch": "main",
       "dirty": true,
-      "describe": "2115af51-dirty"
+      "describe": "1db27e62-dirty"
     },
     "environment": {
       "python": "3.14.4",
@@ -89,9 +89,9 @@
         "rock_thermal_conductivity_w_mk": 2.0
       },
       "run": {
-        "dt_yr": 0.5,
-        "n_steps": 7,
-        "integration_substeps": 2,
+        "dt_yr": 20.0,
+        "n_steps": 151,
+        "integration_substeps": 3,
         "add_test_particle": false,
         "gaia": {
           "mode": "csv",
@@ -135,11 +135,11 @@
         },
         "impact": {
           "enabled": true,
-          "n_asteroids": 8,
+          "n_asteroids": 14,
           "mars_index": 4,
           "cone_half_angle": 60.0,
           "v_min_kms": 5.03,
-          "v_max_kms": 40.0,
+          "v_max_kms": 20.0,
           "alpha_v": 2.5,
           "radius_min_m": 0.001,
           "radius_max_m": 5.0,
@@ -153,7 +153,7 @@
             0.0,
             180.0
           ],
-          "seed": 7
+          "seed": 20260829
         },
         "thermal": {
           "enabled": true,
@@ -183,8 +183,8 @@
       },
       "overrides": null
     },
-    "parameters_sha256": "cc5c8b965f53286c70a8ee298eb7b1e2a1851ba56be8e3409b308753e107cfcd",
-    "reproduce": "python -m microbe_radiation_model --asteroids 8 --years 3 --dt 0.5 --substeps 2 --seed 7 --v-min 5.03 --v-max 40 --cone-angle 60 --fragment-radius 0.5 --bio-fraction 0.01 --dust-flux 1e-12",
+    "parameters_sha256": "08f337972cef5995b63ba53cd7e4858f07515ca63703681c010bff5c1554441f",
+    "reproduce": "python -m microbe_radiation_model --asteroids 14 --years 3000 --dt 20 --substeps 3 --seed 20260829 --v-min 5.03 --v-max 20 --cone-angle 60 --fragment-radius 0.5 --bio-fraction 0.01 --dust-flux 1e-12",
     "coefficients_under_audit": {
       "note": "These coefficients are not settled. Trends and relative comparisons in this file are meaningful; absolute doses and survival fractions are provisional.",
       "unresolved_count": 1,
@@ -253,8 +253,8 @@
       "reproduce": "Run this to regenerate the file."
     },
     "scenario_details": {
-      "frames": 7,
-      "objects": 67
+      "frames": 151,
+      "objects": 73
     }
   }
 }

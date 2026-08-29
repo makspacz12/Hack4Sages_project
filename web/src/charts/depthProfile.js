@@ -34,6 +34,12 @@ export function parseDepthProfile(payload) {
     density: p.density_kg_m3,
     photonDepth: p.photon_attenuation_depth_m,
     cosmicDepth: p.cosmic_ray_attenuation_depth_m,
+    // The biological core is a second material with its own coefficients.
+    // Older replays predate these fields; callers fall back to the exported
+    // samples rather than guessing at them.
+    bioDensity: p.bio_density_kg_m3 ?? null,
+    bioPhotonDepth: p.bio_photon_attenuation_depth_m ?? null,
+    bioCosmicDepth: p.bio_cosmic_ray_attenuation_depth_m ?? null,
     samples,
   };
 }
@@ -210,4 +216,101 @@ export function depthProfileChart(container, profile, options = {}) {
 
   container.appendChild(svg);
   return svg;
+}
+
+/**
+ * Density of a fragment, recovered from its exported mass and radius.
+ *
+ * The replay does not carry density directly, but it carries both mass and
+ * radius, and the fragments are modelled as homogeneous spheres. The values
+ * this recovers are constant within a rock type across the whole swarm - 4172
+ * for iron-nickel, 1190 for CI chondrite, 2162 for ice-rich - which is the
+ * check that the recovery is exact rather than approximately right.
+ */
+export function fragmentDensity(prop) {
+  const r = prop?.radius;
+  const m = prop?.mass;
+  if (!(r > 0) || !(m > 0)) return null;
+  return m / ((4 / 3) * Math.PI * r ** 3);
+}
+
+/**
+ * Re-cast the depth profile for one actual fragment of the swarm.
+ *
+ * The exported profile describes a single configured stone: half a metre
+ * across at 3460 kg/m3. No fragment in the run is that stone - the radii span
+ * 0.027 to 0.799 m and the densities 1190 to 4172 - so the one figure that
+ * explains the mechanism was explaining a rock that is not in the simulation.
+ *
+ * The rescaling is exact rather than a redraw, but it is NOT one exponential.
+ * The stone has two materials: rock down to the biological core, then core
+ * material the rest of the way, each with its own attenuation length. The
+ * first version of this function assumed a single exponential and matched the
+ * exported curve to twelve digits near the surface while being wrong by a
+ * quarter at the centre - which is the half that decides whether the microbes
+ * live. The test that caught it is still there.
+ *
+ * Attenuation length is Lambda = 1/(k*rho), and k is one configured constant
+ * for every rock type in this model, so the rock lengths scale as the inverse
+ * of the fragment's density; the core material is identical in every fragment,
+ * so its length does not scale.
+ *
+ * Attaching it to the selected fragment turns a static caption into the
+ * argument the chart exists to make: click the 27 mm silicate and the curve
+ * barely moves across the whole stone; click the 799 mm ice-rich one and it
+ * falls by decades. Size is the variable, and now you can see it being the
+ * variable.
+ */
+export function profileForFragment(base, prop, { samples = 40 } = {}) {
+  if (!base) return null;
+  const radius = prop?.radius;
+  const density = fragmentDensity(prop);
+  if (!(radius > 0) || !(density > 0) || !(base.density > 0)) return base;
+  // Without the core's coefficients the curve cannot be reproduced past the
+  // core boundary. Returning the exported profile is the honest fallback:
+  // wrong stone, but not a wrong curve.
+  if (!(base.bioPhotonDepth > 0) || !(base.bioCosmicDepth > 0)) return base;
+
+  // Lambda = 1/(k*rho) and k is one configured constant for every rock type in
+  // this model, so only density varies and the rock lengths scale as 1/rho.
+  // The core material is identical in every fragment, so its lengths do not
+  // scale at all.
+  const scale = base.density / density;
+  const photonDepth = base.photonDepth * scale;
+  const cosmicDepth = base.cosmicDepth * scale;
+  // Keep the core's share of the stone rather than its absolute size: the
+  // biological core is a mass fraction, so it grows with the fragment.
+  const bioFraction = base.rockRadius > 0 ? base.bioRadius / base.rockRadius : 0;
+  const bioRadius = radius * bioFraction;
+  const shell = radius - bioRadius;
+
+  /** Two-material Beer-Lambert along one radius, surface inward. */
+  const transmit = (depth, rockLambda, bioLambda) => {
+    if (depth <= shell) return Math.exp(-depth / rockLambda);
+    return Math.exp(-shell / rockLambda) * Math.exp(-(depth - shell) / bioLambda);
+  };
+
+  const out = [];
+  for (let i = 0; i < samples; i += 1) {
+    const depth = (radius * i) / (samples - 1);
+    out.push({
+      depth,
+      radiusFraction: 1 - i / (samples - 1),
+      photon: transmit(depth, photonDepth, base.bioPhotonDepth),
+      cosmic: transmit(depth, cosmicDepth, base.bioCosmicDepth),
+    });
+  }
+  return {
+    rockType: prop?.rock_type ?? base.rockType,
+    rockRadius: radius,
+    bioRadius,
+    density,
+    photonDepth,
+    cosmicDepth,
+    bioDensity: base.bioDensity,
+    bioPhotonDepth: base.bioPhotonDepth,
+    bioCosmicDepth: base.bioCosmicDepth,
+    samples: out,
+    fragmentId: prop?.id ?? null,
+  };
 }

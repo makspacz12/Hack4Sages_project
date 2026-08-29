@@ -47,16 +47,16 @@
   },
   "provenance": {
     "schema_version": "1.0",
-    "generated_utc": "2026-08-28T23:12:18+00:00",
+    "generated_utc": "2026-08-29T20:48:28+00:00",
     "scenario": "mars_ejecta_pipeline",
     "seed": 20260829,
     "source": {
       "available": true,
-      "commit": "23bb77ed15ceea8be5a67ea01bef9002bfa48805",
-      "commit_short": "23bb77ed15ce",
+      "commit": "1db27e62dc14a107775bb8d21fe590dd3d256916",
+      "commit_short": "1db27e62dc14",
       "branch": "main",
       "dirty": true,
-      "describe": "23bb77ed-dirty"
+      "describe": "1db27e62-dirty"
     },
     "environment": {
       "python": "3.14.4",
@@ -141,8 +141,8 @@
           "v_min_kms": 5.03,
           "v_max_kms": 20.0,
           "alpha_v": 2.5,
-          "radius_min_m": 0.02,
-          "radius_max_m": 2.5,
+          "radius_min_m": 0.001,
+          "radius_max_m": 5.0,
           "q_size": 2.0,
           "size_velocity_corr": true,
           "spin_period_range": [
@@ -180,9 +180,10 @@
             10.0
           ]
         }
-      }
+      },
+      "overrides": null
     },
-    "parameters_sha256": "6501f241e70c6a0612fe2de94656167dd6f366a7754f6ebc60597d20d3fdd8f9",
+    "parameters_sha256": "08f337972cef5995b63ba53cd7e4858f07515ca63703681c010bff5c1554441f",
     "reproduce": "python -m microbe_radiation_model --asteroids 14 --years 3000 --dt 20 --substeps 3 --seed 20260829 --v-min 5.03 --v-max 20 --cone-angle 60 --fragment-radius 0.5 --bio-fraction 0.01 --dust-flux 1e-12",
     "coefficients_under_audit": {
       "note": "These coefficients are not settled. Trends and relative comparisons in this file are meaningful; absolute doses and survival fractions are provisional.",

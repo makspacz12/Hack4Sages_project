@@ -143,6 +143,57 @@ class TestPayload(unittest.TestCase):
         self.assertGreater(p["cosmic_ray_attenuation_depth_m"],
                            p["photon_attenuation_depth_m"])
 
+    def test_it_carries_the_core_material_too(self):
+        """
+        The curve is two materials, and a consumer needs both to reproduce it.
+
+        This is not bookkeeping. The browser rebuilds this profile for whichever
+        fragment the reader selects, and a first version of that code assumed a
+        single exponential. It matched the exported curve to twelve digits near
+        the surface and was wrong by a quarter at the centre - the half that
+        decides whether anything inside survives. These three fields are what
+        make the reconstruction exact rather than plausible.
+        """
+        p = self.payload()
+        for key in (
+            "bio_density_kg_m3",
+            "bio_photon_attenuation_depth_m",
+            "bio_cosmic_ray_attenuation_depth_m",
+        ):
+            self.assertIn(key, p)
+            self.assertGreater(p[key], 0.0)
+
+    def test_the_curve_is_not_a_single_exponential(self):
+        """
+        Guards the assumption the browser reconstruction is allowed to make.
+
+        Outside the biological core the profile IS exp(-depth/Lambda_rock), and
+        the reconstruction relies on that. Inside the core it is not, and the
+        reconstruction relies on that too. If the geometry ever changes so that
+        one exponential fits the whole radius, the reconstruction is still
+        right but this test is the place that says so out loud.
+        """
+        import math
+
+        p = self.payload()
+        lam = p["cosmic_ray_attenuation_depth_m"]
+        shell = p["rock_radius_m"] - p["bio_radius_m"]
+
+        outside = [s for s in p["samples"] if s["depth_m"] <= shell]
+        self.assertGreater(len(outside), 1)
+        for s in outside:
+            self.assertAlmostEqual(
+                s["cosmic_ray_fraction"], math.exp(-s["depth_m"] / lam), places=12,
+            )
+
+        centre = p["samples"][-1]
+        self.assertAlmostEqual(centre["depth_m"], p["rock_radius_m"], places=12)
+        # The core is less dense than the rock, so it attenuates less and the
+        # true centre value sits ABOVE the single-exponential extrapolation.
+        self.assertGreater(
+            centre["cosmic_ray_fraction"], math.exp(-centre["depth_m"] / lam),
+        )
+
     def test_it_is_plain_json_types(self):
         import json
 
