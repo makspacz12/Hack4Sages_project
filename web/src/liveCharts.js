@@ -19,6 +19,7 @@ import {
 import {
   openChartWindow, redrawChartWindows, selectInChartWindows, updateChartWindows,
 } from './charts/popout.js';
+import { provenancePanel } from './charts/provenancePanel.js';
 import {
   COEFF_BANDS, bandFor, cumulativeDoseSeries, sampledCoefficients,
   supportsRescaling, survivalAtCoefficient,
@@ -722,6 +723,11 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
     document.body.append(panel, toggle);
     renderAll();
     renderDepthProfile();
+    // Last, deliberately: it describes the run the charts above came from, so
+    // it reads as a footer to them rather than as a control.
+    const prov = document.createElement('div');
+    body.appendChild(prov);
+    provenancePanel(prov, simData);
     const slider = panel.querySelector('.lc-coeff-slider');
     const reset = panel.querySelector('.lc-coeff-reset');
     if (slider) {
