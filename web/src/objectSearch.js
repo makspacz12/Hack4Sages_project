@@ -14,7 +14,7 @@ function injectStyles() {
   s.textContent = `
     #obj-search-panel {
       position: fixed;
-      top: 52px; right: 300px;
+      top: calc(var(--headline-h, 0px) + 52px); right: 300px;
       width: 240px;
       max-height: calc(100vh - 120px);
       background: rgba(20, 16, 14, 0.94);

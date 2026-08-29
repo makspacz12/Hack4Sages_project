@@ -4,6 +4,7 @@ import {
   orbitalEnergySeries, fateCounts, SUN_MU_AU3_YR2,
 } from '../src/charts/series.js';
 import { doseBudget, doseBudgetRatio } from '../src/charts/doseModel.js';
+import sim from '../public/data/cosmos_visualizer_simulation.json';
 
 /** A replay frame with one fragment at radius r moving at speed v. */
 function frame(time, r, v, extra = {}) {
@@ -90,8 +91,7 @@ describe('doseBudget', () => {
     expect(doseBudgetRatio({ gcr: [[0, 1]], decay: [[0, 0]] })).toBeNull();
   });
 
-  it('gives the shipped replay the ratio the note advertises', async () => {
-    const sim = (await import('../public/data/cosmos_visualizer_simulation.json')).default;
+  it('gives the shipped replay the ratio the note advertises', () => {
     const r = doseBudgetRatio(doseBudget(sim.frames));
     // Cosmic rays dominate internal U/Th/K decay by about four orders of
     // magnitude. If this ever falls below 100 the log axis is the wrong choice

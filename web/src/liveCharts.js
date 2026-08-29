@@ -20,6 +20,7 @@ import {
   openChartWindow, redrawChartWindows, selectInChartWindows, updateChartWindows,
 } from './charts/popout.js';
 import { provenancePanel } from './charts/provenancePanel.js';
+import { headlineBanner } from './charts/headlineBanner.js';
 import {
   COEFF_BANDS, bandFor, cumulativeDoseSeries, sampledCoefficients,
   supportsRescaling, survivalAtCoefficient, doseBudget, doseBudgetRatio,
@@ -129,6 +130,52 @@ export function rockTypeById(frames) {
     }
   }
   return out;
+}
+
+/**
+ * Two layout defects that only show up once both panels are open.
+ *
+ * The object inspector sits at right:16 with width 270 and z-index 800; this
+ * dock sits at right:0 with width 330 and z-index 860. The inspector is
+ * therefore entirely inside the dock's footprint and underneath it, so
+ * clicking a fragment in the 3D scene filled a panel nobody could see. It is
+ * moved clear of the dock whenever the dock is open, rather than being given a
+ * higher z-index, because stacking two panels on the same pixels helps no one.
+ *
+ * The headline band also has to push the top-anchored chrome down, or it
+ * covers the very controls it sits above.
+ */
+function injectLayoutFixes(banner) {
+  if (!document.getElementById('lc-layout-fix')) {
+    const s = document.createElement('style');
+    s.id = 'lc-layout-fix';
+    // Everything top-anchored is pushed below the band by its MEASURED height,
+    // not a hard-coded one. The band wraps differently at different widths -
+    // it was 138px where a guessed 104px had been assumed, so the dock header
+    // and both toggle buttons sat underneath it.
+    s.textContent = `
+      body.charts-docked #info-panel,
+      body.charts-docked #obj-search-panel { right: 346px; }
+      #info-panel, #obj-search-panel, #focus-hud, #ui {
+        top: calc(var(--headline-h, 0px) + 16px);
+      }
+      #btn-live-charts { top: calc(var(--headline-h, 0px) + 14px); }
+      #live-charts { top: var(--headline-h, 0px); }
+    `;
+    document.head.appendChild(s);
+  }
+  if (!banner?.root) return;
+  const measure = () => {
+    const h = banner.root.getBoundingClientRect().height;
+    document.documentElement.style.setProperty('--headline-h', `${Math.ceil(h)}px`);
+  };
+  measure();
+  // The band reflows with the window, so the offset has to follow it.
+  if (typeof ResizeObserver === 'function') {
+    new ResizeObserver(measure).observe(banner.root);
+  } else {
+    window.addEventListener('resize', measure);
+  }
 }
 
 function injectStyles() {
@@ -830,6 +877,12 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
 
   function mount() {
     document.body.append(panel, toggle);
+    // The band goes up first and spans the window: everything below it is a
+    // supporting argument for the number it states.
+    const banner = headlineBanner(document.body, simData, {
+      cMin: COEFF_BANDS.chronicMin, cMax: COEFF_BANDS.chronicMax,
+    });
+    injectLayoutFixes(banner);
     renderAll();
     renderDepthProfile();
     // Last, deliberately: it describes the run the charts above came from, so

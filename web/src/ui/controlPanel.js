@@ -22,7 +22,10 @@ function injectStyles() {
   s.id = 'control-panel-style';
   s.textContent = `
     #run-console {
-      position: fixed; top: 0; left: 0; bottom: var(--rail-h);
+      /* Sits below the headline band, whose height is measured at runtime and
+         published as --headline-h. Defaults to 0 so this panel is still
+         positioned correctly on pages that carry no band. */
+      position: fixed; top: var(--headline-h, 0px); left: 0; bottom: var(--rail-h);
       width: var(--panel-w); z-index: 880;
       background: var(--bg-panel);
       border-right: 1px solid var(--line-edge);
