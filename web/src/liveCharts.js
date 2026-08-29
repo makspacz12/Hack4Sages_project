@@ -22,10 +22,12 @@ import {
 import { provenancePanel } from './charts/provenancePanel.js';
 import {
   COEFF_BANDS, bandFor, cumulativeDoseSeries, sampledCoefficients,
-  supportsRescaling, survivalAtCoefficient,
+  supportsRescaling, survivalAtCoefficient, doseBudget, doseBudgetRatio,
+  formatMultiplicative,
 } from './charts/doseModel.js';
 import {
-  fragmentSeries, meanAcross, relativeChangePpm, distanceFromBody, speedSeries,
+  fragmentSeries, meanAcross, relativeChangePpm, distanceFromBody,
+  orbitalEnergySeries, fateCounts,
 } from './charts/series.js';
 
 const PALETTE = {
@@ -36,6 +38,15 @@ const PALETTE = {
   trace: '#e2683c',      // iron oxide - fallback when the rock type is unknown
   mean: '#f2ebe4',       // regolith, lit - the aggregate
   selected: '#45c2ca',   // instrument teal - what you are pointing at
+  // A second data channel that is NOT a rock class and NOT the aggregate: the
+  // internal decay dose beside the cosmic-ray dose. Measured against the
+  // regolith line on this surface it separates by dE00 28.4 under protanopia
+  // and 28.6 with normal vision, and clears 3:1 contrast; it also carries a
+  // dash, so identity never rests on hue alone.
+  secondary: '#9a8cc4',
+  // Annotations - an escape threshold, a reference level - are not data and
+  // must stay recessive, or the eye reads the guide as a result.
+  guide: '#8d7f74',
 };
 
 /**
@@ -347,7 +358,11 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
   const survival = fragmentSeries(frames, 'population_fraction');
   const distance = distanceFromBody(frames, 'sun');
   const erosion = relativeChangePpm(fragmentSeries(frames, 'radius'));
-  const speed = speedSeries(frames);
+  const energy = orbitalEnergySeries(frames);
+  const budget = doseBudget(frames);
+  const budgetRatio = doseBudgetRatio(budget);
+  const times = frames.map(f => f?.time).filter(Number.isFinite);
+  const timeSpan = times.length ? [Math.min(...times), Math.max(...times)] : [0, 1];
 
   const rockTypes = rockTypeById(frames);
 
@@ -358,8 +373,15 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
     selectedColor: PALETTE.selected,
     pickId: id,
     rockType: rockTypes.get(id) ?? null,
+    // The swarm already IS a sample of the biological uncertainty: each
+    // fragment carries its own drawn c_rad, spanning 5.0e-5 to 4.2e-4 in the
+    // shipped run. The spread on the survival chart is that uncertainty, and
+    // labelling only the rock type hid where it came from.
     label: `${id.replace('asteroid_', 'fragment ')}`
-      + (rockTypes.get(id) ? ` · ${rockTypes.get(id)}` : ''),
+      + (rockTypes.get(id) ? ` · ${rockTypes.get(id)}` : '')
+      + (sampledCoeffs.get(id)
+        ? ` · c_rad ${sampledCoeffs.get(id).toExponential(2)} 1/Gy`
+        : ''),
     rockClass: rockClassLabel(rockTypes.get(id)),
   }));
   const withMean = (map, meanName) => [
@@ -377,6 +399,16 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
   const doseSeries = cumulativeDoseSeries(frames);
   const sampledCoeffs = sampledCoefficients(frames);
   const canRescale = supportsRescaling(frames);
+
+  // The multiplicative summary of the published chronic band.
+  //
+  // The centre is the GEOMETRIC mean of the endpoints, not the default value:
+  // 2.5e-4 sits 10x above the floor and only 1.7x below the ceiling, so
+  // quoting "default x/ f" would describe a band the literature does not
+  // report. The geometric centre and sqrt(max/min) are the only pair that
+  // reproduce both endpoints exactly.
+  const bandCentre = Math.sqrt(COEFF_BANDS.chronicMin * COEFF_BANDS.chronicMax);
+  const bandFactor = Math.sqrt(COEFF_BANDS.chronicMax / COEFF_BANDS.chronicMin);
 
   // Log mapping: the range covers nearly two decades, so a linear slider would
   // spend most of its travel in the top half of the band.
@@ -421,13 +453,46 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
       source: distance,
     },
     {
-      title: 'Speed',
-      note: 'orbital speed of each fragment',
-      series: withMean(speed, 'swarm mean'),
-      yLabel: `speed [${velUnit}]`,
+      // Replaces a speed chart. Speed alone cannot say whether a fragment is
+      // leaving - 30 km/s is bound at 1 AU and unbound at 40 AU - and it is
+      // largely implied by the distance chart above. Energy answers the
+      // question the project exists to ask, from the same two inputs.
+      title: 'Orbital energy',
+      note: 'below zero is bound to the Sun; above zero escapes',
+      series: [
+        ...traces(energy),
+        { name: 'swarm mean', color: PALETTE.mean, points: meanAcross(energy), width: 2 },
+        {
+          name: 'escape threshold', color: PALETTE.guide, width: 1, dash: '4 3',
+          points: [[timeSpan[0], 0], [timeSpan[1], 0]],
+        },
+      ],
+      yLabel: `ε [${posUnit}²/yr²]`,
       yFormat: v => v.toFixed(1),
-      readout: (map, i) => `mean ${fmtAt(meanAcross(map), i, 3)} ${velUnit}`,
-      source: speed,
+      readout: (map, i) => {
+        const f = fateCounts(map, frames, i);
+        return `bound ${f.bound} · unbound ${f.unbound} · arrived ${f.arrived}`;
+      },
+      source: energy,
+    },
+    {
+      // The radionuclide chain is a fully cited subsystem that turns out to be
+      // negligible here. Drawn on a log axis because a stacked area would give
+      // the smaller channel zero pixels and so claim it does not exist.
+      title: 'Where the dose comes from',
+      note: budgetRatio
+        ? `internal U/Th/K decay is ${budgetRatio.decayPercent.toFixed(4)}% of the total`
+        : 'cosmic rays versus internal decay',
+      series: [
+        { name: 'galactic cosmic rays', color: PALETTE.mean, points: budget.gcr, width: 2 },
+        { name: 'internal U/Th/K decay', color: PALETTE.secondary, points: budget.decay, width: 2, dash: '4 3' },
+      ],
+      yScale: 'log',
+      yLabel: 'cumulative dose [Gy]',
+      readout: () => (budgetRatio
+        ? `cosmic rays deliver ${budgetRatio.ratio.toFixed(0)}× the dose of internal decay`
+        : '—'),
+      source: null,
     },
     {
       title: 'Dust erosion',
@@ -480,6 +545,7 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
         yLabel: item.spec.yLabel,
         yFormat: item.spec.yFormat,
         yDomain: item.spec.yDomain,
+        yScale: item.spec.yScale,
         xFormat: v => fmt(v),
         xUnit: timeUnit,
         height: 126,
@@ -542,9 +608,15 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
     const bandEl = box.querySelector('.lc-coeff-band');
     if (overrideCoeff === null) {
       valEl.textContent = 'as sampled per fragment';
+      // "x/" rather than "+/-": the band spans a factor of 17, and a quantity
+      // known to within a factor is not symmetric on a linear scale. Limpert,
+      // Stahel & Abbt (2001), BioScience 51(5):341-352, give times-or-divided-by
+      // as the multiplicative counterpart, where the interval is [x/s, x*s].
+      // Written as a +/- interval this band would misstate its own coverage.
       bandEl.textContent =
-        `${COEFF_BANDS.chronicMin.toExponential(1)}–`
-        + `${COEFF_BANDS.chronicMax.toExponential(1)} 1/Gy, drawn per fragment`;
+        `${formatMultiplicative(bandCentre, bandFactor.toFixed(1), 1)} 1/Gy`
+        + ` (${COEFF_BANDS.chronicMin.toExponential(1)}–`
+        + `${COEFF_BANDS.chronicMax.toExponential(1)}), drawn per fragment`;
       bandEl.dataset.warn = 'false';
     } else {
       valEl.textContent = `${overrideCoeff.toExponential(2)} 1/Gy, all fragments`;
@@ -595,6 +667,7 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
         yLabel: spec.yLabel,
         yFormat: spec.yFormat,
         yDomain: spec.yDomain,
+        yScale: spec.yScale,
         pinDomain: overrideCoeff !== null && spec.rescalable,
         xFormat: v => fmt(v),
         xUnit: timeUnit,
@@ -636,6 +709,7 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
       yLabel: spec.yLabel,
       yFormat: spec.yFormat,
       yDomain: spec.yDomain,
+      yScale: spec.yScale,
       xFormat: v => fmt(v),
       xUnit: timeUnit,
       height: 420,

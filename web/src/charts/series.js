@@ -114,3 +114,62 @@ export function speedSeries(frames) {
   }
   return out;
 }
+
+/**
+ * Gravitational parameter of the Sun in the replay's units [AU^3 / yr^2].
+ *
+ * The integrator works in units where G = 1, the Sun is one mass, lengths are
+ * AU and times are years; GM is then 4*pi^2. The replay exports positions and
+ * velocities in exactly those units, so the browser can recompute the same
+ * quantity the model tests against in `scenarios.py`.
+ */
+export const SUN_MU_AU3_YR2 = 4 * Math.PI * Math.PI;
+
+/**
+ * Specific orbital energy of each fragment: eps = v^2/2 - GM/r.
+ *
+ * This replaces the speed chart, which could not answer the one question the
+ * project exists to ask. Speed alone says nothing about whether a fragment is
+ * leaving: 30 km/s is bound at 1 AU and unbound at 40 AU. Energy answers it
+ * directly - eps < 0 is bound, eps > 0 escapes - and it is the same criterion
+ * the model itself applies when it decides a fragment has left the system.
+ *
+ * It is also nearly conserved, so the curve is a visible integrator check: a
+ * line that drifts is telling you the timestep is too coarse, which a speed
+ * curve oscillating over every orbit cannot show.
+ */
+export function orbitalEnergySeries(frames, bodyId = 'sun') {
+  const ids = new Set(fragmentIds(frames));
+  const out = new Map([...ids].map(id => [id, []]));
+  for (const frame of frames ?? []) {
+    const t = Number.isFinite(frame?.time) ? frame.time : null;
+    if (t === null) continue;
+    const origin = (frame?.positions ?? []).find(p => p?.id === bodyId);
+    if (!origin) continue;
+    const posById = new Map((frame.positions ?? []).map(p => [p.id, p]));
+    for (const v of frame?.velocities ?? []) {
+      if (!ids.has(v?.id)) continue;
+      const p = posById.get(v.id);
+      if (!p) continue;
+      const r = Math.hypot(p.x - origin.x, p.y - origin.y, p.z - origin.z);
+      if (!(r > 0)) continue;
+      const eps = (v.vx * v.vx + v.vy * v.vy + v.vz * v.vz) / 2 - SUN_MU_AU3_YR2 / r;
+      if (Number.isFinite(eps)) out.get(v.id).push([t, eps]);
+    }
+  }
+  return out;
+}
+
+/** How many fragments are bound, unbound, and arrived, at one frame index. */
+export function fateCounts(energyById, frames, index) {
+  let bound = 0;
+  let unbound = 0;
+  for (const points of energyById.values()) {
+    const p = points[Math.min(index, points.length - 1)];
+    if (!p) continue;
+    if (p[1] < 0) bound += 1; else unbound += 1;
+  }
+  const props = frames?.[index]?.properties ?? [];
+  const arrived = props.filter(p => p?.status === 'arrived').length;
+  return { bound, unbound, arrived };
+}

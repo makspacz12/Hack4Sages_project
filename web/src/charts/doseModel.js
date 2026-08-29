@@ -126,3 +126,50 @@ export function bandFor(cRad) {
 export function formatMultiplicative(value, factor, digits = 2) {
   return `${value.toExponential(digits)} ×/ ${factor}`;
 }
+
+/**
+ * Where the dose actually comes from: cosmic rays versus internal decay.
+ *
+ * The model carries a full radionuclide chain - uranium-238, thorium-232 and
+ * potassium-40 in the rock itself, with published dose conversion factors from
+ * Cresswell, Carter & Sanderson (2018). It is a real subsystem with real
+ * citations, and in this configuration it contributes almost nothing: about one
+ * part in nine thousand of the total dose.
+ *
+ * That is a result, not a failure, and it is worth drawing. A tool that marks
+ * its own negligible channels is making a different statement than one that
+ * presents every subsystem with equal weight.
+ *
+ * Both channels are integrated the same way the simulation integrates them -
+ * rate times the interval between frames - so the sum reproduces the exported
+ * `dose_cumulative_gy` rather than approximating it.
+ */
+export function doseBudget(frames) {
+  const gcr = [];
+  const decay = [];
+  let sumG = 0;
+  let sumD = 0;
+  let prevT = null;
+  for (const frame of frames ?? []) {
+    const t = Number.isFinite(frame?.time) ? frame.time : null;
+    if (t === null) continue;
+    const props = (frame.properties ?? []).filter(p => Number.isFinite(p?.gcr_local_flux));
+    if (props.length === 0) continue;
+    const dt = prevT === null ? 0 : t - prevT;
+    prevT = t;
+    const mean = (f) => props.reduce((a, p) => a + (p[f] ?? 0), 0) / props.length;
+    sumG += mean('gcr_local_flux') * dt;
+    sumD += mean('radiation_decay_gy_per_year') * dt;
+    gcr.push([t, sumG]);
+    decay.push([t, sumD]);
+  }
+  return { gcr, decay };
+}
+
+/** Ratio of the two dose channels at the end of a run, for the readout. */
+export function doseBudgetRatio(budget) {
+  const g = budget?.gcr?.at(-1)?.[1] ?? 0;
+  const d = budget?.decay?.at(-1)?.[1] ?? 0;
+  if (!(d > 0)) return null;
+  return { ratio: g / d, decayPercent: (d / (g + d)) * 100 };
+}
