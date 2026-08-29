@@ -10,7 +10,10 @@ import math
 import unittest
 
 from microbe_radiation_model.chemistry import constants as chem
-from microbe_radiation_model.chemistry.hydrolysis_model import compute_hydrolysis_rate
+from microbe_radiation_model.chemistry.hydrolysis_model import (
+    compute_hydrolysis_rate,
+    water_activity,
+)
 from microbe_radiation_model.internal_heat.model import (
     DEFAULT_HEAT_COEFFICIENTS,
     heat_production_from_rock,
@@ -178,8 +181,57 @@ class TestHydrolysis(unittest.TestCase):
         )
         self.assertAlmostEqual(compute_hydrolysis_rate(t_k, 1.0), expected, places=12)
 
-    def test_frozen_material_does_not_hydrolyse(self):
-        self.assertEqual(compute_hydrolysis_rate(chem.FREEZING_TEMPERATURE_K - 1, 1.0), 0.0)
+    def test_frozen_material_hydrolyses_slowly_rather_than_not_at_all(self):
+        """
+        The rate used to be cut to exactly zero below 273.15 K. That made the
+        whole channel identically zero everywhere in interplanetary space,
+        where fragments run at 80-240 K: --no-thermal changed nothing, the
+        sensitivity analysis reported a gradient of exactly zero for both
+        hydrolysis knobs, and the one coefficient still listed as uncited was
+        multiplied by zero in every run.
+
+        Unfrozen water films persist on mineral surfaces below freezing, so the
+        rate falls steeply but continuously. It is now negligible as a computed
+        result rather than as an assumption.
+        """
+        just_frozen = compute_hydrolysis_rate(chem.FREEZING_TEMPERATURE_K - 1, 1.0)
+        self.assertGreater(just_frozen, 0.0)
+        self.assertLess(just_frozen, compute_hydrolysis_rate(chem.FREEZING_TEMPERATURE_K, 1.0))
+
+    def test_the_rate_is_continuous_through_the_melting_point(self):
+        """A step discontinuity in a rate is not physics."""
+        above = compute_hydrolysis_rate(chem.FREEZING_TEMPERATURE_K + 0.01, 1.0)
+        below = compute_hydrolysis_rate(chem.FREEZING_TEMPERATURE_K - 0.01, 1.0)
+        self.assertLess(abs(above - below) / above, 0.01)
+
+    def test_water_activity_matches_the_freezing_point_depression_curve(self):
+        """
+        Liquid water in equilibrium with ice has activity
+        ln(a_w) = -(dH_fus/R)(1/T - 1/T_melt), which is 0.81 at 253 K.
+        """
+        from microbe_radiation_model.chemistry.hydrolysis_model import water_activity
+
+        self.assertAlmostEqual(water_activity(chem.FREEZING_TEMPERATURE_K), 1.0, places=12)
+        self.assertAlmostEqual(water_activity(253.0), 0.81, delta=0.01)
+        self.assertAlmostEqual(water_activity(240.0), 0.694, delta=0.01)
+
+    def test_water_activity_is_capped_at_one_above_freezing(self):
+        """Above the melting point the water is simply liquid."""
+        for t in (280.0, 300.0, 400.0):
+            self.assertEqual(water_activity(t), 1.0)
+
+    def test_deep_cold_gives_a_vanishing_but_positive_rate(self):
+        """
+        At 200 K the Arrhenius factor alone is exp(-78). The hard cut-off was
+        redundant as well as wrong.
+        """
+        rate = compute_hydrolysis_rate(200.0, 1.0)
+        self.assertGreater(rate, 0.0)
+        self.assertLess(rate, 1e-20)
+
+    def test_absolute_zero_is_still_zero(self):
+        self.assertEqual(compute_hydrolysis_rate(0.0, 1.0), 0.0)
+        self.assertEqual(compute_hydrolysis_rate(-5.0, 1.0), 0.0)
 
     def test_rate_is_linear_in_water_content(self):
         full = compute_hydrolysis_rate(300.0, 1.0)
