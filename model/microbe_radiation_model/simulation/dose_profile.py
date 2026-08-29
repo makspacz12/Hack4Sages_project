@@ -63,7 +63,7 @@ def dose_depth_profile(
     rock_material: Material,
     bio_material: Material,
     samples: int = 40,
-    gcr_attenuation_k_m2_kg: float = DEFAULT_GCR_ATTENUATION_K_M2_KG,
+    gcr_attenuation_k_m2_kg: float | None = None,
 ) -> list[DepthSample]:
     """
     Transmitted fraction of surface radiation, surface to centre.
@@ -76,6 +76,16 @@ def dose_depth_profile(
         raise ValueError("rock_radius_m must be positive")
     if samples < 2:
         raise ValueError("samples must be at least 2")
+
+    # Read the effective coefficient, not the module constant. Binding the
+    # default at import time meant a sensitivity run that overrode the
+    # cosmic-ray attenuation still drew the unoverridden curve, so the file
+    # carried an audit block reporting one value beside a chart computed from
+    # another - the exact contradiction the audit exists to prevent.
+    from ..run_overrides import effective_gcr_attenuation_k_m2_kg
+
+    if gcr_attenuation_k_m2_kg is None:
+        gcr_attenuation_k_m2_kg = effective_gcr_attenuation_k_m2_kg()
 
     from dataclasses import replace
 
@@ -125,6 +135,8 @@ def profile_payload(
     samples: int = 40,
 ) -> dict:
     """The profile as plain JSON, ready for the replay file."""
+    from ..run_overrides import effective_gcr_attenuation_k_m2_kg as effective_gcr
+
     profile = dose_depth_profile(
         rock_radius_m, bio_radius_m, rock_material, bio_material, samples=samples,
     )
@@ -137,7 +149,7 @@ def profile_payload(
             rock_material.k, rock_material.density,
         ),
         "cosmic_ray_attenuation_depth_m": attenuation_depth_m(
-            DEFAULT_GCR_ATTENUATION_K_M2_KG, rock_material.density,
+            effective_gcr(), rock_material.density,
         ),
         "samples": [
             {

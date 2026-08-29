@@ -701,6 +701,34 @@ def _default_mars_pipeline_run_config() -> SimulationRunConfig:
     )
 
 
+def _resolve_mars_index(solar_system_bodies, configured_index: int) -> int:
+    """
+    Find Mars by name rather than trusting a fixed particle index.
+
+    The index was hard-coded to 4, which is correct only when the planets are
+    present. With --no-planets the simulation holds the Sun and then the Gaia
+    stars, so particle 4 is a star several light years away: the ejecta were
+    launched from the surface of a 0.28 solar-mass star at that star's velocity,
+    and the resulting bound orbits made IAS15 take vanishingly small steps, so
+    the run never terminated. A flag advertised in --help hung indefinitely.
+
+    Raising here is the honest outcome. A Mars-ejecta scenario without Mars has
+    no meaning, and failing in a second is better than appearing to work for
+    five minutes and then being killed.
+    """
+    names = [str(name).lower() for name in (solar_system_bodies or [])]
+    if "mars" in names:
+        # Particle 0 is the Sun, so the planets start at index 1.
+        return 1 + names.index("mars")
+    raise ValueError(
+        "Mars is not in the simulation, so Mars ejecta cannot be launched. "
+        "This happens with --no-planets: the body at the configured index "
+        f"({configured_index}) is a Gaia star, not a planet. Run with planets "
+        "enabled, or use a scenario that does not start from a planetary "
+        "surface."
+    )
+
+
 def run_mars_ejecta_pipeline_demo(
     material_config: Optional[SimulationMaterialConfig] = None,
     run_config: Optional[SimulationRunConfig] = None,
@@ -768,7 +796,7 @@ def run_mars_ejecta_pipeline_demo(
         obliquity_range=impact_defaults.obliquity_range,
         size_velocity_corr=impact_defaults.size_velocity_corr,
         star_indices=star_indices,
-        mars_index=impact_defaults.mars_index,
+        mars_index=_resolve_mars_index(solar_system_bodies, impact_defaults.mars_index),
         seed=impact_defaults.seed,
     )
     impact_result = create_mars_impact(sim, impact_config)

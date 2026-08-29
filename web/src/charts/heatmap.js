@@ -80,6 +80,42 @@ function extentFromTable(table) {
 }
 
 /**
+ * Below this spread, a survival grid carries no signal worth colouring.
+ *
+ * Autoscaling colour to the data extent is right when the data varies and
+ * catastrophic when it does not: the shipped sample grid spans 5.2e-7 in
+ * survival, and rescaling that to the full ramp painted a dramatic
+ * dark-red-to-teal gradient across a difference of five ten-millionths, with
+ * both ends of the legend rendering as "1.00". The picture asserted structure
+ * that the numbers do not contain.
+ *
+ * 1e-4 is chosen against the quantity, not the arithmetic: a change in
+ * surviving fraction smaller than 0.01% is far below the factor-of-several
+ * uncertainty on the coefficients that produced it, so colouring it is
+ * reporting noise as a result.
+ */
+export const SIGNIFICANT_SPREAD = 1e-4;
+
+/** Whether a grid varies enough for colour to mean anything. */
+export function isSignificant([lo, hi], threshold = SIGNIFICANT_SPREAD) {
+  return Number.isFinite(lo) && Number.isFinite(hi) && (hi - lo) >= threshold;
+}
+
+/**
+ * Format a legend bound so two different numbers never print identically.
+ *
+ * Fixed precision fails here by construction: 0.9999994 and 0.9999999 both
+ * render as "1.00". The number of digits has to follow the spread, not the
+ * magnitude.
+ */
+export function formatBound(value, spread) {
+  if (!Number.isFinite(value)) return '—';
+  if (!(spread > 0)) return value.toPrecision(4);
+  const digits = Math.min(12, Math.max(2, Math.ceil(-Math.log10(spread)) + 2));
+  return value.toFixed(digits);
+}
+
+/**
  * Render a survival heatmap into `container`.
  * @returns {{ destroy(): void }}
  */
@@ -102,6 +138,12 @@ export function survivalHeatmap(container, payload, options = {}) {
   const cellW = plotW / nCol;
   const cellH = plotH / nRow;
   const [cLo, cHi] = extentFromTable(heatmap_p50);
+  const spread = cHi - cLo;
+  const significant = isSignificant([cLo, cHi]);
+  // When the grid does not vary, colour is pinned to the full [0, 1] scale
+  // instead of stretched over the noise, so every cell renders as the near-1
+  // value it actually holds rather than as a spectrum.
+  const [pLo, pHi] = significant ? [cLo, cHi] : [0, 1];
 
   const svg = el('svg', {
     viewBox: `0 0 ${width} ${height}`,
@@ -122,7 +164,7 @@ export function survivalHeatmap(container, payload, options = {}) {
         y: PAD.top + plotH - (j + 1) * cellH,
         width: cellW,
         height: cellH,
-        fill: colorForSurvival(Number(value), cLo, cHi),
+        fill: colorForSurvival(Number(value), pLo, pHi),
         stroke: '#14100e',
         'stroke-width': 0.5,
         class: 'hm-cell',
@@ -195,7 +237,7 @@ export function survivalHeatmap(container, payload, options = {}) {
   for (const stop of [0, 0.5, 1]) {
     const off = el('stop', {
       offset: `${stop * 100}%`,
-      'stop-color': colorForSurvival(cLo + stop * (cHi - cLo), cLo, cHi),
+      'stop-color': colorForSurvival(pLo + stop * (pHi - pLo), pLo, pHi),
     });
     linear.appendChild(off);
   }
@@ -211,13 +253,26 @@ export function survivalHeatmap(container, payload, options = {}) {
     'stroke-width': 1,
   }));
   const loLab = el('text', { x: legendX + 18, y: PAD.top + legendH, class: 'tick tick-legend' });
-  loLab.textContent = fmt(cLo, 3);
+  loLab.textContent = formatBound(pLo, significant ? spread : 1);
   svg.appendChild(loLab);
   const hiLab = el('text', { x: legendX + 18, y: PAD.top + 10, class: 'tick tick-legend' });
-  hiLab.textContent = fmt(cHi, 3);
+  hiLab.textContent = formatBound(pHi, significant ? spread : 1);
   svg.appendChild(hiLab);
   const legTitle = el('text', { x: legendX + 18, y: PAD.top - 6, class: 'tick tick-legend' });
   legTitle.textContent = 'p50';
+
+  // Say it in words as well as in the scale. A reader who does not check the
+  // axis labels would otherwise take the flat colour for a finding.
+  if (!significant) {
+    const warn = el('text', {
+      x: PAD.left, y: height - 6,
+      fill: '#d8a33c', 'font-size': 11, 'font-family': 'monospace',
+    });
+    warn.textContent =
+      `variation below resolution: whole grid spans ${spread.toExponential(1)}`
+      + ' in survival — colour pinned to [0, 1]';
+    svg.appendChild(warn);
+  }
   svg.appendChild(legTitle);
 
   container.appendChild(svg);

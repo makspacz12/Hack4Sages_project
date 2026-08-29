@@ -355,10 +355,27 @@ def audit_coefficients() -> dict[str, Any]:
     if overrides is not None:
         from dataclasses import asdict
 
-        # Flagged as well as folded in, so a reader does not have to compare
-        # every value against the source to notice a run was overridden.
-        for entry in entries.values():
-            entry["overridden_run"] = True
+        # Flag only the entries an override can actually reach. Marking every
+        # entry claimed that constants outside RunOverrides had been replaced,
+        # which is its own false statement about calibration.
+        touched = {k for k, v in asdict(overrides).items() if v is not None}
+        affected = {
+            "hydrolysis": {"hydrolysis_ea_j_mol", "hydrolysis_a_s_inv"},
+            "hydrolysis_survival_coefficient": {"hydrolysis_surv_coeff"},
+            "radiation_survival_coefficient": {"radiation_surv_coeff"},
+            "cosmic_ray_attenuation": {"gcr_attenuation_k_m2_kg"},
+        }
+        for name, entry in entries.items():
+            if affected.get(name, set()) & touched:
+                entry["overridden_run"] = True
+                # A cited status describes the published value, not a value
+                # this run substituted for it.
+                if entry.get("status") == "resolved":
+                    entry["status"] = "overridden"
+                    entry["overridden_note"] = (
+                        "This run replaced the cited value. The source below "
+                        "documents the published constant, not what was used."
+                    )
         entries["_overrides"] = {
             "values": asdict(overrides),
             "note": (

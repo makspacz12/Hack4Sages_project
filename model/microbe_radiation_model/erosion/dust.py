@@ -39,6 +39,16 @@ class DustErosionConfig:
     hydrolysis_rate_cap: float = 2.0
 
 
+# Smallest radius a fragment is carried at [m].
+#
+# A micrometre is already far below the scale at which this model means
+# anything: the biological core of such a body is smaller than a single
+# spore, and Beer-Lambert through it is indistinguishable from no shielding
+# at all. The floor exists so the geometry stays defined, not because the
+# physics is still valid here.
+MIN_VIABLE_RADIUS_M = 1e-6
+
+
 def radius_change_rate_from_dust_mass_flux(
     dust_mass_flux_kg_m2_s: float,
     excavation_yield: float,
@@ -93,9 +103,23 @@ def update_state_from_dust_erosion(
     )
     old_radius_m = state.radius_m
     old_mass_kg = state.mass_kg
-    new_radius_m = max(0.0, old_radius_m + d_radius_dt * dt_s)
+    # Floor the radius rather than letting it reach zero.
+    #
+    # A fragment eroded to exactly 0 m is not a small fragment, it is a
+    # geometric singularity: biological_core_radius rejects it, and it did so
+    # only at the reporting stage, so a run with a high dust flux completed the
+    # entire integration and then died with "rock_radius must be positive",
+    # losing all of the work. Below this floor the object has lost any
+    # biological core it could have carried, so it is marked destroyed instead
+    # of being carried forward as a zero-radius body.
+    new_radius_m = max(MIN_VIABLE_RADIUS_M, old_radius_m + d_radius_dt * dt_s)
     radius_loss_m = max(0.0, old_radius_m - new_radius_m)
     mass_loss_kg = max(0.0, old_mass_kg - sphere_mass_from_radius_and_density(new_radius_m, state.density_kg_m3))
+
+    if new_radius_m <= MIN_VIABLE_RADIUS_M and old_radius_m > MIN_VIABLE_RADIUS_M:
+        state.active = False
+        state.population_fraction = 0.0
+        state.termination_reason = "eroded_away"
 
     state.radius_m = new_radius_m
     state.mass_kg = sphere_mass_from_radius_and_density(new_radius_m, state.density_kg_m3)
