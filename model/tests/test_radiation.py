@@ -246,23 +246,36 @@ class TestCosmicRays(unittest.TestCase):
         self.assertLess(spectrum.hze_flux, 0.03)
 
     def test_heliosphere_radius_scales_as_the_square_root_of_luminosity(self):
-        # The docstring states R_helio = 120 AU * sqrt(L/L_sun). Dropping the
-        # square root left every other cosmic-ray test green.
+        """
+        The docstring states R_helio = 120 AU * sqrt(L/L_sun). Dropping the
+        square root left every other cosmic-ray test green.
+
+        This used to bisect for the largest distance still at exactly the base
+        level. That probe stopped working when the interior stopped being flat:
+        cosmic-ray intensity now rises with distance from 1 AU outward, through
+        solar modulation, so there is no sharp radius at which the flux departs
+        from 1.0 - it departs immediately. The scaling is unchanged and still
+        worth testing; it just has to be measured on a feature that still
+        exists. Here it is the distance at which modulation has closed most of
+        the gap to the interstellar level, which tracks the heliosphere radius.
+        """
         from microbe_radiation_model.physics.constants import SOLAR_LUMINOSITY
 
-        def boundary(luminosity):
-            """Largest distance still at the unshielded base level."""
+        def closing_radius(luminosity, fraction=0.9):
+            """Distance at which the flux reaches `fraction` of the way to deep space."""
+            deep = cosmic_flux_by_star(distance_au=1e7, luminosity_w=luminosity)
+            target = 1.0 + fraction * (deep - 1.0)
             lo, hi = 0.1, 1e6
-            for _ in range(80):
+            for _ in range(200):
                 mid = (lo + hi) / 2
-                if cosmic_flux_by_star(distance_au=mid, luminosity_w=luminosity) <= 1.0 + 1e-12:
+                if cosmic_flux_by_star(distance_au=mid, luminosity_w=luminosity) < target:
                     lo = mid
                 else:
                     hi = mid
-            return lo
+            return hi
 
-        base = boundary(SOLAR_LUMINOSITY)
-        quadrupled = boundary(4.0 * SOLAR_LUMINOSITY)
+        base = closing_radius(SOLAR_LUMINOSITY)
+        quadrupled = closing_radius(4.0 * SOLAR_LUMINOSITY)
         # sqrt(4) = 2
         self.assertAlmostEqual(quadrupled / base, 2.0, delta=0.05)
 

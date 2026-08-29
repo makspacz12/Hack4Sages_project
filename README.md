@@ -34,7 +34,9 @@ traceable back to the mechanisms that produced it:
   Beer–Lambert, plus the internal dose from the fragment's own U/Th/K, with the
   finite-size correction that makes small fragments leak gamma out through their surface.
 - **Environment** — surface temperature from radiative equilibrium, interior from
-  radiogenic heating, driving DNA hydrolysis as a second kill channel alongside radiation.
+  radiogenic heating. DNA hydrolysis is implemented as a second kill channel, but
+  see **What the model does not currently do** below: in interplanetary space it
+  is inactive.
 - **Survival** — an exponential inactivation model applied per fragment, per timestep,
   against the dose that fragment actually received.
 
@@ -150,8 +152,9 @@ stellar mass → luminosity → flux at the rock surface
 ```
 
 Temperature is computed in parallel — surface from radiative equilibrium, interior from
-radiogenic heating — and drives the hydrolysis rate, which is the second kill channel
-alongside radiation.
+radiogenic heating — and drives the hydrolysis rate. Hydrolysis is a second kill
+channel in principle; in interplanetary space it is inactive, because the rate is
+cut to zero below freezing and fragments never get that warm.
 
 | Layer | Where |
 |---|---|
@@ -166,6 +169,32 @@ alongside radiation.
 Absolute survival numbers remain provisional where coefficients are still under
 audit. Several older issues now have published replacements; residual caveats
 are kept so we do not over-claim calibration.
+
+### What the model does not currently do
+
+Stated here rather than left for a reader to discover, because two of these
+limit what the outputs mean.
+
+**Hydrolysis is inactive in interplanetary space.** The rate is cut to zero
+below 273.15 K, and fragments run between roughly 80 and 240 K, so the channel
+contributes nothing to any run at these distances and `--no-thermal` does not
+change survival. That also means `hydrolysis_surv_coeff`, the one coefficient
+still uncited, is multiplied by zero throughout. The cut-off is itself a
+simplification: hydrolysis in ice slows down, it does not stop.
+
+**Fragments do not escape on the timescales the demo runs.** Reaching the
+escape threshold takes centuries, so a run of a few thousand years ends with
+every fragment still bound to the Sun. The `escaped`, `arrived` and `destroyed`
+states exist and are exercised by tests, but a short run will report zero of
+each. Survival numbers from such a run describe a fragment in transit, not one
+that arrived anywhere.
+
+**Survival times are far shorter than interstellar transit times.** At the
+published inactivation coefficient an unshielded fragment is sterilised to
+N/N0 = 1e-6 in a few hundred thousand years, while transfer between stars takes
+10^7 years or more. The model says microbes die long before they could arrive,
+and that is a result rather than a defect - it is the quantitative form of the
+argument that lithopanspermia needs large, well-shielded fragments.
 
 **Still open**
 
