@@ -21,6 +21,8 @@ import {
 } from './charts/popout.js';
 import { provenancePanel } from './charts/provenancePanel.js';
 import { headlineBanner } from './charts/headlineBanner.js';
+import { withTooltip, renderContent } from './ui/tooltip.js';
+import { C_RAD_HELP, C_RAD_PRESETS } from './ui/paramHelp.js';
 import { answerSurfaceChart, ANSWER_SURFACE_STYLE } from './charts/answerSurfaceChart.js';
 import {
   COEFF_BANDS, bandFor, cumulativeDoseSeries, sampledCoefficients,
@@ -212,6 +214,24 @@ function injectStyles() {
     .lc-coeff-val { color: #f2ebe4; text-transform: none; letter-spacing: 0; }
     .lc-coeff-slider { width: 100%; margin: 2px 0; accent-color: #45c2ca; }
     .lc-coeff-slider:focus-visible { outline: 2px solid #45c2ca; outline-offset: 2px; }
+    .lc-coeff-presets {
+      display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0 5px;
+    }
+    .lc-preset {
+      background: none; border: 1px solid #3a2f29; color: #8d7f74;
+      font-family: inherit; font-size: 9.5px; padding: 2px 6px;
+      border-radius: 2px; cursor: pointer; line-height: 1.4;
+    }
+    .lc-preset:hover { border-color: #45c2ca; color: #f2ebe4; }
+    .lc-preset:focus-visible { outline: 2px solid #45c2ca; outline-offset: 1px; }
+    .lc-coeff-num {
+      width: 100%; box-sizing: border-box; margin: 4px 0 5px;
+      background: rgba(0,0,0,.3); border: 1px solid #3a2f29; color: #f2ebe4;
+      font-family: inherit; font-size: 11px; padding: 3px 6px; border-radius: 2px;
+    }
+    .lc-coeff-num:focus { outline: none; border-color: #45c2ca; }
+    .lc-coeff-num.bad { border-color: #e2683c; }
+    .lc-coeff-name { border-bottom: 1px dotted #4a3e37; }
     .lc-coeff-band { font-size: 10px; color: #8d7f74; }
     .lc-coeff-band[data-warn="true"] { color: #e2683c; }
     .lc-coeff-reset {
@@ -407,12 +427,16 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
     <div class="lc-selection" hidden></div>
     <div class="lc-coeff" hidden>
       <label class="lc-coeff-label" for="lc-crad">
-        radiation inactivation <span class="lc-coeff-val"></span>
+        <span class="lc-coeff-name">radiation inactivation</span>
+        <span class="lc-coeff-val"></span>
       </label>
+      <div class="lc-coeff-presets"></div>
       <input class="lc-coeff-slider" id="lc-crad" type="range"
              min="0" max="1000" value="0" step="1"
              aria-describedby="lc-coeff-band">
       <div class="lc-coeff-band" id="lc-coeff-band"></div>
+      <input class="lc-coeff-num" type="text" inputmode="decimal" spellcheck="false"
+             aria-label="radiation inactivation coefficient in 1/Gy">
       <button class="lc-coeff-reset" type="button">use each fragment's own value</button>
     </div>
     <div class="lc-body"></div>
@@ -1067,6 +1091,45 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
       applyCoefficient(null);
       if (slider) slider.value = String(coeffToPos(COEFF_BANDS.default));
     });
+    // The coefficient gets a typed field, named organisms, and the fullest
+    // explanation in the project - because it is the number the whole result
+    // rests on, and because a slider alone cannot express a value like 4.3e-4.
+    withTooltip(panel.querySelector('.lc-coeff-name'), renderContent(C_RAD_HELP));
+
+    const presetBox = panel.querySelector('.lc-coeff-presets');
+    for (const preset of C_RAD_PRESETS) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'lc-preset';
+      b.textContent = preset.label;
+      b.title = `${preset.value.toExponential(1)} 1/Gy · ${preset.note}`;
+      // A preset writes into the field rather than switching to a mode of its
+      // own, so the value still lives in exactly one place.
+      b.addEventListener('click', () => {
+        applyCoefficient(preset.value);
+        if (slider) slider.value = String(coeffToPos(preset.value));
+      });
+      presetBox.appendChild(b);
+    }
+
+    const numBox = panel.querySelector('.lc-coeff-num');
+    const commitNum = () => {
+      const parsed = Number.parseFloat(numBox.value);
+      if (!Number.isFinite(parsed) || parsed <= 0) {
+        numBox.classList.add('bad');
+        return;
+      }
+      numBox.classList.remove('bad');
+      applyCoefficient(parsed);
+      if (slider) slider.value = String(coeffToPos(parsed));
+    };
+    numBox.addEventListener('change', commitNum);
+    numBox.addEventListener('keydown', (e) => {
+      e.stopPropagation();
+      if (e.key === 'Enter') commitNum();
+      if (e.key === 'Escape') { numBox.value = ''; numBox.classList.remove('bad'); }
+    });
+
     paintCoefficient();
     setVisible(true);
     update(0);

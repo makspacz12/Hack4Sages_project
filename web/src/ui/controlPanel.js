@@ -11,6 +11,8 @@
 
 import { health, parameters, startRun, waitForRun } from '../api.js';
 import FROZEN_SCHEMA from '../paramSchema.json';
+import { withTooltip, renderContent } from './tooltip.js';
+import { PARAM_HELP } from './paramHelp.js';
 import {
   valueToPos, posToValue,
   valueToPosLinear, posToValueLinear,
@@ -247,6 +249,20 @@ const DUAL_STEPS = 1000;
  * @param {(runId:string, snapshot:object) => void} onFinished called when a run completes
  * @returns {{ mount():object }}
  */
+
+/**
+ * The bubble body for one parameter.
+ *
+ * Prefers the written explanation; falls back to the schema's own one-liner so
+ * a parameter added to the solver still explains itself before anyone gets
+ * round to writing the longer version.
+ */
+function helpFor(key, fallback) {
+  const rich = PARAM_HELP[key];
+  if (rich) return renderContent(rich);
+  return fallback ? `<b>${escapeHtml(fallback)}</b>` : '';
+}
+
 export function createControlPanel({ onFinished }) {
   injectStyles();
 
@@ -354,7 +370,7 @@ export function createControlPanel({ onFinished }) {
     wrap.className = 'rc-field';
     wrap.innerHTML = `
       <div class="rc-field-head">
-        <span class="rc-field-label" title="${escapeAttr(help)}">${meta.label}</span>
+        <span class="rc-field-label">${meta.label}</span>
         <span class="rc-field-value">
           <input class="rc-num rc-num-lo" type="text" inputmode="decimal" spellcheck="false">
           <span class="rc-dash">–</span>
@@ -364,6 +380,7 @@ export function createControlPanel({ onFinished }) {
       </div>
       <div class="rc-dual"><div class="rc-dual-track"><div class="rc-dual-fill"></div></div></div>
     `;
+    withTooltip(wrap.querySelector('.rc-field-label'), helpFor(minSpec.key, help));
     const dual = wrap.querySelector('.rc-dual');
     const fill = wrap.querySelector('.rc-dual-fill');
     const loNum = wrap.querySelector('.rc-num-lo');
@@ -458,7 +475,7 @@ export function createControlPanel({ onFinished }) {
     // a gesture.
     wrap.innerHTML = `
       <div class="rc-field-head">
-        <label class="rc-field-label" title="${escapeAttr(spec.help ?? '')}">${spec.label}</label>
+        <label class="rc-field-label">${spec.label}</label>
         <span class="rc-field-value">
           <input class="rc-num" type="text" inputmode="decimal" spellcheck="false">
           ${spec.unit ? `<span class="u">${spec.unit}</span>` : ''}
@@ -480,6 +497,7 @@ export function createControlPanel({ onFinished }) {
     numEl.title = `${spec.min} to ${spec.max}`;
     wrap.querySelector('.rc-field-label').htmlFor = numEl.id
       = `rc-${spec.key}-${Math.random().toString(36).slice(2, 7)}`;
+    withTooltip(wrap.querySelector('.rc-field-label'), helpFor(spec.key, spec.help));
 
     const paint = () => {
       // Full precision in the box, not the display rounding: a field that shows
@@ -536,8 +554,8 @@ export function createControlPanel({ onFinished }) {
     wrap.className = 'rc-toggle';
     wrap.setAttribute('role', 'switch');
     wrap.tabIndex = 0;
-    wrap.title = spec.help ?? '';
-    wrap.innerHTML = `<span>${spec.label}</span><span class="rc-switch"></span>`;
+    wrap.innerHTML = `<span class="rc-toggle-label">${spec.label}</span><span class="rc-switch"></span>`;
+    withTooltip(wrap.querySelector('.rc-toggle-label'), helpFor(spec.key, spec.help));
 
     const paint = () => {
       wrap.classList.toggle('on', !!values[spec.key]);
