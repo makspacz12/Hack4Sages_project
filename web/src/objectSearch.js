@@ -75,7 +75,8 @@ function injectStyles() {
 
     #obj-search-toggle {
       position: fixed;
-      top: 14px; right: 300px;
+      /* Below the headline band; see controlPanel.js for the same offset. */
+      top: calc(var(--headline-h, 0px) + 14px); right: 300px;
       background: rgba(20,16,14,0.92);
       border: 1px solid #3a2f29;
       border-radius: 6px;

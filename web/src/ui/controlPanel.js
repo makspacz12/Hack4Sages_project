@@ -10,6 +10,7 @@
  */
 
 import { health, parameters, startRun, waitForRun } from '../api.js';
+import FROZEN_SCHEMA from '../paramSchema.json';
 import {
   valueToPos, posToValue,
   valueToPosLinear, posToValueLinear,
@@ -216,7 +217,10 @@ function injectStyles() {
     }
 
     #btn-run-console {
-      position: fixed; top: var(--sp-3); left: var(--sp-3); z-index: 881;
+      /* Offset by the headline band's measured height, or this button sits
+         underneath it and cannot be clicked at all. */
+      position: fixed; top: calc(var(--headline-h, 0px) + var(--sp-3));
+      left: var(--sp-3); z-index: 881;
     }
     #btn-run-console.docked { left: calc(var(--panel-w) + var(--sp-3)); }
   `;
@@ -646,7 +650,25 @@ export function createControlPanel({ onFinished }) {
     const state = await health();
 
     if (!state.online) {
+      // Render the full panel anyway, from the schema frozen into the bundle.
+      //
+      // This branch used to wipe the panel body and leave one sentence and a
+      // disabled button, which meant that for almost every visitor - the
+      // solver is a local process nobody has running - the panel showed no
+      // parameters at all. The schema is small, rarely changes, and is already
+      // the single source of truth for validation, so there is no reason to
+      // need a network round trip to know what the knobs are.
+      //
+      // Everything stays editable. What the browser can recompute exactly, it
+      // still recomputes; only the button that needs a solver is told the
+      // solver is missing.
       setStatus('bad', 'solver <b>offline</b>');
+      specs = FROZEN_SCHEMA.parameters ?? [];
+      defaults = { ...FROZEN_SCHEMA.defaults };
+      values = { ...FROZEN_SCHEMA.defaults };
+      renderFields();
+      refreshCost();
+      runBtn.disabled = true;
       renderOffline();
       return;
     }
@@ -686,10 +708,15 @@ export function createControlPanel({ onFinished }) {
     // what most visitors will ever use. Telling everyone how to start a solver
     // they have not asked for buries that. The setup lives behind a disclosure
     // for the people who want it.
-    body.innerHTML = `
+    // Prepended, not assigned: the controls rendered above must survive.
+    const msg = document.createElement('div');
+    msg.innerHTML = `
       <div class="rc-msg">
         <b style="color:var(--ink)">Showing the bundled replay.</b>
-        <div class="rc-msg-sub">Everything below works. Run your own to change parameters.</div>
+        <div class="rc-msg-sub">The controls below are live and every value is
+          editable. Anything the browser can recompute exactly &mdash; survival
+          against the inactivation coefficient &mdash; updates as you type.
+          Starting the solver is only needed to integrate a new swarm.</div>
         <button class="rc-howto" type="button" aria-expanded="false">
           How do I run my own?
         </button>
@@ -711,16 +738,18 @@ export function createControlPanel({ onFinished }) {
         </div>
       </div>
     `;
-    const howto = body.querySelector('.rc-howto');
-    const howtoBody = body.querySelector('.rc-howto-body');
+    body.insertBefore(msg, body.firstChild);
+    const howto = msg.querySelector('.rc-howto');
+    const howtoBody = msg.querySelector('.rc-howto-body');
     howto?.addEventListener('click', () => {
       const open = howtoBody.hidden;
       howtoBody.hidden = !open;
       howto.setAttribute('aria-expanded', String(open));
       howto.textContent = open ? 'Hide' : 'How do I run my own?';
     });
-    framesOut.textContent = 'bundled replay';
-    bodiesOut.textContent = '';
+    // Leave the cost readout alone. The fields above are editable now, so it
+    // should keep reporting what the CURRENT settings would cost - that is the
+    // question a reader has while typing, and it needs no solver to answer.
   }
 
   function setVisible(visible) {
