@@ -35,6 +35,7 @@ import { createInfoPanel } from './infoPanel.js';
 import { createUVShells, setUVVisible, tickUVAnimation, updateHeatForNodes } from './uvRadiation.js';
 import { createObjectSearch } from './objectSearch.js';
 import { createLiveCharts } from './liveCharts.js';
+import { menuBar } from './ui/menuBar.js';
 import { createControlPanel } from './ui/controlPanel.js';
 import { runReplay } from './api.js';
 import './ui/theme.css';
@@ -414,7 +415,7 @@ async function mainReplay(source) {
     }
   });
 
-  const { refreshUI } = initReplayUI(ctrl, (c) => {
+  const { refreshUI, setToggle: setReplayToggle } = initReplayUI(ctrl, (c) => {
     applyReplayFrame(c, meshById);
     rebuildReplayTrails();   // scrubbing: rebuild trail from data, not live positions
     const { positions, velocities, properties } = curFrame();
@@ -448,6 +449,91 @@ async function mainReplay(source) {
     onStarfieldToggle: (enabled) => {
       starfieldMesh.visible = enabled;
     },
+  });
+
+  // ── Workspace menu ──────────────────────────────────────────────────────
+  //
+  // The scene layers used to live as unlabelled checkboxes in the bottom rail,
+  // beside the transport controls they have nothing to do with, and the only
+  // way to learn what any of them did was to click it. They are listed here by
+  // name with a line saying what they show. The checkboxes below remain and
+  // stay in step, so nothing that worked before stops working.
+  const sceneLayer = (label, note, get, set) => ({ label, note, get, set });
+
+  menuBar(document.body, {
+    charts: liveCharts,
+    scene: {
+      layers: [
+        sceneLayer(
+          'Fragment trails',
+          'the recent path of each fragment — see the caveat below',
+          () => trailsEnabled,
+          (on) => { setReplayToggle('trails', on); },
+        ),
+        sceneLayer(
+          'Selected fragment only',
+          'draw a trail for the followed fragment and nothing else',
+          () => onlyFollowTrail,
+          (on) => { setReplayToggle('onlyFollowed', on); },
+        ),
+        sceneLayer(
+          'Planet trails',
+          'the same for the planets, as a reference for scale',
+          () => planetTrailsEnabled,
+          (on) => { setReplayToggle('planetTrails', on); },
+        ),
+        sceneLayer(
+          'Stellar UV shells',
+          'a glow around each star. Decorative: photons stop within 3 cm of '
+          + 'rock, so this is not the channel that matters',
+          () => uvEnabled,
+          (on) => { setReplayToggle('uv', on); },
+        ),
+        sceneLayer(
+          'Starfield',
+          'background stars',
+          () => starfieldMesh.visible,
+          (on) => { setReplayToggle('starfield', on); },
+        ),
+      ],
+    },
+    panels: [
+      {
+        label: 'Run console',
+        note: 'every model parameter, editable, and the button that launches a run',
+        get: () => !document.getElementById('run-console')?.classList.contains('collapsed'),
+        set: () => document.getElementById('btn-run-console')?.click(),
+      },
+      {
+        label: 'Object inspector',
+        note: 'the record of whichever body is selected, frame by frame',
+        get: () => Boolean(document.getElementById('info-panel')?.classList.contains('visible')),
+        set: (on) => { if (!on) infoPanel.hide(); },
+      },
+      {
+        label: 'Object search',
+        note: 'find and jump to any of the 73 bodies in the replay',
+        get: () => !document.getElementById('obj-search-panel')?.hidden,
+        set: () => document.getElementById('obj-search-toggle')?.click(),
+      },
+    ],
+    links: [
+      {
+        label: 'Sensitivity screening',
+        href: './sensitivity.html',
+        note: 'Morris elementary effects: which parameters actually move the result',
+      },
+      {
+        label: 'Survival heatmap',
+        href: './grid.html',
+        note: 'ejection speed against fragment radius',
+      },
+      {
+        label: 'Research background',
+        href: './research.html',
+        note: 'the full write-up, assumptions and limitations',
+      },
+    ],
   });
 
   onResize(renderer, camera, controls);
@@ -715,6 +801,91 @@ async function main() {
 
   // ── Animation loop ───────────────────────────────────────────────────────
   const getSpeed = initSpeedControl();
+  // ── Workspace menu ──────────────────────────────────────────────────────
+  //
+  // The scene layers used to live as unlabelled checkboxes in the bottom rail,
+  // beside the transport controls they have nothing to do with, and the only
+  // way to learn what any of them did was to click it. They are listed here by
+  // name with a line saying what they show. The checkboxes below remain and
+  // stay in step, so nothing that worked before stops working.
+  const sceneLayer = (label, note, get, set) => ({ label, note, get, set });
+
+  menuBar(document.body, {
+    charts: liveCharts,
+    scene: {
+      layers: [
+        sceneLayer(
+          'Fragment trails',
+          'the recent path of each fragment — see the caveat below',
+          () => trailsEnabled,
+          (on) => { setReplayToggle('trails', on); },
+        ),
+        sceneLayer(
+          'Selected fragment only',
+          'draw a trail for the followed fragment and nothing else',
+          () => onlyFollowTrail,
+          (on) => { setReplayToggle('onlyFollowed', on); },
+        ),
+        sceneLayer(
+          'Planet trails',
+          'the same for the planets, as a reference for scale',
+          () => planetTrailsEnabled,
+          (on) => { setReplayToggle('planetTrails', on); },
+        ),
+        sceneLayer(
+          'Stellar UV shells',
+          'a glow around each star. Decorative: photons stop within 3 cm of '
+          + 'rock, so this is not the channel that matters',
+          () => uvEnabled,
+          (on) => { setReplayToggle('uv', on); },
+        ),
+        sceneLayer(
+          'Starfield',
+          'background stars',
+          () => starfieldMesh.visible,
+          (on) => { setReplayToggle('starfield', on); },
+        ),
+      ],
+    },
+    panels: [
+      {
+        label: 'Run console',
+        note: 'every model parameter, editable, and the button that launches a run',
+        get: () => !document.getElementById('run-console')?.classList.contains('collapsed'),
+        set: () => document.getElementById('btn-run-console')?.click(),
+      },
+      {
+        label: 'Object inspector',
+        note: 'the record of whichever body is selected, frame by frame',
+        get: () => Boolean(document.getElementById('info-panel')?.classList.contains('visible')),
+        set: (on) => { if (!on) infoPanel.hide(); },
+      },
+      {
+        label: 'Object search',
+        note: 'find and jump to any of the 73 bodies in the replay',
+        get: () => !document.getElementById('obj-search-panel')?.hidden,
+        set: () => document.getElementById('obj-search-toggle')?.click(),
+      },
+    ],
+    links: [
+      {
+        label: 'Sensitivity screening',
+        href: './sensitivity.html',
+        note: 'Morris elementary effects: which parameters actually move the result',
+      },
+      {
+        label: 'Survival heatmap',
+        href: './grid.html',
+        note: 'ejection speed against fragment radius',
+      },
+      {
+        label: 'Research background',
+        href: './research.html',
+        note: 'the full write-up, assumptions and limitations',
+      },
+    ],
+  });
+
   onResize(renderer, camera, controls);
 
   // Collect shader materials from all static nodes.

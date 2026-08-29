@@ -1,6 +1,6 @@
 {
   "generated_by": "tools/export_parameter_schema.py",
-  "schema_sha256": "e95bacbd67b3632c",
+  "schema_sha256": "2bdb5ecdd5bb9190",
   "parameters": [
     {
       "key": "asteroids",
@@ -100,6 +100,16 @@
       "help": "Upper bound of the power-law fragment size distribution."
     },
     {
+      "key": "q_size",
+      "label": "Size distribution slope",
+      "type": "float",
+      "min": 1.0,
+      "max": 4.5,
+      "step": 0.05,
+      "default": 2.0,
+      "help": "How steeply small fragments outnumber large ones. At 2 there are about a hundred times more 1 mm stones than 10 cm ones. This decides whether anything in the swarm is big enough for rock to shield it."
+    },
+    {
       "key": "bio_fraction",
       "label": "Biological core",
       "type": "float",
@@ -162,6 +172,7 @@
     "cone_angle": 60.0,
     "radius_min": 0.001,
     "radius_max": 5.0,
+    "q_size": 2.0,
     "bio_fraction": 0.01,
     "dust_flux": 1e-12,
     "seed": 42,

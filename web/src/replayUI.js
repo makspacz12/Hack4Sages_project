@@ -355,5 +355,29 @@ export function initReplayUI(ctrl, onFrameChange, opts = {}) {
   }
 
   refreshUI(ctrl);
-  return { refreshUI, removeUI: () => bar.remove() };
+  /**
+   * Flip one of the rail's checkboxes from elsewhere, callbacks and all.
+   *
+   * The workspace menu lists these same layers by name. Driving the real
+   * checkbox rather than the underlying flag is what keeps the two displays
+   * from disagreeing: there is still exactly one place each layer's state
+   * lives, and `change` carries the existing handler as usual.
+   */
+  const TOGGLES = {
+    smoothing: smoothChk,
+    uv: uvChk,
+    trails: trailChk,
+    onlyFollowed: onlyFollowChk,
+    planetTrails: planetTrailChk,
+    starfield: bgChk,
+  };
+
+  function setToggle(name, on) {
+    const box = TOGGLES[name];
+    if (!box || box.checked === Boolean(on)) return;
+    box.checked = Boolean(on);
+    box.dispatchEvent(new Event('change'));
+  }
+
+  return { refreshUI, setToggle, removeUI: () => bar.remove() };
 }

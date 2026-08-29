@@ -75,6 +75,22 @@ PARAMETERS: list[dict[str, Any]] = [
     {"key": "radius_max", "label": "Fragment radius (max)", "type": "float",
      "min": 0.001, "max": 5.0, "step": 0.001, "default": 5.0, "unit": "m",
      "help": "Upper bound of the power-law fragment size distribution."},
+    # Exposed because it decides the question the whole model is asking.
+    #
+    # Ejecta sizes follow a truncated power law, and this is its slope. At the
+    # default of 2 the median fragment is 2 mm and you expect 0.14 fragments
+    # above 10 cm in a swarm of fourteen - so with a cosmic-ray attenuation
+    # length near half a metre, essentially nothing in a typical swarm is
+    # shielded at all. Raise it and the swarm becomes dust; lower it and large,
+    # well-shielded boulders start to appear. It was reachable only by editing
+    # the dataclass, which made the one parameter that decides whether
+    # shielding matters the only one a reader could not touch.
+    {"key": "q_size", "label": "Size distribution slope", "type": "float",
+     "min": 1.0, "max": 4.5, "step": 0.05, "default": 2.0,
+     "help": "How steeply small fragments outnumber large ones. At 2 there are "
+             "about a hundred times more 1 mm stones than 10 cm ones. This "
+             "decides whether anything in the swarm is big enough for rock to "
+             "shield it."},
     {"key": "bio_fraction", "label": "Biological core", "type": "float",
      "min": 0.001, "max": 0.5, "step": 0.001, "default": 0.01,
      "help": "Mass fraction of the fragment occupied by the microbial payload."},
@@ -186,6 +202,7 @@ def build_configs(values: dict[str, Any]):
             cone_half_angle=values["cone_angle"],
             radius_min_m=values["radius_min"],
             radius_max_m=values["radius_max"],
+            q_size=values["q_size"],
             seed=values["seed"],
         ),
         dust_erosion=replace(

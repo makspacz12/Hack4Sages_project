@@ -175,10 +175,10 @@ function injectLayoutFixes(banner) {
       body.charts-docked #info-panel,
       body.charts-docked #obj-search-panel { right: 346px; }
       #info-panel, #obj-search-panel, #focus-hud, #ui {
-        top: calc(var(--headline-h, 0px) + 16px);
+        top: calc(var(--headline-h, 0px) + var(--menubar-h, 0px) + 16px);
       }
-      #btn-live-charts { top: calc(var(--headline-h, 0px) + 14px); }
-      #live-charts { top: var(--headline-h, 0px); }
+      #btn-live-charts { top: calc(var(--headline-h, 0px) + var(--menubar-h, 0px) + 14px); }
+      #live-charts { top: calc(var(--headline-h, 0px) + var(--menubar-h, 0px)); }
     `;
     document.head.appendChild(s);
   }
@@ -581,7 +581,12 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
 
   const live = [];
 
+  // A stable key per figure, derived once, so the menu bar can address them by
+  // name rather than by position in the array.
+  const keyOf = (title) => title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
   for (const spec of specs) {
+    spec.key = keyOf(spec.title);
     const fig = document.createElement('div');
     fig.className = 'lc-fig';
     fig.innerHTML = `
@@ -604,7 +609,7 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
     fig.querySelector('.lc-expand').addEventListener('click', () => openModal(spec));
     fig.querySelector('.lc-popout').addEventListener('click', () => detach(spec));
 
-    live.push({ spec, plotEl, readoutEl, chart: null });
+    live.push({ spec, fig, plotEl, readoutEl, chart: null });
   }
 
   let selectedId = null;
@@ -939,17 +944,23 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
     `;
     body.insertBefore(fig, body.firstChild);
     surfaceFig = fig;
-    const spec = {
+    const spec = surfaceSpec();
+    fig.querySelector('.lc-expand').addEventListener('click', () => openSurfaceModal(spec));
+    fig.querySelector('.lc-popout').addEventListener('click', () => detachRendered(spec));
+    paintAnswerSurface();
+  }
+
+  /** The detachable spec for the surface, shared by the menu and the buttons. */
+  function surfaceSpec() {
+    return {
       title: 'The answer surface',
+      note: 'every outcome the biology can produce, at 1 Myr of transit',
       render: (el2, w, h) => answerSurfaceChart(el2, {
         frames, bands: surfaceBands(), horizonYears: SURFACE_HORIZON_YEARS,
         colorForRockType, onPick: select, selected: selectedId,
         currentCoefficient: overrideCoeff, width: w, height: h,
       }),
     };
-    fig.querySelector('.lc-expand').addEventListener('click', () => openSurfaceModal(spec));
-    fig.querySelector('.lc-popout').addEventListener('click', () => detachRendered(spec));
-    paintAnswerSurface();
   }
 
   function surfaceBands() {
@@ -1064,7 +1075,57 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
     return api;
   }
 
-  const api = { mount, update, select };
+  /**
+   * Everything the dock can show, for a menu that wants to list it.
+   *
+   * Each entry knows how to show itself, hide itself, and open in its own
+   * window, so the menu does not have to know anything about how a figure is
+   * built - which is what stops the two drifting apart as figures are added.
+   */
+  function catalogue() {
+    const entries = live.map(item => ({
+      key: item.spec.key,
+      title: item.spec.title,
+      note: item.spec.note,
+      group: 'Time series',
+      isVisible: () => !item.fig.hidden,
+      setVisible: (on) => { item.fig.hidden = !on; },
+      detach: () => detach(item.spec),
+      enlarge: () => openModal(item.spec),
+    }));
+    if (surfaceFig) {
+      const spec = surfaceSpec();
+      entries.unshift({
+        key: 'answer-surface',
+        title: 'The answer surface',
+        note: 'every outcome the biology can produce',
+        group: 'Overview',
+        isVisible: () => !surfaceFig.hidden,
+        setVisible: (on) => { surfaceFig.hidden = !on; },
+        detach: () => detachRendered(spec),
+        enlarge: () => openSurfaceModal(spec),
+      });
+    }
+    if (depthFig) {
+      entries.push({
+        key: 'shielding-depth',
+        title: 'Shielding against depth',
+        note: 'the mechanism, for the selected fragment',
+        group: 'Mechanism',
+        isVisible: () => !depthFig.hidden,
+        setVisible: (on) => { depthFig.hidden = !on; },
+        detach: null,
+        enlarge: null,
+      });
+    }
+    return entries;
+  }
+
+  const api = {
+    mount, update, select, catalogue,
+    setVisible,
+    isVisible: () => !panel.classList.contains('hidden'),
+  };
   return api;
 }
 

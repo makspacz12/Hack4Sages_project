@@ -14,7 +14,7 @@ function injectStyles() {
   s.textContent = `
     #obj-search-panel {
       position: fixed;
-      top: calc(var(--headline-h, 0px) + 52px); right: 300px;
+      top: calc(var(--headline-h, 0px) + var(--menubar-h, 0px) + 52px); right: 300px;
       width: 240px;
       max-height: calc(100vh - 120px);
       background: rgba(20, 16, 14, 0.94);
@@ -76,7 +76,7 @@ function injectStyles() {
     #obj-search-toggle {
       position: fixed;
       /* Below the headline band; see controlPanel.js for the same offset. */
-      top: calc(var(--headline-h, 0px) + 14px); right: 300px;
+      top: calc(var(--headline-h, 0px) + var(--menubar-h, 0px) + 14px); right: 300px;
       background: rgba(20,16,14,0.92);
       border: 1px solid #3a2f29;
       border-radius: 6px;

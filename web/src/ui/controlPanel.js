@@ -26,7 +26,8 @@ function injectStyles() {
       /* Sits below the headline band, whose height is measured at runtime and
          published as --headline-h. Defaults to 0 so this panel is still
          positioned correctly on pages that carry no band. */
-      position: fixed; top: var(--headline-h, 0px); left: 0; bottom: var(--rail-h);
+      position: fixed; top: calc(var(--headline-h, 0px) + var(--menubar-h, 0px));
+      left: 0; bottom: var(--rail-h);
       width: var(--panel-w); z-index: 880;
       background: var(--bg-panel);
       border-right: 1px solid var(--line-edge);
@@ -219,7 +220,7 @@ function injectStyles() {
     #btn-run-console {
       /* Offset by the headline band's measured height, or this button sits
          underneath it and cannot be clicked at all. */
-      position: fixed; top: calc(var(--headline-h, 0px) + var(--sp-3));
+      position: fixed; top: calc(var(--headline-h, 0px) + var(--menubar-h, 0px) + var(--sp-3));
       left: var(--sp-3); z-index: 881;
     }
     #btn-run-console.docked { left: calc(var(--panel-w) + var(--sp-3)); }

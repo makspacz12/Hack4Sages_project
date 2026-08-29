@@ -93,6 +93,12 @@ def build_parser() -> argparse.ArgumentParser:
                            "Cosmic-ray shielding only becomes appreciable above "
                            "about 0.2 m, so a swarm capped below that will show "
                            "little protection")
+    frag.add_argument("--q-size", type=float, metavar="Q",
+                      help="slope of the truncated power-law size distribution "
+                           "(default 2.0). At 2 the median fragment is 2 mm and "
+                           "roughly 1 in 100 exceeds 10 cm, so with an "
+                           "attenuation length near 0.5 m a typical swarm is "
+                           "unshielded. Lower values produce boulders")
     frag.add_argument("--bio-fraction", type=float, metavar="F",
                       help="biological core mass fraction, 0..1 (default 0.01)")
 
@@ -132,7 +138,7 @@ def build_parser() -> argparse.ArgumentParser:
 _SCENARIO_KEYS = (
     "dt", "years", "steps", "substeps",
     "asteroids", "v_min", "v_max", "cone_angle", "alpha_v", "seed",
-    "fragment_radius", "radius_min", "radius_max", "bio_fraction",
+    "fragment_radius", "radius_min", "radius_max", "q_size", "bio_fraction",
     "dust_flux", "no_erosion", "no_radiation_pressure", "no_planets", "no_thermal",
     "out", "no_export",
 )
@@ -253,6 +259,8 @@ def build_configs(args: argparse.Namespace) -> tuple[SimulationMaterialConfig, S
         impact_changes["radius_min_m"] = args.radius_min
     if args.radius_max is not None:
         impact_changes["radius_max_m"] = args.radius_max
+    if getattr(args, "q_size", None) is not None:
+        impact_changes["q_size"] = args.q_size
 
     r_min = impact_changes.get("radius_min_m", run.impact.radius_min_m)
     r_max = impact_changes.get("radius_max_m", run.impact.radius_max_m)
