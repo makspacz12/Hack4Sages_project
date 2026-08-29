@@ -21,6 +21,7 @@ import {
 } from './charts/popout.js';
 import { provenancePanel } from './charts/provenancePanel.js';
 import { headlineBanner } from './charts/headlineBanner.js';
+import { answerSurfaceChart, ANSWER_SURFACE_STYLE } from './charts/answerSurfaceChart.js';
 import {
   COEFF_BANDS, bandFor, cumulativeDoseSeries, sampledCoefficients,
   supportsRescaling, survivalAtCoefficient, doseBudget, doseBudgetRatio,
@@ -552,6 +553,11 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
     },
   ];
 
+  // One million years: the shortest transfer time the literature discusses,
+  // and the point at which the published coefficient band stops being a
+  // rounding error and starts spanning tens of orders of magnitude.
+  const SURFACE_HORIZON_YEARS = 1e6;
+
   const live = [];
 
   for (const spec of specs) {
@@ -610,6 +616,10 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
    */
   function applyCoefficient(value) {
     overrideCoeff = value;
+    // The surface shows the chosen coefficient as a horizontal line, so moving
+    // the slider walks that line up and down through the contours - which is
+    // the whole point of putting the two on the same screen.
+    surfaceChart?.setCoefficient?.(value);
     const recomputed = currentSurvival();
     for (const item of live) {
       if (!item.spec.rescalable) continue;
@@ -829,6 +839,127 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
     return null;
   }
 
+  // The answer surface goes FIRST, above the time series, because it is the
+  // whole biological result rather than one slice through it. Everything below
+  // it explains how the swarm reached the position it occupies here.
+  let surfaceFig = null;
+  let surfaceChart = null;
+
+  /**
+   * Detach any chart that knows how to draw itself into a box.
+   *
+   * The line charts have their own path because they carry a series spec; this
+   * one takes a plain render function, so the same window machinery works for
+   * the surface, and for anything added later, without special-casing each.
+   */
+  function detachRendered(spec) {
+    const opened = openChartWindow(spec.title, {
+      title: spec.title,
+      note: spec.note,
+      footer: 'linked to the main window · click a fragment to select it everywhere',
+      render: spec.render,
+    });
+    if (!opened) { openSurfaceModal(spec); return; }
+  }
+
+  /** Same chart, full size, without leaving the page. */
+  function openSurfaceModal(spec) {
+    closeModal();
+    const overlay = document.createElement('div');
+    overlay.className = 'lc-modal';
+    overlay.innerHTML = `
+      <div class="lc-modal-card">
+        <div class="lc-modal-head">
+          <div class="lc-modal-title">${spec.title}</div>
+          <button class="lc-modal-close" title="Close">&times;</button>
+        </div>
+        <div class="lc-modal-plot"></div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    const host = overlay.querySelector('.lc-modal-plot');
+    spec.render(host, Math.min(880, window.innerWidth - 120), 520);
+    modal = { overlay, chart: null };
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+    overlay.querySelector('.lc-modal-close').addEventListener('click', closeModal);
+    document.addEventListener('keydown', onEsc);
+  }
+
+  /** Powers of ten below a thousandth; plain digits above it. */
+  function fmtSmall(v) {
+    if (!Number.isFinite(v)) return '—';
+    return v < 1e-3 ? v.toExponential(1) : v.toFixed(4);
+  }
+
+  function renderAnswerSurface() {
+    if (!document.getElementById('as-style')) {
+      const st = document.createElement('style');
+      st.id = 'as-style';
+      st.textContent = ANSWER_SURFACE_STYLE;
+      document.head.appendChild(st);
+    }
+    const fig = document.createElement('figure');
+    fig.className = 'lc-fig lc-surface';
+    fig.innerHTML = `
+      <div class="lc-fig-head">
+        <div>
+          <div class="lc-fig-title">The answer surface</div>
+          <div class="lc-fig-note">
+            every outcome the biology can produce, at 1 Myr of transit
+          </div>
+        </div>
+        <div class="lc-fig-btns">
+          <button class="lc-expand" title="Enlarge in place">&#9974;</button>
+          <button class="lc-popout" title="Open in its own window">&#10696;</button>
+        </div>
+      </div>
+      <div class="lc-plot"></div>
+      <div class="lc-readout"></div>
+    `;
+    body.insertBefore(fig, body.firstChild);
+    surfaceFig = fig;
+    const spec = {
+      title: 'The answer surface',
+      render: (el2, w, h) => answerSurfaceChart(el2, {
+        frames, bands: surfaceBands(), horizonYears: SURFACE_HORIZON_YEARS,
+        colorForRockType, onPick: select, selected: selectedId,
+        currentCoefficient: overrideCoeff, width: w, height: h,
+      }),
+    };
+    fig.querySelector('.lc-expand').addEventListener('click', () => openSurfaceModal(spec));
+    fig.querySelector('.lc-popout').addEventListener('click', () => detachRendered(spec));
+    paintAnswerSurface();
+  }
+
+  function surfaceBands() {
+    return {
+      cMin: COEFF_BANDS.chronicMin,
+      cMax: COEFF_BANDS.chronicMax,
+      cDefault: COEFF_BANDS.default,
+    };
+  }
+
+  function paintAnswerSurface() {
+    if (!surfaceFig) return;
+    surfaceChart?.destroy?.();
+    const plotEl = surfaceFig.querySelector('.lc-plot');
+    surfaceChart = answerSurfaceChart(plotEl, {
+      frames, bands: surfaceBands(), horizonYears: SURFACE_HORIZON_YEARS,
+      colorForRockType, onPick: select, selected: selectedId,
+      currentCoefficient: overrideCoeff,
+      width: Math.max(240, plotEl.clientWidth || 288), height: 236,
+    });
+    const pts = surfaceChart.points ?? [];
+    if (pts.length) {
+      const survivals = pts.map(p => p.survival).filter(v => v > 0);
+      const lo = Math.min(...survivals);
+      const hi = Math.max(...survivals);
+      surfaceFig.querySelector('.lc-readout').textContent =
+        `${pts.length} fragments · N/N₀ from ${fmtSmall(lo)} to ${fmtSmall(hi)}`
+        + ` · shaded strip is the published chronic band`;
+    }
+  }
+
   function renderDepthProfile() {
     if (!baseProfile) return;
     const fig = document.createElement('figure');
@@ -844,6 +975,7 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
     body.appendChild(fig);
     depthFig = fig;
     paintDepthProfile();
+    surfaceChart?.setSelected?.(selectedId);
   }
 
   /** Redraw the depth figure for whichever fragment is selected. */
@@ -884,6 +1016,7 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
     });
     injectLayoutFixes(banner);
     renderAll();
+    renderAnswerSurface();
     renderDepthProfile();
     // Last, deliberately: it describes the run the charts above came from, so
     // it reads as a footer to them rather than as a control.
