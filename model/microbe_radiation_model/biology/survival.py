@@ -25,9 +25,10 @@ def survival_function(
     radiation_decay_gy_per_year : float
         Dose rate from internal radionuclide decay [Gy/year].
     radiation_surv_coeff : float
-        How much radiation affects the microbes [1/Gy]. Runtime samples the
-        DEMO band ~1e-6…1e-5 (see ``biology.constants``); literature D10
-        conversion is ~3.6e-4…1.0e-3 1/Gy — kept beside those constants.
+        How much radiation affects the microbes [1/Gy]. Runtime samples
+        ~2.5e-5…4.3e-4 per fragment (see ``biology.constants``); an acute
+        low-LET D10 band ~6.1e-4…1.5e-3 1/Gy is kept beside those constants
+        but not sampled.
     t_years : float
         Time interval [years] over which survival is evaluated.
     hdna_rate_per_s : float

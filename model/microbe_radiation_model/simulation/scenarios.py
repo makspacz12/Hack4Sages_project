@@ -1430,15 +1430,17 @@ def run_static_radiation_demo(
     state = ExposureState()
     update_exposure(state=state, local_flux=result.local_flux, dt=dt_seconds)
 
-    # GCR: first the surface level as a function of star and distance, then
-    # attenuation in the rock using the same Beer-Lambert law as for UV.
+    # GCR: surface level from star and distance, then Beer-Lambert attenuation
+    # with the cosmic-ray coefficient. Charged particles penetrate about sixteen
+    # times deeper than photons, so they need their own k - the same substitution
+    # the Mars pipeline and the depth profile already make.
     gcr_surface_flux = cosmic_flux_by_star(distance_au=distance_au, luminosity_w=luminosity)
     gcr_result = radiation_at_point_in_rock_with_bio_core(
         point=(0.0, 0.0, 0.0),
         rock_radius=material_config.rock_radius,
         bio_radius=bio_radius,
-        rock_material=material_config.rock_material,
-        bio_material=material_config.bio_material,
+        rock_material=replace(material_config.rock_material, k=effective_gcr_attenuation_k_m2_kg()),
+        bio_material=replace(material_config.bio_material, k=effective_gcr_attenuation_k_m2_kg()),
         surface_flux=gcr_surface_flux,
     )
 
@@ -1553,14 +1555,16 @@ def run_connected_demo(
             surface_flux=surface_flux,
         )
 
-        # GCR: same as UV - level depends on star and distance, then rock attenuation.
+        # GCR: surface level from star and distance, then Beer-Lambert with the
+        # cosmic-ray coefficient (its own k, not the photon one) - as the Mars
+        # pipeline and the depth profile already do.
         gcr_surface_flux = cosmic_flux_by_star(distance_au=distance_au, luminosity_w=luminosity)
         gcr_shielding_result = radiation_at_point_in_rock_with_bio_core(
             point=(0.0, 0.0, 0.0),
             rock_radius=material_config.rock_radius,
             bio_radius=bio_radius,
-            rock_material=material_config.rock_material,
-            bio_material=material_config.bio_material,
+            rock_material=replace(material_config.rock_material, k=effective_gcr_attenuation_k_m2_kg()),
+            bio_material=replace(material_config.bio_material, k=effective_gcr_attenuation_k_m2_kg()),
             surface_flux=gcr_surface_flux,
         )
 

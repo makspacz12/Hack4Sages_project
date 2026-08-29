@@ -32,10 +32,12 @@ The simulation uses a natural-exponential kill term with dose in **Gy**:
 c_rad [1/Gy] = (a_per_kGy / 1000) * ln(10)
 ```
 
-which maps the table onto roughly **`3.6e-4 … 1.0e-3 1/Gy`** (literature /
-D10 band in `biology/constants.py`). **Runtime samples the DEMO band
-`~1e-6 … 1e-5`** so populations survive conference-scale runs; both numbers sit
-next to each other in that file on purpose.
+which maps these slopes onto roughly **`3.6e-4 … 1.0e-3 1/Gy`**. Note that
+`biology/constants.py` no longer uses this derivation: it now reads
+`radiation_surv_coeff` straight off Mileikowsky's chronic-exposure table
+(kill frequency per year / dose rate) and samples **`2.5e-5 … 4.3e-4 1/Gy`**
+per fragment. The `coefficients_under_audit` block in any export carries the
+authoritative value.
 
 ## Relationship to the model
 

@@ -52,14 +52,12 @@ The project is built to be checked rather than trusted:
 - **Every run carries a provenance record** — a SHA-256 digest of its complete parameter
   set, the resolved random seed, the source commit, and a command that reproduces it
   exactly. Runs reproduce bit-for-bit.
-- **The physics is under test.** 196 Python and 279 JavaScript tests, anchored where
+- **The physics is under test.** 282 Python and 279 JavaScript tests, anchored where
   possible to published values rather than to the code's own outputs — the failure mode
   that lets two compensating errors hide each other.
 - **Uncertain constants are declared, not buried.** A live coefficient audit ships inside
   every output file, stating for each constant whether it is cited and what remains
   unresolved. Quantities that depend on an open coefficient are marked provisional.
-
-## Repository layout
 
 ## Repository layout
 
@@ -175,12 +173,14 @@ are kept so we do not over-claim calibration.
 Stated here rather than left for a reader to discover, because two of these
 limit what the outputs mean.
 
-**Hydrolysis is inactive in interplanetary space.** The rate is cut to zero
-below 273.15 K, and fragments run between roughly 80 and 240 K, so the channel
-contributes nothing to any run at these distances and `--no-thermal` does not
-change survival. That also means `hydrolysis_surv_coeff`, the one coefficient
-still uncited, is multiplied by zero throughout. The cut-off is itself a
-simplification: hydrolysis in ice slows down, it does not stop.
+**Hydrolysis is negligible in interplanetary space.** Below 273.15 K the rate
+is scaled by the liquid-water activity of an unfrozen film in equilibrium with
+ice, not cut to zero; fragments run between roughly 80 and 240 K, where the
+Arrhenius factor alone suppresses the rate by tens of orders of magnitude. The
+channel therefore contributes almost nothing at these distances —
+`hydrolysis_surv_coeff`, the one coefficient still uncited, is multiplied by a
+tiny number rather than by zero — but this is now a computed result, and
+`--no-thermal` removes even that small contribution.
 
 **Fragments do not escape on the timescales the demo runs.** Reaching the
 escape threshold takes centuries, so a run of a few thousand years ends with
@@ -204,11 +204,12 @@ argument that lithopanspermia needs large, well-shielded fragments.
 
 **Resolved (cited), residual uncertainty kept**
 
-2. **`radiation_surv_coeff`** (`biology/constants.py`) — **runtime = DEMO**
-   `~1e-6`–`1e-5` 1/Gy (under-tune so populations survive demo timescales).
-   **Literature D10** band `~3.6e-4`–`1.0e-3` 1/Gy (Mileikowsky 2000 conversion)
-   is recorded next to those constants but not sampled. Residual: intentional
-   dual calibration; single-exponential form ignores repair / GCR RBE.
+2. **`radiation_surv_coeff`** (`biology/constants.py`) — **resolved.** Runtime
+   samples `2.5e-5`–`4.3e-4` 1/Gy per fragment (default `2.5e-4`), from the
+   chronic-exposure table in Mileikowsky et al. (2000) (kill frequency per year
+   / dose rate). An acute low-LET D10 band `~6.1e-4`–`1.5e-3` 1/Gy is kept
+   beside it for reference, not sampled. Residual: one coefficient carries a
+   factor-of-2 systematic; single-exponential form ignores repair / GCR RBE.
 3. **DNA hydrolysis Arrhenius** (`chemistry/constants.py`) — **resolved.**
    `Ea = 130 kJ/mol`, `A = 2.3e11` 1/s from Lindahl & Nyberg (1972)
    (doi:10.1021/bi00769a018); Allentoft et al. (2012) support Ea ~130–155 kJ/mol
