@@ -1,15 +1,27 @@
 /**
  * trailManager.js
- * Comet-like position trails for asteroids.
- * Each trail is a THREE.Line whose vertex colours fade from the
- * asteroid's colour at the head to black at the tail.
+ * Polylines drawn behind, or around, a body.
  *
- * No DOM – purely a Three.js geometry module.
+ * Two modes, because the scene needs two different things.
+ *
+ * A HISTORY fades from the body's colour at the head to black at the tail, so
+ * the eye reads direction: this end is now, that end was earlier.
+ *
+ * A CLOSED CURVE - an osculating orbit - must not fade. It has no head and no
+ * tail, and fading one would black out most of the ellipse and imply a
+ * direction of travel the curve does not carry. Closed curves are drawn at
+ * uniform, reduced brightness instead, so they read as the track a body is on
+ * rather than as the track it has left.
+ *
+ * No DOM - purely a Three.js geometry module.
  */
 
 import * as THREE from 'three';
 
 const DEFAULT_MAX_LEN = 80;
+
+/** How bright a closed curve is drawn, relative to the body's own colour. */
+const CLOSED_CURVE_BRIGHTNESS = 0.55;
 
 function hexToRgb(hex) {
   const c = new THREE.Color(hex);
@@ -34,7 +46,7 @@ export function createTrail(scene, colorHex, maxLen = DEFAULT_MAX_LEN) {
   const line = new THREE.Line(geo, mat);
   line.frustumCulled = false;  // always render even if bounding box is stale
   scene.add(line);
-  return { line, history: [], maxLen, colorHex };
+  return { line, history: [], maxLen, colorHex, closed: false };
 }
 
 function rebuildGeometry(trail) {
@@ -46,10 +58,13 @@ function rebuildGeometry(trail) {
 
   for (let i = 0; i < len; i++) {
     const { x, y, z } = history[i];
-    // t=0 → head (full colour), t=1 → tail (black)
-    const t = len > 1 ? i / (len - 1) : 0;
+    // A history fades head-to-tail so the eye reads direction; a closed curve
+    // has neither end, so it is drawn at one uniform brightness.
+    const k = trail.closed
+      ? CLOSED_CURVE_BRIGHTNESS
+      : 1 - (len > 1 ? i / (len - 1) : 0);
     posAttr.setXYZ(i, x, y, z);
-    colAttr.setXYZ(i, rgb.r * (1 - t), rgb.g * (1 - t), rgb.b * (1 - t));
+    colAttr.setXYZ(i, rgb.r * k, rgb.g * k, rgb.b * k);
   }
   posAttr.needsUpdate = true;
   colAttr.needsUpdate = true;
@@ -134,7 +149,23 @@ export function buildTrailPositions(frames, currentFrame, trailLen, id) {
  * @param {object}                         trail      trail record from createTrail
  * @param {Array<{x:number,y:number,z:number}>} positions  newest-first array
  */
-export function setTrailHistory(trail, positions) {
+export function setTrailHistory(trail, positions, { closed = false } = {}) {
+  // Grow the buffers rather than silently truncating. An orbit is a couple of
+  // hundred points and the history buffers were sized for ten, so without this
+  // the ellipse arrived as a stub and looked like the bug it replaced.
+  if (positions.length > trail.maxLen) {
+    growTrail(trail, positions.length);
+  }
+  trail.closed = closed;
   trail.history = positions.slice(0, trail.maxLen);
   rebuildGeometry(trail);
+}
+
+/** Reallocate a trail's buffers for a longer polyline. */
+function growTrail(trail, needed) {
+  const maxLen = Math.max(needed, trail.maxLen * 2);
+  const geo = trail.line.geometry;
+  geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(maxLen * 3), 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(maxLen * 3), 3));
+  trail.maxLen = maxLen;
 }

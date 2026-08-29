@@ -10,6 +10,7 @@ import { createCamera, createControls, resizeCamera, resizeControls } from './ca
 import { createRenderer, resizeRenderer } from './renderer.js';
 import { createBodyNode } from './objectFactory.js';
 import { createOrbitLine } from './orbitLine.js';
+import { osculatingOrbit } from './orbits.js';
 import { startAnimationLoop } from './animator.js';
 import { registerClickHandler } from './picker.js';
 import { createFocusController, setFocusTarget, clearFocus, updateFocus,
@@ -235,21 +236,111 @@ async function mainReplay(source) {
    * directly instead of accumulating live positions.
    */
   function rebuildReplayTrails() {
-    for (const [id, { trail, trailLen }] of replayTrailMap) {
+    const frame = ctrl.frames?.[ctrl.currentFrame];
+    const origin = frame?.positions?.find(p => p.id === 'sun');
+    const originV = frame?.velocities?.find(v => v.id === 'sun');
+    const velById = new Map((frame?.velocities ?? []).map(v => [v.id, v]));
+    const posById = new Map((frame?.positions ?? []).map(p => [p.id, p]));
+
+    for (const [id, { trail, trailLen, type }] of replayTrailMap) {
       const vis = trailShouldBeVisible(id);
       trail.line.visible = vis;
       if (!vis) { trail.history.length = 0; trail.line.geometry.setDrawRange(0, 0); continue; }
+      const tScale = trailPosScale * (ctrl.scaleMultiplier ?? 1);
+
+      // Draw the orbit the body is on, not the chords between the frames it
+      // was sampled at.
+      //
+      // A frame is written every 20 years and the fragments have periods from
+      // 1.8 to 74.6 years, so consecutive samples are separated by up to
+      // eleven complete revolutions. Joining ten of them with straight lines
+      // produced a figure that corresponded to no path anything ever took -
+      // and it was the most conspicuous thing on the screen. Position and
+      // velocity determine the orbit exactly, so the whole ellipse is solved
+      // for and drawn instead. It is right at every point rather than at ten
+      // points, and it does not care how coarsely time was sampled.
+      const pos = posById.get(id);
+      const vel = velById.get(id);
+      if (origin && pos && vel) {
+        const orbit = osculatingOrbit(
+          pos, { x: vel.vx, y: vel.vy, z: vel.vz }, origin,
+          {
+            segments: type === 'planet' ? 160 : 220,
+            originVelocity: originV
+              ? { x: originV.vx, y: originV.vy, z: originV.vz } : null,
+          },
+        );
+        if (orbit) {
+          setTrailHistory(trail, orbit.points.map(q => ({
+            x: q.x * tScale, y: q.y * tScale, z: q.z * tScale,
+          })), { closed: true });
+          continue;
+        }
+      }
+
+      // Unbound, or a body with no velocity in this replay: there is no closed
+      // curve to draw, so fall back to the sampled path. It is still a chord
+      // figure, but an escaping fragment is not looping, so consecutive
+      // samples are genuinely near the path it took.
       const positions = buildTrailPositions(ctrl.frames, ctrl.currentFrame, trailLen, id);
-      const tScale    = trailPosScale * (ctrl.scaleMultiplier ?? 1);
-      const scaled    = positions.map(p => ({
+      setTrailHistory(trail, positions.map(p => ({
         x: p.x * tScale, y: p.y * tScale, z: p.z * tScale,
-      }));
-      setTrailHistory(trail, scaled);
+      })));
     }
+  }
+
+  /**
+   * Frame the camera on the swarm rather than on a fixed guess.
+   *
+   * The camera opened at a hard-coded distance chosen for the old demo. With
+   * the orbits drawn properly it became obvious that this was wrong: the inner
+   * planets filled the view while most of the fragment ellipses swept off the
+   * edges of the screen, so the one thing the scene exists to show - where the
+   * ejecta actually goes - was the part you could not see.
+   *
+   * The distance is set from the swarm's own median aphelion, not its maximum.
+   * A single fragment reaching 31 AU would otherwise shrink everything else to
+   * a point; the median keeps the bulk of the swarm in frame and lets the
+   * outlier run past the edge, which is the honest way round - the outlier is
+   * visibly an outlier.
+   */
+  function frameCameraOnSwarm() {
+    const frame = simData.frames?.[0];
+    const origin = frame?.positions?.find(p => p.id === 'sun');
+    const originV = frame?.velocities?.find(v => v.id === 'sun');
+    if (!origin) return;
+    const posById = new Map((frame.positions ?? []).map(p => [p.id, p]));
+    const aphelia = [];
+    for (const v of frame.velocities ?? []) {
+      if (!v.id?.startsWith('asteroid_')) continue;
+      const pos = posById.get(v.id);
+      if (!pos) continue;
+      const orbit = osculatingOrbit(
+        pos, { x: v.vx, y: v.vy, z: v.vz }, origin,
+        {
+          segments: 8,
+          originVelocity: originV ? { x: originV.vx, y: originV.vy, z: originV.vz } : null,
+        },
+      );
+      if (orbit) aphelia.push(orbit.elements.a * (1 + orbit.elements.e));
+    }
+    if (!aphelia.length) return;
+    aphelia.sort((a, b) => a - b);
+    const median = aphelia[Math.floor(aphelia.length / 2)];
+    const radius = median * trailPosScale;
+    // 60 degree vertical field of view, so half-height = distance * tan(30).
+    // The 1.9 leaves the swarm comfortably inside the frame rather than
+    // touching its edges.
+    const distance = Math.max(60, (radius * 1.9) / Math.tan((Math.PI / 180) * 30));
+    camera.position.set(0, distance * 0.42, distance * 0.92);
+    camera.lookAt(0, 0, 0);
+    controls?.target?.set?.(0, 0, 0);
+    controls?.update?.();
   }
 
   const ctrl = createReplayController(simData);
   applyReplayFrame(ctrl, meshById);   // apply frame 0 immediately
+  frameCameraOnSwarm();
 
   // Lookup: id → full simData object (for info panel)
   const objById  = new Map((simData.objects ?? []).map(o => [o.id, o]));
