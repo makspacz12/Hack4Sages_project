@@ -47,3 +47,13 @@ Thumbs.db
 
 # Local-only Polish walkthrough (deliberately not published)
 OPRACOWANIE.md
+
+# Playwright accessibility snapshots left behind by browser automation.
+*-live.yml
+.playwright-mcp/
+
+# Screenshots captured by browser automation during research.
+app-*.png
+*-live.png
+gate.png
+popout.png

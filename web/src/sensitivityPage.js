@@ -1,9 +1,17 @@
 /**
- * sensitivityPage.js — load OAT tornado JSON from the ensemble CLI.
+ * sensitivityPage.js — Morris elementary-effects screening.
+ *
+ * This page used to draw a one-at-a-time tornado. That was replaced rather
+ * than annotated: see sensitivity.html for what its shipped sample actually
+ * contained. `charts/tornado.js` is kept because the CLI can still emit that
+ * format and an old file should still open, but nothing links to it.
  */
 
 import './ui/analysisPage.css';
-import { parseSensitivityPayload, tornadoChart } from './charts/tornado.js';
+import { parseMorris } from './charts/morris.js';
+import {
+  morrisChart, morrisTable, morrisCostPanel, MORRIS_STYLE,
+} from './charts/morrisChart.js';
 
 const APP_BASE = import.meta.env.BASE_URL;
 
@@ -12,82 +20,64 @@ function withBase(path) {
 }
 
 function injectPlotStyles() {
-  if (document.getElementById('tornado-plot-style')) return;
+  if (document.getElementById('morris-plot-style')) return;
   const s = document.createElement('style');
-  s.id = 'tornado-plot-style';
-  s.textContent = `
-    #tornado-plot svg .axis { stroke: #3a2f29; stroke-width: 1; }
-    #tornado-plot svg .baseline { stroke: #98897d; stroke-width: 1; stroke-dasharray: 4 3; }
-    #tornado-plot svg .row-label {
-      fill: #cbbfb4; font-size: 11px; font-family: monospace;
-      text-anchor: end; dominant-baseline: middle;
-    }
-    #tornado-plot svg .tick { fill: #98897d; font-size: 10px; font-family: monospace; text-anchor: middle; }
-    #tornado-plot svg .tornado-title {
-      fill: #f2ebe4; font-size: 12px; font-family: monospace; font-weight: bold;
-    }
-    #tornado-plot .tornado-tooltip {
-      position: absolute; pointer-events: none; z-index: 5;
-      background: rgba(20,16,14,.94); border: 1px solid #3a2f29;
-      border-radius: 5px; padding: 8px 10px; font-family: monospace;
-      font-size: 11px; color: #cbbfb4; line-height: 1.5; white-space: pre-line;
-    }
-    #tornado-plot .tornado-legend {
-      display: flex; gap: 16px; margin-top: 10px;
-      font-family: monospace; font-size: 11px; color: #98897d;
-    }
-    #tornado-plot .tornado-legend .swatch {
-      display: inline-block; width: 12px; height: 8px; margin-right: 6px;
-      vertical-align: middle; border-radius: 2px;
-    }
-    #tornado-plot .tornado-legend .swatch.low { background: #e2683c; }
-    #tornado-plot .tornado-legend .swatch.high { background: #2ba3ab; }
-  `;
+  s.id = 'morris-plot-style';
+  s.textContent = MORRIS_STYLE;
   document.head.appendChild(s);
 }
 
-let plotHandle = null;
+let handle = null;
 
 function showError(message) {
-  const el = document.getElementById('tornado-error');
+  const el = document.getElementById('morris-error');
   if (!el) return;
   el.textContent = message;
   el.classList.toggle('on', Boolean(message));
 }
 
-function renderMeta(raw) {
-  const meta = document.getElementById('tornado-meta');
+function renderMeta(screening) {
+  const meta = document.getElementById('morris-meta');
   if (!meta) return;
-  const data = parseSensitivityPayload(raw);
   meta.innerHTML =
-    `<div><b>Baseline p50:</b> ${data.baselineP50.toPrecision(4)}</div>` +
-    `<div><b>Perturbation:</b> ±${Math.round(data.fraction * 100)}% OAT</div>` +
-    `<div><b>Knobs:</b> ${data.tornado.length} (top: ${data.tornado[0]?.label ?? '—'})</div>` +
-    `<div><b>Seeds:</b> ${data.seeds.join(', ') || '—'}</div>`;
+    `<div><b>Factors:</b> ${screening.factors.length}</div>`
+    + `<div><b>Trajectories:</b> ${screening.trajectories} · `
+    + `<b>levels:</b> ${screening.levels}</div>`
+    + `<div><b>Model runs:</b> ${screening.evaluations}</div>`
+    + `<div><b>Metric:</b> ${screening.metric ?? '—'}</div>`;
 }
 
-function renderPlot(raw) {
-  const host = document.getElementById('tornado-plot');
-  if (!host) return;
-  if (plotHandle) plotHandle.destroy();
-  plotHandle = tornadoChart(host, raw);
+function render(raw) {
+  const screening = parseMorris(raw);
+  if (!screening) {
+    showError('That file is not a Morris screening. Expected kind: "morris_screening".');
+    return;
+  }
+  const host = document.getElementById('morris-plot');
+  if (handle) handle.destroy();
+  // Square: the reading is the ratio sigma/mu*, so the axes must share a scale
+  // and the drawing area has to be square for the diagonals to be diagonals.
+  const side = Math.min(560, Math.max(320, host.clientWidth || 520));
+  handle = morrisChart(host, screening, { width: side, height: side });
+  morrisCostPanel(document.getElementById('morris-cost'), screening);
+  morrisTable(document.getElementById('morris-table'), screening);
+  renderMeta(screening);
   showError('');
-  renderMeta(raw);
 }
 
 async function loadSample() {
-  const res = await fetch(withBase('data/tornado_sample.json'));
+  const res = await fetch(withBase('data/morris_sample.json'));
   if (!res.ok) throw new Error(`sample not found (${res.status})`);
   return res.json();
 }
 
 function wireFileInput() {
-  const input = document.getElementById('tornado-file');
+  const input = document.getElementById('morris-file');
   input?.addEventListener('change', async () => {
     const file = input.files?.[0];
     if (!file) return;
     try {
-      renderPlot(JSON.parse(await file.text()));
+      render(JSON.parse(await file.text()));
     } catch (err) {
       showError(err instanceof Error ? err.message : String(err));
     }
@@ -96,14 +86,14 @@ function wireFileInput() {
 
 injectPlotStyles();
 wireFileInput();
-document.getElementById('tornado-load-sample')?.addEventListener('click', async () => {
+document.getElementById('morris-load-sample')?.addEventListener('click', async () => {
   try {
-    renderPlot(await loadSample());
+    render(await loadSample());
   } catch (err) {
     showError(err instanceof Error ? err.message : String(err));
   }
 });
 
-loadSample().then(renderPlot).catch(() => {
-  showError('Load a tornado JSON file or run the sample CLI command below.');
+loadSample().then(render).catch(() => {
+  showError('Load a screening JSON, or run the CLI command below to generate one.');
 });

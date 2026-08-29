@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sensitivity tornado – Lithopanspermia</title>
+  <title>Sensitivity screening – Lithopanspermia</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%2215%22%20fill%3D%22%233a2b24%22/%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%226%22%20fill%3D%22%232ba3ab%22/%3E%3C/svg%3E">
 </head>
 <body>
@@ -12,29 +12,92 @@
     <a href="./index.html" class="btn-back">← Visualizer</a>
   </header>
   <main>
-    <h1>Tornado chart (one-at-a-time ±10%)</h1>
+    <h1>Morris elementary-effects screening</h1>
     <p class="lede">
-      Each bar shows how median survival moves when a single knob is shifted down
-      (orange) or up (teal) while everything else stays at baseline. Knobs include
-      UI parameters and calibrated physics constants (Ea, radiation coeff., GCR k).
+      Every factor is moved, many times, from many different starting points in
+      the parameter space. <b>μ*</b> is the mean size of the resulting change in
+      median survival — how much a factor matters. <b>σ</b> is how much that
+      influence itself varies depending on where you are — which is
+      non-linearity, or interaction with another factor. The two have to be read
+      together, which is why they are the two axes of one plot rather than a
+      ranked bar chart.
     </p>
 
     <div class="analysis-toolbar">
-      <label for="tornado-file">Load tornado JSON…
-        <input type="file" id="tornado-file" accept="application/json,.json" />
+      <label for="morris-file">Load a screening JSON…
+        <input type="file" id="morris-file" accept="application/json,.json" />
       </label>
-      <button type="button" class="btn-link" id="tornado-load-sample">Reload sample</button>
+      <button type="button" class="btn-link" id="morris-load-sample">Reload sample</button>
       <a class="btn-link" href="./grid.html">Heatmap →</a>
     </div>
 
-    <div id="tornado-meta" class="analysis-meta"></div>
-    <div id="tornado-plot" class="analysis-plot"></div>
-    <div id="tornado-error" class="analysis-error"></div>
+    <div id="morris-meta" class="analysis-meta"></div>
+    <div id="morris-plot" class="analysis-plot"></div>
+    <div id="morris-cost"></div>
+    <div id="morris-table"></div>
+    <div id="morris-error" class="analysis-error"></div>
 
-    <pre>cd model &amp;&amp; source .venv/bin/activate
-python -m microbe_radiation_model.ensembles --tornado --quick \
-  --seeds 0,1 --years 0.5 --asteroids 4 \
-  --out ../web/public/data/tornado_sample.json</pre>
+    <h2>How to read it</h2>
+    <ul class="analysis-notes">
+      <li><b>Near the origin</b> — negligible. The factor can be frozen.</li>
+      <li><b>Right, and low (σ/μ* &lt; 0.1)</b> — influential, and linear and
+        additive: its effect is the same wherever you are in the space.</li>
+      <li><b>Right, and high (σ/μ* &gt; 1)</b> — influential, but non-linear or
+        interacting: how much it matters depends on every other setting, and no
+        single number describes it.</li>
+      <li><b>Filled circle</b> — the mean effect clears Morris's ±2·SEM wedge.
+        <b>Hollow</b> — it does not, and the effect may be indistinguishable
+        from zero at this number of trajectories.</li>
+      <li><b>A violet connector</b> — |μ| is smaller than μ*, so the factor
+        pushes one way in part of the space and the other way elsewhere. A
+        signed ranking would have cancelled it to nothing.</li>
+    </ul>
+
+    <h2>Why this replaced a tornado chart</h2>
+    <p class="lede">
+      The page that stood here drew a one-at-a-time tornado: each knob shifted
+      ±10% while everything else was held at baseline. That design is not merely
+      older. It measures a local derivative at one point, it cannot detect an
+      interaction even in principle, and over eight factors it reaches
+      <b>1.59%</b> of the input space.
+    </p>
+    <p class="lede">
+      Its shipped sample was also broken in ways worth stating plainly, because
+      they are on record: the run lasted <b>half a year</b> with four fragments,
+      the largest swing it measured was <b>2.0×10⁻⁷</b>, two of the eight knobs
+      moved the result by <b>exactly zero</b>, and its baseline for the
+      radiation coefficient was <b>3.16×10⁻⁶ 1/Gy</b> — a factor of 7.9 below
+      the floor of this model's own published band. Keeping it behind a caveat
+      would have been worse than removing it.
+    </p>
+
+    <pre>cd model
+python -m microbe_radiation_model.ensembles --morris --quick \
+  --seeds 0,1 --trajectories 12 --levels 4 --asteroids 6 --years 200 --dt 2 \
+  --out ../web/public/data/morris_sample.json</pre>
+
+    <h2>Sources</h2>
+    <ul class="analysis-notes">
+      <li>Morris, M.D. (1991). Factorial sampling plans for preliminary
+        computational experiments. <i>Technometrics</i> 33(2):161–174.
+        <span class="note-why">The (mean, standard deviation) plot and the
+        ±2·SEM wedge.</span></li>
+      <li>Campolongo, F., Cariboni, J. &amp; Saltelli, A. (2007). An effective
+        screening design for sensitivity analysis of large models.
+        <i>Environmental Modelling &amp; Software</i> 22:1509–1518.
+        <span class="note-why">μ*, the mean of absolute effects, which does not
+        cancel for a non-monotonic factor.</span></li>
+      <li>García Sánchez, D., Lacarrière, B., Musy, M. &amp; Bourges, B. (2014).
+        Application of sensitivity analysis in building energy simulations.
+        <i>Energy and Buildings</i> 68:741–753.
+        <span class="note-why">The σ/μ* = 0.1, 0.5 and 1 lines and the four
+        shape classes they separate.</span></li>
+      <li>Saltelli, A. &amp; Annoni, P. (2010). How to avoid a perfunctory
+        sensitivity analysis. <i>Environmental Modelling &amp; Software</i>
+        25(12):1508–1517.
+        <span class="note-why">The geometric proof that one-at-a-time designs
+        explore a vanishing fraction of the space.</span></li>
+    </ul>
   </main>
   <script type="module" src="./src/sensitivityPage.js"></script>
 </body>

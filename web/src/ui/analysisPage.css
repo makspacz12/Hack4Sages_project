@@ -159,3 +159,28 @@ pre {
   min-height: 200px;
   position: relative;
 }
+
+/* Reading notes and source lists on the screening page. Each source carries a
+   one-line reason it is cited, because a bare reference list tells a reader
+   nothing about which convention came from where. */
+.analysis-notes {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 22px;
+  max-width: 72ch;
+}
+.analysis-notes li {
+  color: #cbbfb4;
+  font-size: 13px;
+  line-height: 1.65;
+  padding: 6px 0 6px 14px;
+  border-left: 1px solid #3a2f29;
+  margin-bottom: 4px;
+}
+.analysis-notes li b { color: #f2ebe4; font-weight: 600; }
+.analysis-notes .note-why {
+  display: block;
+  color: #8d7f74;
+  font-size: 12px;
+  margin-top: 2px;
+}
