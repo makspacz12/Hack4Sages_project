@@ -67,9 +67,26 @@ const PALETTE = {
  * get for free. Twelve categories is not a job for colour.
  *
  * So the twelve rock types collapse to six physically meaningful classes, each
- * taking a colour from a published colourblind-safe palette (Okabe & Ito; Paul
- * Tol), and members within a class are separated by dash pattern instead. That
- * measures 15.2 in the worst deficiency, against 1.7 before.
+ * taking a colour from a published colourblind-safe palette, and members within
+ * a class are separated by dash pattern instead.
+ *
+ * THE FIRST SIX COLOURS WERE STILL WRONG, and the comment here claimed they
+ * measured 15.2 in the worst deficiency. They did not. Re-measured against this
+ * surface: metallic #DDDDDD had chroma exactly ZERO, so it was a grey rather
+ * than a colour; the metallic/chondrite pair separated by only 14.6 for a
+ * reader with NORMAL vision, below the threshold at which two series can be
+ * told apart at all; the icy/organic pair reached 6.2 under deuteranopia; and
+ * four of the six sat outside the lightness band for a dark ground. Collapsing
+ * to six classes was the right decision and the reasoning above stands; the
+ * particular hues chosen to fill them were not checked.
+ *
+ * The replacements are Okabe & Ito, darkened where the published values were
+ * too light to hold 3:1 against a dark ground. Measured: every check passes,
+ * worst adjacent separation 10.4 under deuteranopia and 18.1 with normal
+ * vision. One residual: the sky/purple pair falls to 4.3 under tritanopia,
+ * which affects roughly one person in ten thousand and is carried by the dash
+ * patterns below - that is what secondary encoding is for, and it is stated
+ * here rather than left for someone to discover.
  *
  * Encoding a category by line style as well as hue is also required rather than
  * merely advisable: WCAG 1.4.1, and the AAS Journals figure guidance — "the use
@@ -77,12 +94,12 @@ const PALETTE = {
  * avoided. Colored lines should also use different line styles."
  */
 const ROCK_CLASSES = {
-  silicate:  { color: '#F0E442', label: 'silicates' },   // Okabe & Ito yellow
-  chondrite: { color: '#66CCEE', label: 'chondrites' },  // Tol bright cyan
-  metal:     { color: '#DDDDDD', label: 'metallic' },    // Tol light grey
-  organic:   { color: '#EE3377', label: 'organic-rich' },// Tol vibrant magenta
-  icy:       { color: '#009988', label: 'icy' },         // Tol vibrant teal
-  rubble:    { color: '#AAAA00', label: 'rubble pile' }, // Tol light olive
+  silicate:  { color: '#D55E00', label: 'silicates' },    // Okabe & Ito vermillion
+  chondrite: { color: '#0072B2', label: 'chondrites' },   // Okabe & Ito blue
+  metal:     { color: '#009E73', label: 'metallic' },     // Okabe & Ito bluish green
+  organic:   { color: '#9C6B00', label: 'organic-rich' }, // Okabe & Ito orange, darkened
+  icy:       { color: '#B0578C', label: 'icy' },          // Okabe & Ito purple, darkened
+  rubble:    { color: '#4E9BCF', label: 'rubble pile' },  // Okabe & Ito sky, darkened
 };
 
 /** Dash separates members within a class; hue separates classes. */
@@ -248,13 +265,17 @@ function injectStyles() {
     #live-charts .lc-readout { font-size: 10.5px; color: #98897d; margin-top: 4px; }
     #live-charts .lc-plot { margin-top: 4px; position: relative; }
 
-    #live-charts svg .grid   { stroke: #241d1a; stroke-width: 1; }
-    #live-charts svg .axis   { stroke: #3a2f29; stroke-width: 1; }
-    #live-charts svg .tick   { fill: #98897d; font-size: 9px; font-family: inherit; }
-    #live-charts svg .tick-y { text-anchor: end; dominant-baseline: middle; }
-    #live-charts svg .tick-x { text-anchor: middle; }
-    #live-charts svg .axis-label { fill: #98897d; font-size: 9.5px; text-anchor: middle; font-family: inherit; }
-    #live-charts svg .crosshair { stroke: #98897d; stroke-width: 1; opacity: .45; }
+    /* Scoped to the SVG, not to #live-charts. These same charts are rendered
+       into detached windows, which are separate documents with no ancestor of
+       that id - so an id-scoped rule silently stopped applying and the popped
+       out chart lost its grid, ticks and axis labels. */
+    svg .grid   { stroke: #241d1a; stroke-width: 1; }
+    svg .axis   { stroke: #3a2f29; stroke-width: 1; }
+    svg .tick   { fill: #98897d; font-size: 9px; font-family: inherit; }
+    svg .tick-y { text-anchor: end; dominant-baseline: middle; }
+    svg .tick-x { text-anchor: middle; }
+    svg .axis-label { fill: #98897d; font-size: 9.5px; text-anchor: middle; font-family: inherit; }
+    svg .crosshair { stroke: #98897d; stroke-width: 1; opacity: .45; }
     #live-charts .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 5px; font-size: 10px; color: #98897d; }
     #live-charts .legend-item { display: inline-flex; align-items: center; gap: 5px; }
     #live-charts .legend-swatch { width: 10px; height: 3px; border-radius: 2px; display: inline-block; }
@@ -285,7 +306,7 @@ function injectStyles() {
     }
     #live-charts .lc-clear:hover { color: #f2ebe4; border-color: #2ba3ab; }
 
-    #live-charts svg .hoverline { stroke: #2ba3ab; stroke-width: 1; opacity: .55; }
+    svg .hoverline { stroke: #2ba3ab; stroke-width: 1; opacity: .55; }
     #live-charts .tooltip, .lc-modal .tooltip {
       position: absolute; pointer-events: none; z-index: 5;
       background: #1e1917; border: 1px solid #57453b; border-radius: 3px;

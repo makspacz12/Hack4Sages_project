@@ -59,6 +59,31 @@ function isOpen(win) {
  * redrawing and must return a handle with `update(frameIndex)` and optionally
  * `setSelected(id)`, matching the docked charts.
  */
+
+/** Clone every readable stylesheet from one document's head into another's. */
+export function copyStyleSheets(from, to) {
+  for (const sheet of Array.from(from.styleSheets)) {
+    let rules;
+    try {
+      rules = sheet.cssRules;
+    } catch {
+      // Cross-origin sheet: unreadable by design. Link it instead so the
+      // window still gets it, rather than dropping it silently.
+      if (sheet.href) {
+        const link = to.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = sheet.href;
+        to.head.appendChild(link);
+      }
+      continue;
+    }
+    if (!rules) continue;
+    const style = to.createElement('style');
+    style.textContent = Array.from(rules).map(r => r.cssText).join('\n');
+    to.head.appendChild(style);
+  }
+}
+
 export function openChartWindow(key, { title, note, render, onClose, footer }) {
   const existing = OPEN.get(key);
   if (existing && isOpen(existing.win)) {
@@ -82,6 +107,27 @@ export function openChartWindow(key, { title, note, render, onClose, footer }) {
     + `<div class="plot"></div><footer></footer></body></html>`,
   );
   win.document.close();
+
+  // Carry the opener's stylesheets across.
+  //
+  // A detached window is a separate document, so it inherits none of the
+  // opener's CSS. The charts are built by the parent but styled by rules the
+  // parent injected into its own head, so without this every popped-out figure
+  // rendered stripped: the answer surface lost its shaded published band and
+  // its dashed contours, the line charts lost grid, ticks and axis labels, and
+  // the tick text fell back to the browser default size and overflowed.
+  //
+  // Same-origin sheets expose cssRules; a cross-origin one throws on access,
+  // which is why each is tried separately rather than in one pass. A missing
+  // font sheet costs a fallback face, not a broken figure.
+  copyStyleSheets(document, win.document);
+
+  // Re-apply the window's own chrome last. The opener's sheets style `body`
+  // for a full-page dark app; this window is a single figure and needs its own
+  // background, layout and header, so it has to win the cascade.
+  const own = win.document.createElement('style');
+  own.textContent = WINDOW_CSS;
+  win.document.head.appendChild(own);
 
   win.document.querySelector('h1').textContent = title;
   win.document.querySelector('.note').textContent = note ?? '';
