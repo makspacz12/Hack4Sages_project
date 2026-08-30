@@ -189,6 +189,19 @@ async function mainReplay(source) {
 
   addLighting(scene);
   const starfieldMesh = addStarfield(scene);
+  // Rock type is a per-frame property rather than an object field, so it is
+  // taken from the first frame that names each fragment. It decides the
+  // fragment's surface, which is generated from that rock's catalogued
+  // albedo, porosity and water content.
+  const rockTypeOf = new Map();
+  for (const frame of simData.frames ?? []) {
+    for (const prop of frame?.properties ?? []) {
+      if (prop?.id && prop.rock_type && !rockTypeOf.has(prop.id)) {
+        rockTypeOf.set(prop.id, prop.rock_type);
+      }
+    }
+  }
+
   const nodes = (simData.objects ?? []).map(obj => {
     const body = {
       id:        obj.id,
@@ -200,6 +213,7 @@ async function mainReplay(source) {
       parentId:  null,
       emissive:  obj.visual?.emissive ?? false,
       type:      obj.type ?? 'planet',
+      rockType:  rockTypeOf.get(obj.id) ?? null,
     };
     const { pivot, mesh } = createBodyNode(body);
     scene.add(pivot);

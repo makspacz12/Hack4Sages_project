@@ -6,6 +6,7 @@
 import * as THREE from 'three';
 import { createPlanetMaterial, createSunMaterial } from './shaderMaterial.js';
 import { loadTexture, textureFor } from './planetTextures.js';
+import { fragmentTexture } from './fragmentTexture.js';
 
 /**
  * Create a sphere geometry for a given radius and detail level.
@@ -28,11 +29,13 @@ export function createGeometry(radius, segments = 32) {
  * @param {boolean} emissive  true for the sun / stars
  * @returns {THREE.ShaderMaterial}
  */
-export function createMaterial(color, emissive, id = null) {
-  // The map is looked up by body id, so only the Sun and the eight planets get
-  // one; the fifty Gaia stars and the fragments keep their flat colours, which
-  // is correct - there is no photograph of a rock this model invented.
-  const map = loadTexture(textureFor(id));
+export function createMaterial(color, emissive, id = null, rockType = null) {
+  // Two sources, deliberately different in kind. The Sun and the eight planets
+  // get photographic maps, because photographs of them exist. A fragment gets
+  // a surface GENERATED from its own catalogued albedo, porosity and water
+  // content - see fragmentTexture.js for why a downloaded comet picture would
+  // be the wrong thing here. The fifty Gaia stars get neither.
+  const map = rockType ? fragmentTexture(rockType) : loadTexture(textureFor(id));
   return emissive ? createSunMaterial(color, map) : createPlanetMaterial(color, map);
 }
 
@@ -43,7 +46,7 @@ export function createMaterial(color, emissive, id = null) {
  */
 export function createSphereMesh(body) {
   const geo = createGeometry(body.radius);
-  const mat = createMaterial(body.color, body.emissive, body.id);
+  const mat = createMaterial(body.color, body.emissive, body.id, body.rockType);
   const mesh = new THREE.Mesh(geo, mat);
   mesh.rotation.z = THREE.MathUtils.degToRad(body.tilt ?? 0);
   // Shadow flags are left off: no light in this scene casts, and the planet
