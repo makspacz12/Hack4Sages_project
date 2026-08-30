@@ -31,6 +31,9 @@ import {
 import {
   createReplayController, tickReplay, applyReplayFrame, applyReplayFrameLerp,
 } from './replayController.js';
+import {
+  createOrbitalClock, tickOrbitalClock, resetOrbitalClock, applyOrbitalClock,
+} from './orbitalClock.js';
 import { initReplayUI } from './replayUI.js';
 import { createInfoPanel } from './infoPanel.js';
 import { createUVShells, setUVVisible, tickUVAnimation, updateHeatForNodes } from './uvRadiation.js';
@@ -432,6 +435,13 @@ async function mainReplay(source) {
   }
 
   const ctrl = createReplayController(simData);
+
+  /* The second clock. The transport counts the 3000 years the dose is
+     integrated over; this one runs the geometry at a rate an orbit is actually
+     visible at. Sound because the two quantities have different time
+     structure - orbits are periodic in years, dose is a straight line to
+     0.19% - so neither is misrepresented by being shown at its own rate. */
+  const orbitalClock = createOrbitalClock();
   applyReplayFrame(ctrl, meshById);   // apply frame 0 immediately
   frameCameraOnSwarm();
 
@@ -738,8 +748,22 @@ async function mainReplay(source) {
       tickUVAnimation(allUVShells, scaledDeltaSec);
       updateHeatForNodes(nodes, starNodes, uvEnabled);
       const frameChanged = tickReplay(ctrl, dtMs);
-      if (ctrl.smooth) {
+
+      // The orbital clock owns the geometry while it is running: it places
+      // every body on its own ellipse at its own rate, so an orbit is legible
+      // instead of being eight revolutions wide. The transport still owns the
+      // frame index, the dose, the charts and every number on screen.
+      tickOrbitalClock(orbitalClock, scaledDeltaSec, ctrl.playing);
+      if (frameChanged) resetOrbitalClock(orbitalClock, ctrl.currentFrame);
+
+      const posScale = (ctrl.meta?.positionScale ?? 1) * (ctrl.scaleMultiplier ?? 1);
+      const orbitalDrove = orbitalClock.enabled
+        && applyOrbitalClock(orbitalClock, curFrame(), meshById, posScale);
+
+      if (ctrl.smooth && !orbitalDrove) {
         applyReplayFrameLerp(ctrl, meshById);
+      }
+      if (ctrl.smooth) {
         if (frameChanged) {
           refreshUI(ctrl);
           const { positions, velocities, properties } = curFrame();
@@ -748,7 +772,7 @@ async function mainReplay(source) {
           rebuildReplayTrails();
         }
       } else if (frameChanged) {
-        applyReplayFrame(ctrl, meshById);
+        if (!orbitalDrove) applyReplayFrame(ctrl, meshById);
         refreshUI(ctrl);
         const { positions, velocities, properties } = curFrame();
         infoPanel.updateFrame(positions, velocities, properties, posUnit);
