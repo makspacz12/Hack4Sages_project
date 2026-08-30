@@ -69,8 +69,8 @@ const PALETTE = {
  * get for free. Twelve categories is not a job for colour.
  *
  * So the twelve rock types collapse to six physically meaningful classes, each
- * taking a colour from a published colourblind-safe palette, and members within
- * a class are separated by dash pattern instead.
+ * taking a colour from a published colourblind-safe palette and a line style of
+ * its own. The exact rock type is named in the tooltip.
  *
  * THE FIRST SIX COLOURS WERE STILL WRONG, and the comment here claimed they
  * measured 15.2 in the worst deficiency. They did not. Re-measured against this
@@ -103,14 +103,23 @@ const PALETTE = {
  *   sky/purple             4.3 (tritanopia, ~1 in 10 000)
  *
  * Six categorical hues cannot clear the all-pairs thresholds; that was tested,
- * not assumed - every six-colour set tried failed some pair. The remedy is the
- * one the guidance allows: never let class identity rest on hue alone. Every
- * series is named in the legend and again in its hover tooltip, and members
- * within a class are separated by dash pattern.
+ * not assumed - every six-colour set tried failed some pair. So hue cannot be
+ * the only carrier of class identity, and the dash pattern is the second
+ * carrier.
  *
- * The dashes do NOT separate the classes from each other - each class's first
- * member is solid - so the direct labels are doing that work, and if they are
- * ever removed this palette stops being defensible.
+ * THE DASH ENCODES THE CLASS, NOT THE MEMBER. It used to be the other way
+ * round: the first rock in each class was solid, the second dashed '6 3', the
+ * third '2 3', and those patterns repeated identically across classes. The
+ * consequence was that basalt and organic-rich were BOTH solid lines - so for
+ * exactly the pair whose colours were closest, the redundant encoding was
+ * identical too, and nothing distinguished them at all. The secondary encoding
+ * was backing up the wrong thing.
+ *
+ * Every class now owns one pattern and every member of that class shares it,
+ * so colour and dash always agree and either alone identifies the class. What
+ * is lost is telling olivine from enstatite at a glance; that is the right
+ * thing to give up, because their colours never differed either - they are one
+ * class - and the exact rock type is named in the tooltip and the legend.
  *
  * Encoding a category by line style as well as hue is also required rather than
  * merely advisable: WCAG 1.4.1, and the AAS Journals figure guidance — "the use
@@ -126,20 +135,35 @@ const ROCK_CLASSES = {
   rubble:    { color: '#4E9BCF', label: 'rubble pile' },  // Okabe & Ito sky, darkened
 };
 
-/** Dash separates members within a class; hue separates classes. */
+/**
+ * Class identity, carried redundantly by hue and by dash.
+ *
+ * The patterns are chosen to differ in rhythm rather than only in length, so
+ * they stay separable at the 1px width these traces are drawn at: solid, long
+ * dash, dot, dash-dot, even dash, fine dot.
+ */
+const CLASS_DASH = {
+  silicate:  null,
+  chondrite: '9 4',
+  metal:     '2 3',
+  organic:   '10 3 2 3',
+  icy:       '5 4',
+  rubble:    '1 3',
+};
+
 const ROCK_STYLE = {
-  basalt_vtype:       { cls: 'silicate',  dash: null },
-  olivine:            { cls: 'silicate',  dash: '6 3' },
-  enstatite:          { cls: 'silicate',  dash: '2 3' },
-  hydrated_silicate:  { cls: 'silicate',  dash: '9 3 2 3' },
-  ordinary_chondrite: { cls: 'chondrite', dash: null },
-  ci_chondrite:       { cls: 'chondrite', dash: '6 3' },
-  cm_chondrite:       { cls: 'chondrite', dash: '2 3' },
-  iron_nickel:        { cls: 'metal',     dash: null },
-  stony_iron:         { cls: 'metal',     dash: '6 3' },
-  organic_rich:       { cls: 'organic',   dash: null },
-  ice_rich:           { cls: 'icy',       dash: null },
-  rubble_pile:        { cls: 'rubble',    dash: null },
+  basalt_vtype:       { cls: 'silicate' },
+  olivine:            { cls: 'silicate' },
+  enstatite:          { cls: 'silicate' },
+  hydrated_silicate:  { cls: 'silicate' },
+  ordinary_chondrite: { cls: 'chondrite' },
+  ci_chondrite:       { cls: 'chondrite' },
+  cm_chondrite:       { cls: 'chondrite' },
+  iron_nickel:        { cls: 'metal' },
+  stony_iron:         { cls: 'metal' },
+  organic_rich:       { cls: 'organic' },
+  ice_rich:           { cls: 'icy' },
+  rubble_pile:        { cls: 'rubble' },
 };
 
 export function colorForRockType(rockType) {
@@ -148,7 +172,13 @@ export function colorForRockType(rockType) {
 }
 
 export function dashForRockType(rockType) {
-  return ROCK_STYLE[rockType]?.dash ?? null;
+  const style = ROCK_STYLE[rockType];
+  return style ? CLASS_DASH[style.cls] ?? null : null;
+}
+
+/** The dash a class is drawn with, for the legend and for tests. */
+export function dashForClass(classId) {
+  return CLASS_DASH[classId] ?? null;
 }
 
 export function rockClassLabel(rockType) {
@@ -158,7 +188,11 @@ export function rockClassLabel(rockType) {
 
 /** The six classes, for a legend. */
 export function rockClasses() {
-  return Object.entries(ROCK_CLASSES).map(([id, c]) => ({ id, ...c }));
+  // Dash travels with the class, so anything rendering a legend swatch draws
+  // the same two-channel encoding the traces use.
+  return Object.entries(ROCK_CLASSES).map(([id, c]) => ({
+    id, ...c, dash: CLASS_DASH[id] ?? null,
+  }));
 }
 
 /** rock type of each fragment, taken from the first frame that names it. */

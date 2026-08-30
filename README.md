@@ -375,15 +375,20 @@ original set had a genuine collision: organic-rich against silicate at ΔE00 **1
 protanopia and 10.6 with normal vision, two solid lines that were for practical purposes
 the same colour. Organic-rich is now a sienna, which lifts that pair to 5.9.
 
-What remains is stated rather than left to be discovered: icy vs metallic 5.9
+What remains on hue alone is stated rather than left to be discovered: icy vs metallic 5.9
 (deuteranopia), rubble vs chondrite 13.3 (normal vision), sky vs purple 4.3 (tritanopia,
 about one person in ten thousand). Six categorical hues cannot clear the all-pairs
-thresholds — that was tested, not assumed; every six-colour set tried failed some pair. The
-remedy is the one the guidance allows: class identity never rests on hue alone. Every
-series is named in the legend and again in its tooltip, and members within a class are
-separated by dash pattern. **The dashes do not separate the classes from each other**, so
-the direct labels are doing that work, and if they were removed the palette would stop
-being defensible.
+thresholds — that was tested, not assumed; every six-colour set tried failed some pair.
+
+So hue is not the only carrier of class identity: **each class also owns a line style**,
+and every member of a class shares it, so colour and dash always agree and either alone
+identifies the class. That is a correction. The dash used to encode the member *index*
+within a class, with the same patterns reused across classes — which left basalt and
+organic-rich both drawn solid, so for exactly the pair whose hues are closest, the
+redundant channel was identical too. The secondary encoding was backing up the wrong
+thing. What is given up is telling olivine from enstatite at a glance, which is the right
+trade: their hues never differed either, because they are one class, and the exact rock
+type is named in the tooltip and the legend.
 
 Selection is deliberately **not** blue — the navy accent already owns that register — and
 not the obvious magenta either: the first candidate separated from the icy rock class by

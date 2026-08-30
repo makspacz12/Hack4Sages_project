@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  colorForRockType, dashForRockType, rockClassLabel, rockClasses,
+  colorForRockType, dashForRockType, dashForClass, rockClassLabel, rockClasses,
 } from '../src/liveCharts.js';
 import { rampColor } from '../src/charts/trajectoryColor.js';
 
@@ -48,18 +48,22 @@ describe('rock class palette', () => {
     expect(new Set(CATALOG.map(colorForRockType)).size).toBe(6);
   });
 
-  it('separates members within a class by dash instead of hue', () => {
+  it('draws every member of a class identically, hue and dash alike', () => {
+    // These two tests replace ones that asserted the OPPOSITE: that members
+    // within a class differ by dash, and that each class's first member is
+    // solid. That contract was the defect. It made the dash encode a member
+    // index, with the same patterns reused across classes, so basalt and
+    // organic-rich were both solid - and those two classes are the pair whose
+    // hues are closest. The redundant channel was backing up the wrong thing.
     const silicates = ['basalt_vtype', 'olivine', 'enstatite', 'hydrated_silicate'];
-    const colors = new Set(silicates.map(colorForRockType));
-    expect(colors.size).toBe(1);                     // one hue
-    const dashes = new Set(silicates.map(dashForRockType));
-    expect(dashes.size).toBe(silicates.length);      // four distinct styles
+    expect(new Set(silicates.map(colorForRockType)).size).toBe(1);
+    expect(new Set(silicates.map(dashForRockType)).size).toBe(1);
   });
 
-  it('gives the first member of each class a solid line', () => {
-    expect(dashForRockType('basalt_vtype')).toBeNull();
-    expect(dashForRockType('ordinary_chondrite')).toBeNull();
-    expect(dashForRockType('iron_nickel')).toBeNull();
+  it('does not give two different classes the same line style', () => {
+    const solid = CATALOG.filter(r => dashForRockType(r) === null);
+    const classesOfSolid = new Set(solid.map(rockClassLabel));
+    expect(classesOfSolid.size).toBe(1);
   });
 
   it('every class colour clears 3:1 against both grounds', () => {
@@ -105,5 +109,49 @@ describe('trajectory ramp against the scene background', () => {
     const ratio = luminance(rampColor(1)) / luminance(rampColor(0));
     expect(ratio).toBeGreaterThan(4);
     expect(ratio).toBeLessThan(8);
+  });
+});
+
+describe('dash encodes the class, not the member', () => {
+  // The reason this matters, and why it changed: hue alone cannot separate six
+  // classes under an all-pairs colourblind check, so the dash is the second
+  // carrier of class identity. It used to encode the member INDEX within a
+  // class, with the same patterns repeating across classes - which left basalt
+  // and organic-rich both solid, so the one pair whose colours were closest had
+  // an identical redundant encoding too.
+
+  it('gives every class its own pattern', () => {
+    const dashes = rockClasses().map(c => c.dash);
+    expect(new Set(dashes.map(String)).size).toBe(dashes.length);
+  });
+
+  it('gives every member of a class the same pattern as its class', () => {
+    // Resolved through the public API rather than the private table, so the
+    // test exercises what a caller actually sees.
+    const byLabel = new Map(rockClasses().map(c => [c.label, c]));
+    for (const rock of CATALOG) {
+      const cls = byLabel.get(rockClassLabel(rock));
+      expect(cls, rock).toBeTruthy();
+      expect(dashForRockType(rock), rock).toBe(dashForClass(cls.id));
+    }
+  });
+
+  it('never lets two classes share both a colour and a pattern', () => {
+    const seen = new Set();
+    for (const c of rockClasses()) {
+      const key = `${c.color}|${c.dash}`;
+      expect(seen.has(key), `${c.id} duplicates another class`).toBe(false);
+      seen.add(key);
+    }
+  });
+
+  it('separates the two classes whose colours are closest', () => {
+    // Silicate and organic-rich are the pair that collided at dE00 1.2 before
+    // the sienna, and still sit closest. They must differ by dash as well.
+    expect(dashForClass('silicate')).not.toBe(dashForClass('organic'));
+  });
+
+  it('falls back to solid for a rock it does not know', () => {
+    expect(dashForRockType('not_a_rock')).toBeNull();
   });
 });
