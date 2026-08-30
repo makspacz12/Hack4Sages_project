@@ -70,6 +70,19 @@ const CHAPTERS = [
        nobody else can demonstrate on stage. */
     coefficient: true,
   },
+  {
+    key: '6',
+    title: 'Wait a hundred times longer',
+    note: 'Erosion, not radiation, decides this. Seven of fourteen fragments '
+        + 'are ground away; lifetime is radius divided by erosion rate.',
+    frame: 1,
+    zoom: 1.0,
+    panels: { console: false, dock: true },
+    /* This chapter is about a different run, so it says so rather than
+       pretending the bundled replay shows it. The 3000 year run loses no
+       fragment at all; the finding only exists at 100 kyr. */
+    requiresRun: 'data/run_100kyr.json',
+  },
 ];
 
 export function chapters() {
@@ -108,6 +121,15 @@ const STYLE = `
     font-size: 0.9375rem; font-weight: 600; flex: none;
   }
   #chapter-hud .ch-note { font-size: 0.75rem; opacity: 0.82; line-height: 1.45; }
+  #chapter-hud .ch-switch {
+    pointer-events: auto; flex: none;
+    padding: 3px 10px; border-radius: 3px;
+    border: 1px solid var(--accent-lit); background: none;
+    color: var(--accent-lit); font: inherit; font-size: 0.6875rem;
+    cursor: pointer;
+  }
+  #chapter-hud .ch-switch:hover { background: rgba(74, 144, 217, 0.16); }
+  #chapter-hud { pointer-events: none; }
 
   /* The coefficient, promoted to the stage.
    *
@@ -281,6 +303,25 @@ export function initPresentation(deps = {}) {
     borrowCoefficient(Boolean(ch.coefficient));
 
     hud.innerHTML = '';
+
+    /* A chapter that needs a different run says so instead of silently
+       showing the wrong one. Switching reloads, so it is offered rather than
+       done: a presenter should not lose their place to a stray keypress. */
+    if (ch.requiresRun) {
+      const loaded = new URLSearchParams(location.search).get('replay') ?? '';
+      if (loaded !== ch.requiresRun) {
+        const warn = document.createElement('button');
+        warn.type = 'button';
+        warn.className = 'ch-switch';
+        warn.textContent = 'Load the 100 kyr run';
+        warn.addEventListener('click', () => {
+          const url = new URL(location.href);
+          url.searchParams.set('replay', ch.requiresRun);
+          location.assign(url.toString());
+        });
+        hud.appendChild(warn);
+      }
+    }
     const num = document.createElement('span');
     num.className = 'ch-num';
     num.textContent = `${index + 1}/${CHAPTERS.length}`;

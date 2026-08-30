@@ -25,6 +25,7 @@ import { headlineBanner } from './charts/headlineBanner.js';
 import {
   erosionPhaseData, lifetimeLawAccuracy, survivalPhaseChart,
 } from './charts/survivalPhase.js';
+import { sameDoseData, spreadSummary, sameDoseChart } from './charts/sameDose.js';
 import { withTooltip, renderContent } from './ui/tooltip.js';
 import { C_RAD_HELP, C_RAD_PRESETS } from './ui/paramHelp.js';
 import { answerSurfaceChart, ANSWER_SURFACE_STYLE } from './charts/answerSurfaceChart.js';
@@ -1163,6 +1164,40 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
    * figure showing one would be inventing it. */
   let phaseFig = null;
 
+  /* Same dose, different fate.
+   *
+   * Only meaningful once survival has actually separated. Over 3000 years
+   * every fragment sits between 0.78 and 0.97, so the figure would be showing
+   * a 1.25x spread and claiming it was the point. */
+  function renderSameDose() {
+    const rows = sameDoseData(frames);
+    const spread = spreadSummary(rows);
+    if (!spread || spread.survivalFactor < 10) return;
+
+    const fig = document.createElement('figure');
+    fig.className = 'lc-fig lc-samedose';
+    fig.innerHTML = `
+      <figcaption>
+        <div class="lc-fig-title">Same dose, different fate</div>
+        <div class="lc-fig-note"></div>
+      </figcaption>
+      <div class="lc-samedose-plot"></div>
+      <div class="lc-readout"></div>
+    `;
+    fig.querySelector('.lc-fig-note').textContent =
+      `the ${spread.n} fragments still intact at the end of the run`;
+    body.appendChild(fig);
+
+    sameDoseChart(fig.querySelector('.lc-samedose-plot'), rows, {
+      colorFor: (r) => colorForRockType(rockTypes.get(r.id) ?? r.rockType),
+    });
+
+    fig.querySelector('.lc-readout').textContent =
+      `dose varies by ${spread.dosePercent.toFixed(1)}%, survival by a factor `
+      + `of ${spread.survivalFactor.toFixed(0)}. The difference is the organism, `
+      + 'not the journey.';
+  }
+
   function renderSurvivalPhase() {
     const rows = erosionPhaseData(frames);
     if (rows.length < 3) return;
@@ -1271,6 +1306,7 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
     });
     renderDepthProfile();
     renderSurvivalPhase();
+    renderSameDose();
     // Last, deliberately: it describes the run the charts above came from, so
     // it reads as a footer to them rather than as a control.
     const prov = document.createElement('div');

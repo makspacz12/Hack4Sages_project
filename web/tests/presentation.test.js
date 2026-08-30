@@ -92,6 +92,14 @@ describe('presentation mode', () => {
     expect(setFrame).toHaveBeenCalled();
   });
 
+  it('sends the chapter that needs the long run to the long run', () => {
+    // Chapter 6 is about a finding that only exists at 100 kyr. It must name
+    // the run rather than quietly showing the 3000 year one, where no
+    // fragment is lost at all.
+    const sixth = chapters().find(c => c.key === '6');
+    expect(sixth.requiresRun).toBe('data/run_100kyr.json');
+  });
+
   it('describes what the data supports, not a death animation', () => {
     // Every fragment ends the run holding 77.5% to 97.1% of its microbes, so
     // no chapter may promise sterilisation.
@@ -101,10 +109,10 @@ describe('presentation mode', () => {
     }
   });
 
-  it('offers exactly the five chapters the talk is built around', () => {
+  it('offers exactly the six chapters the talk is built around', () => {
     const cs = chapters();
-    expect(cs).toHaveLength(5);
-    expect(cs.map(c => c.key)).toEqual(['1', '2', '3', '4', '5']);
+    expect(cs).toHaveLength(6);
+    expect(cs.map(c => c.key)).toEqual(['1', '2', '3', '4', '5', '6']);
     for (const c of cs) {
       expect(c.title).toBeTruthy();
       expect(c.note).toBeTruthy();
