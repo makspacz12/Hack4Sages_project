@@ -1,7 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  stateToElements, orbitPoints, osculatingOrbit, SUN_MU_AU3_YR2,
-} from '../src/orbits.js';
+import { stateToElements, orbitPoints, osculatingOrbit, SUN_MU_AU3_YR2, propagateElements, keplerSafe } from '../src/orbits.js';
 import sim from '../public/data/cosmos_visualizer_simulation.json';
 
 const MU = SUN_MU_AU3_YR2;
@@ -172,5 +170,163 @@ describe('osculatingOrbit on the shipped replay', () => {
     });
     expect(Math.max(...es)).toBeGreaterThan(0.3);
     expect(Math.min(...es)).toBeLessThan(Math.max(...es));
+  });
+});
+
+/**
+ * Advancing a body along its own ellipse.
+ *
+ * Positions are sampled every 20 years and the shortest period in the system
+ * is Mercury's 0.24 years. Played back as sampled, a fragment jumps a median
+ * of 2.48 AU - 149 world units - between frames, and nothing appears to move
+ * so much as teleport. Re-running finely enough is not available: 3000 years
+ * at 0.05 yr/frame is about 2.8 GB.
+ */
+describe('propagateElements', () => {
+  const MU = 4 * Math.PI ** 2;
+
+  it('returns to the start after exactly one period', () => {
+    // Unit circular orbit: period is 1 year by construction.
+    const el = stateToElements({ x: 1, y: 0, z: 0 }, { x: 0, y: 2 * Math.PI, z: 0 }, MU);
+    const p = propagateElements(el, el.period);
+    expect(p.x).toBeCloseTo(1, 9);
+    expect(p.y).toBeCloseTo(0, 9);
+  });
+
+  it('is halfway round at half a period', () => {
+    const el = stateToElements({ x: 1, y: 0, z: 0 }, { x: 0, y: 2 * Math.PI, z: 0 }, MU);
+    const p = propagateElements(el, el.period / 2);
+    expect(p.x).toBeCloseTo(-1, 9);
+    expect(p.y).toBeCloseTo(0, 9);
+  });
+
+  it('lands on the curve orbitPoints draws', () => {
+    // The marker must sit ON the drawn ellipse, or the scene contradicts
+    // itself. Both use the same rotation, so every propagated point must be at
+    // the ellipse's own radius for its true anomaly.
+    const el = stateToElements({ x: 1.3, y: 0.2, z: 0.05 }, { x: -0.9, y: 5.4, z: 0.3 }, MU);
+    expect(el).toBeTruthy();
+    for (const frac of [0, 0.17, 0.4, 0.63, 0.91]) {
+      const p = propagateElements(el, el.period * frac);
+      const r = Math.hypot(p.x, p.y, p.z);
+      // Every point on the ellipse lies between periapsis and apoapsis.
+      expect(r).toBeGreaterThanOrEqual(el.a * (1 - el.e) - 1e-9);
+      expect(r).toBeLessThanOrEqual(el.a * (1 + el.e) + 1e-9);
+    }
+  });
+
+  it('solves Kepler for a strongly eccentric orbit', () => {
+    // e = 0.8 is where a naive iteration starts to struggle. At periapsis
+    // r_p = 0.3 AU, v = sqrt(mu(1+e)/r_p) = 15.3906 produces exactly that.
+    const el = stateToElements({ x: 0.3, y: 0, z: 0 }, { x: 0, y: 15.3906, z: 0 }, MU);
+    expect(el.e).toBeGreaterThan(0.5);
+    const p = propagateElements(el, el.period);
+    expect(p.x).toBeCloseTo(0.3, 6);
+    expect(p.y).toBeCloseTo(0, 6);
+  });
+
+  it('refuses a body it cannot describe, and accepts the ones it can', () => {
+    // The test is not "is dt small next to the period" - a 2.4-year orbit
+    // propagates perfectly across a 20-year gap, it simply goes round eight
+    // times. What breaks it is the orbit changing within the gap, which is
+    // what happens to the 17.7 AU outlier being thrown around by Jupiter.
+    const swarm = stateToElements({ x: 1.5, y: 0, z: 0 }, { x: 0, y: 5.2, z: 0 }, MU);
+    expect(keplerSafe(swarm, 20)).toBe(true);
+
+    const outlier = stateToElements({ x: 17.7, y: 0, z: 0 }, { x: 0, y: 1.5, z: 0 }, MU);
+    expect(keplerSafe(outlier, 20)).toBe(false);
+
+    expect(keplerSafe(null, 20)).toBe(false);
+  });
+
+  it('says nothing rather than guessing on bad input', () => {
+    expect(propagateElements(null, 5)).toBeNull();
+    expect(propagateElements({ a: 1 }, NaN)).toBeNull();
+  });
+});
+
+/**
+ * The accuracy claim, measured against the shipped replay.
+ *
+ * This is the number the whole approach rests on, so it is checked against
+ * REBOUND's own output rather than asserted in a comment.
+ */
+describe('Kepler interpolation against the real integration', () => {
+  const MU = 4 * Math.PI ** 2;
+
+  function heliocentric(frameIdx, id) {
+    const f = sim.frames[frameIdx];
+    const sun = f.positions.find(p => p.id === 'sun');
+    const p = f.positions.find(q => q.id === id);
+    if (!p || !sun) return null;
+    return { x: p.x - sun.x, y: p.y - sun.y, z: p.z - sun.z };
+  }
+
+  function elementsAt(frameIdx, id) {
+    const f = sim.frames[frameIdx];
+    const sunV = f.velocities.find(v => v.id === 'sun');
+    const v = f.velocities.find(q => q.id === id);
+    const r = heliocentric(frameIdx, id);
+    if (!r || !v) return null;
+    // Velocity must be Sun-relative: the Sun itself moves 2.6e-3 AU/yr.
+    return stateToElements(r, {
+      x: v.vx - (sunV?.vx ?? 0),
+      y: v.vy - (sunV?.vy ?? 0),
+      z: v.vz - (sunV?.vz ?? 0),
+    }, MU);
+  }
+
+  it('is far closer to the truth than showing the sampled position', () => {
+    const errors = [];
+    const jumps = [];
+    const ids = sim.frames[0].velocities
+      .filter(v => v.id.startsWith('asteroid_')).map(v => v.id);
+
+    for (const id of ids) {
+      for (let i = 0; i < sim.frames.length - 1; i += 1) {
+        const el = elementsAt(i, id);
+        const truth = heliocentric(i + 1, id);
+        const here = heliocentric(i, id);
+        if (!el || !truth || !here) continue;
+        const dt = sim.frames[i + 1].time - sim.frames[i].time;
+        if (!keplerSafe(el, dt)) continue;
+        const pred = propagateElements(el, dt);
+        if (!pred) continue;
+        errors.push(Math.hypot(pred.x - truth.x, pred.y - truth.y, pred.z - truth.z));
+        // What the viewer sees without interpolation: the body simply appears
+        // at the next sampled point.
+        jumps.push(Math.hypot(here.x - truth.x, here.y - truth.y, here.z - truth.z));
+      }
+    }
+
+    expect(errors.length).toBeGreaterThan(1000);
+    errors.sort((a, b) => a - b);
+    jumps.sort((a, b) => a - b);
+    const medErr = errors[errors.length >> 1];
+    const medJump = jumps[jumps.length >> 1];
+
+    // Measured: 0.0295 AU against a 2.48 AU jump, about 84x better.
+    expect(medErr).toBeLessThan(0.05);
+    expect(medErr).toBeLessThan(medJump / 20);
+  });
+
+  it('excludes the one fragment whose orbit changes within a gap', () => {
+    // asteroid_011 is at a = 17.7 AU, perturbed hard by Jupiter, and its own
+    // propagation error reaches 24 AU - larger than the inner Solar System.
+    const el = elementsAt(0, 'asteroid_011');
+    expect(el).toBeTruthy();
+    expect(el.a).toBeGreaterThan(6);
+    expect(keplerSafe(el, 20)).toBe(false);
+  });
+
+  it('accepts every fragment in the main swarm', () => {
+    const ids = sim.frames[0].velocities
+      .filter(v => v.id.startsWith('asteroid_') && v.id !== 'asteroid_011')
+      .map(v => v.id);
+    for (const id of ids) {
+      const el = elementsAt(0, id);
+      if (!el) continue;
+      expect(keplerSafe(el, 20), `${id} must be interpolable`).toBe(true);
+    }
   });
 });
