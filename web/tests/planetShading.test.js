@@ -86,3 +86,42 @@ describe('body exaggeration stays honest', () => {
     expect(hi).toBeGreaterThan(lo);
   });
 });
+
+/**
+ * Airless bodies backscatter; gas giants do not.
+ *
+ * Regolith returns light toward its source, so a real asteroid or Mercury
+ * stays evenly bright almost to the terminator and then falls off sharply,
+ * while a Lambertian sphere fades smoothly from the middle and reads as a
+ * billiard ball. Measured on Bennu the Lunar-Lambert partition is
+ * L(a) = exp(-0.009a), i.e. L(0) = 1.0 - pure Lommel-Seeliger at low phase,
+ * with the independent Minnaert fit agreeing at k = 0.530.
+ *   Golish et al. 2021, Icarus 357, 113724
+ *
+ * The claim has to stay bounded to bodies it is true of: Jupiter has no
+ * surface, and Venus is seen as its cloud deck.
+ */
+describe('backscattering is applied only where it is physical', () => {
+  it('implements the Lommel-Seeliger disk function', () => {
+    // ci / (ci + ce) is the whole law; without the view term it is not it.
+    expect(src).toMatch(/ci\s*\/\s*max\s*\(\s*ci\s*\+\s*ce/);
+  });
+
+  it('keeps it switchable, so gas giants stay Lambertian', () => {
+    expect(src).toMatch(/uniform\s+float\s+uAirless/);
+    expect(src).toMatch(/mix\s*\(\s*ci\s*,/);
+  });
+
+  it('marks the rocky bodies airless and nothing else', async () => {
+    const factory = await readFile(new URL('../src/objectFactory.js', import.meta.url), 'utf8');
+    const set = factory.match(/const AIRLESS = new Set\(\[([^\]]*)\]\)/)?.[1] ?? '';
+    expect(set).toContain('planet_mercury');
+    expect(set).toContain('planet_mars');
+    // A gas giant here would be asserting a surface that does not exist.
+    for (const gas of ['jupiter', 'saturn', 'uranus', 'neptune', 'venus']) {
+      expect(set).not.toContain(gas);
+    }
+    // Every fragment is airless rock, whatever its type.
+    expect(factory).toMatch(/Boolean\(rockType\)/);
+  });
+});

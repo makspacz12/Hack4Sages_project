@@ -27,6 +27,7 @@ export const PLANET_VERT = /* glsl */`
 export const PLANET_FRAG = /* glsl */`
   uniform vec3      uColor;
   uniform sampler2D uMap;
+  uniform float     uAirless;
   uniform float     uHasMap;
   uniform float uTime;
   uniform float uHeatIntensity;   // 0 = cool, 1 = burning
@@ -64,7 +65,31 @@ export const PLANET_FRAG = /* glsl */`
       ? texture2D(uMap, vUv).rgb
       : uColor;
     vec3 toSun   = normalize(-vWorldPos);
-    float diff   = max(dot(vNormal, toSun), 0.0);
+    vec3 toEye   = normalize(cameraPosition - vWorldPos);
+
+    // Airless bodies are not Lambertian.
+    //
+    // Regolith backscatters: light returns toward its source rather than
+    // spreading as cos(i). Measured on Bennu, the Lunar-Lambert partition is
+    // L(a) = exp(-0.009a), so L(0) = 1.0 - at low phase the surface is PURE
+    // Lommel-Seeliger with no Lambertian component at all, and the independent
+    // Minnaert fit agrees at k = 0.530 (k = 0.5 is the Lommel-Seeliger limit).
+    //   Golish et al. 2021, Icarus 357, 113724
+    //
+    // The visible consequence is exactly what makes real asteroid photographs
+    // look unlike renders: a Lambertian sphere fades smoothly from the middle
+    // outward and reads as a billiard ball, while a real airless body stays
+    // evenly bright almost to the terminator and then falls off sharply.
+    //
+    // Applied only where it is true. The fragments are airless rock, and so
+    // are Mercury and Mars; Jupiter and the other gas giants have no regolith
+    // and no surface, so for them uAirless is 0 and the term stays Lambertian.
+    float ci     = max(dot(vNormal, toSun), 0.0);
+    float ce     = max(dot(vNormal, toEye), 0.0);
+    float ls     = ci / max(ci + ce, 1e-4);
+    // Lommel-Seeliger returns at most 0.5, so it is doubled to sit on the same
+    // scale as the cosine it replaces.
+    float diff   = mix(ci, ls * 2.0 * step(1e-4, ci), uAirless);
 
     // Ambient floor, kept low.
     //
@@ -175,7 +200,7 @@ export const SUN_FRAG = /* glsl */`
  * @param {string} colorHex  e.g. '#2E86AB'
  * @returns {THREE.ShaderMaterial}
  */
-export function createPlanetMaterial(colorHex, map = null) {
+export function createPlanetMaterial(colorHex, map = null, airless = false) {
   return new THREE.ShaderMaterial({
     vertexShader:   PLANET_VERT,
     fragmentShader: PLANET_FRAG,
@@ -183,6 +208,9 @@ export function createPlanetMaterial(colorHex, map = null) {
       uColor:         { value: new THREE.Color(colorHex) },
       uMap:           { value: map },
       uHasMap:        { value: map ? 1 : 0 },
+      // Backscattering regolith, for bodies that actually have any. See the
+      // note beside the diffuse term in PLANET_FRAG.
+      uAirless:       { value: airless ? 1 : 0 },
       uTime:          { value: 0 },
       uHeatIntensity: { value: 0 },
     },

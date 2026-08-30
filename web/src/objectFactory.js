@@ -36,7 +36,22 @@ export function createMaterial(color, emissive, id = null, rockType = null) {
   // content - see fragmentTexture.js for why a downloaded comet picture would
   // be the wrong thing here. The fifty Gaia stars get neither.
   const map = rockType ? fragmentTexture(rockType) : loadTexture(textureFor(id));
-  return emissive ? createSunMaterial(color, map) : createPlanetMaterial(color, map);
+
+  // Which bodies backscatter.
+  //
+  // Regolith on an airless surface returns light toward its source, so those
+  // bodies stay evenly bright almost to the terminator instead of falling off
+  // as a cosine. That is true of every fragment, and of Mercury and Mars. It
+  // is NOT true of the gas giants, which have no surface at all, nor of Venus,
+  // which is seen as its cloud deck; giving them a regolith law would be
+  // asserting something false about what the viewer is looking at. Earth is
+  // left Lambertian too - most of the disc is ocean and cloud.
+  const AIRLESS = new Set(['planet_mercury', 'planet_mars']);
+  const airless = Boolean(rockType) || AIRLESS.has(id);
+
+  return emissive
+    ? createSunMaterial(color, map)
+    : createPlanetMaterial(color, map, airless);
 }
 
 /**
