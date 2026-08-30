@@ -18,14 +18,14 @@ function injectStyles() {
     #info-panel {
       position: fixed;
       top: 16px; right: 16px;
-      width: 270px;
+      width: 17rem;
       max-height: calc(100vh - 100px);
       overflow-y: auto;
       background: var(--bg-panel);
       border: 1px solid var(--line-edge);
       border-radius: 10px;
       padding: 14px 16px 16px;
-      font-family: monospace; font-size: 12px; color: var(--ink);
+      font-family: monospace; font-size: 0.75rem; color: var(--ink);
       z-index: 800;
       display: none;
       box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
@@ -42,23 +42,23 @@ function injectStyles() {
       width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0;
     }
     #info-panel .ip-name {
-      flex: 1; font-size: 14px; font-weight: bold; color: #eef; white-space: nowrap;
+      flex: 1; font-size: 0.875rem; font-weight: bold; color: #eef; white-space: nowrap;
       overflow: hidden; text-overflow: ellipsis;
     }
     #info-panel .ip-type {
-      font-size: 10px; background: var(--bg-raised); border: 1px solid var(--line-strong);
+      font-size: 0.625rem; background: var(--bg-raised); border: 1px solid var(--line-strong);
       border-radius: 4px; padding: 1px 6px; color: #89a; letter-spacing: .04em;
       text-transform: uppercase;
     }
     #info-panel .ip-close {
       background: none; border: none; color: #667; cursor: pointer;
-      font-size: 15px; line-height: 1; padding: 0 2px; margin-left: 4px;
+      font-size: 0.9375rem; line-height: 1; padding: 0 2px; margin-left: 4px;
     }
     #info-panel .ip-close:hover { color: var(--ink); }
 
     /* section label */
     #info-panel .ip-section {
-      font-size: 10px; letter-spacing: .08em; color: var(--ink-dim); text-transform: uppercase;
+      font-size: 0.625rem; letter-spacing: .08em; color: var(--ink-dim); text-transform: uppercase;
       margin: 10px 0 4px; border-top: 1px solid var(--bg-raised); padding-top: 6px;
     }
     #info-panel .ip-section:first-of-type { margin-top: 0; }
@@ -69,8 +69,15 @@ function injectStyles() {
       padding: 2px 0; gap: 8px;
     }
     #info-panel .ip-key  { color: var(--ink-dim); flex-shrink: 0; }
-    #info-panel .ip-val  { color: var(--ink); text-align: right; word-break: break-all; }
-    #info-panel .ip-unit { color: var(--ink-dim); margin-left: 3px; font-size: 10px; }
+    /* break-all split numbers mid-digit at larger scales - "0.95 60 3" was one
+       value. Numbers are allowed to overflow their column instead; the panel
+       scrolls, and a number broken across lines is not a number. */
+    #info-panel .ip-val  {
+      color: var(--ink); text-align: right;
+      overflow-wrap: anywhere; word-break: normal;
+      font-variant-numeric: tabular-nums;
+    }
+    #info-panel .ip-unit { color: var(--ink-dim); margin-left: 3px; font-size: 0.625rem; }
 
     /* highlighted live rows */
     #info-panel .ip-row.live .ip-val { color: var(--accent); }
@@ -85,9 +92,9 @@ function injectStyles() {
       display: flex; justify-content: space-between; align-items: baseline;
       gap: 8px;
     }
-    #info-panel .ip-bar-key { color: var(--ink-dim); flex-shrink: 0; font-size: 11px; }
-    #info-panel .ip-bar-val { color: var(--ink); text-align: right; font-size: 11px; }
-    #info-panel .ip-bar-unit { color: var(--ink-dim); margin-left: 2px; font-size: 10px; }
+    #info-panel .ip-bar-key { color: var(--ink-dim); flex-shrink: 0; font-size: 0.6875rem; }
+    #info-panel .ip-bar-val { color: var(--ink); text-align: right; font-size: 0.6875rem; }
+    #info-panel .ip-bar-unit { color: var(--ink-dim); margin-left: 2px; font-size: 0.625rem; }
     #info-panel .ip-bar-track {
       height: 4px; background: var(--bg-sunken); border: 1px solid var(--bg-raised);
       border-radius: 3px; overflow: hidden; position: relative;

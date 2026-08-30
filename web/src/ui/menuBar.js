@@ -29,7 +29,7 @@ const STYLE = `
     background: var(--bg-panel);
     border-bottom: 1px solid var(--line-edge);
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 11.5px; user-select: none;
+    font-size: 0.71875rem; user-select: none;
   }
   .mb-menu { position: relative; }
   .mb-top {
@@ -45,7 +45,7 @@ const STYLE = `
   }
   .mb-drop[hidden] { display: none; }
   .mb-group {
-    font-size: 9px; letter-spacing: .09em; text-transform: uppercase;
+    font-size: 0.5625rem; letter-spacing: .09em; text-transform: uppercase;
     color: var(--ink-dim); padding: 7px 12px 3px;
   }
   .mb-item {
@@ -60,14 +60,14 @@ const STYLE = `
   }
   .mb-label { flex: 1; line-height: 1.45; }
   .mb-note {
-    display: block; color: var(--ink-dim); font-size: 10px; margin-top: 1px;
+    display: block; color: var(--ink-dim); font-size: 0.625rem; margin-top: 1px;
     line-height: 1.4;
   }
   /* Tearing a figure off is a separate act from showing it, so it gets its own
      target rather than a modifier key nobody would discover. */
   .mb-pop {
     flex: none; background: none; border: 1px solid transparent; color: var(--ink-dim);
-    font: inherit; font-size: 11px; padding: 0 4px; cursor: pointer;
+    font: inherit; font-size: 0.6875rem; padding: 0 4px; cursor: pointer;
     border-radius: 2px; line-height: 1.4;
   }
   .mb-pop:hover { color: var(--accent); border-color: var(--line-edge); }
@@ -75,7 +75,7 @@ const STYLE = `
   .mb-spacer { flex: 1; }
   .mb-right {
     display: flex; align-items: center; gap: 12px; padding: 0 14px;
-    color: var(--ink-dim); font-size: 10.5px;
+    color: var(--ink-dim); font-size: 0.65625rem;
   }
   .mb-right a { color: var(--ink-dim); text-decoration: none; }
   .mb-right a:hover { color: var(--accent); text-decoration: underline; }
@@ -88,6 +88,37 @@ const STYLE = `
  *  - panels: [{key,label,note,get,set}]
  *  - links: [{label,href,note}]
  */
+
+/**
+ * Interface scale, for the room the work is shown in.
+ *
+ * Kept in localStorage so a presenter sets it once rather than on every
+ * reload, and offered rather than forced, because the same build serves
+ * someone reading this at a laptop.
+ */
+const SCALE_KEY = 'lp.uiScale';
+const SCALES = [
+  { value: 1, label: 'Desk', note: 'default sizes, for a monitor at arm’s length' },
+  { value: 1.25, label: 'Large', note: 'a quarter bigger — a shared screen or a small room' },
+  { value: 1.5, label: 'Projector', note: 'half again — readable from the back of a lecture hall' },
+  { value: 1.75, label: 'Large hall', note: 'for a deep room or a dim projector' },
+];
+
+export function currentScale() {
+  const stored = Number(localStorage.getItem(SCALE_KEY));
+  return SCALES.some(s => s.value === stored) ? stored : 1;
+}
+
+export function applyScale(value) {
+  document.documentElement.style.setProperty('--ui-scale', String(value));
+  try {
+    localStorage.setItem(SCALE_KEY, String(value));
+  } catch {
+    // Private browsing can refuse storage; the scale still applies for this
+    // session, which is the part that matters on stage.
+  }
+}
+
 export function menuBar(container, deps) {
   if (!document.getElementById('mb-style')) {
     const s = document.createElement('style');
@@ -263,6 +294,20 @@ export function menuBar(container, deps) {
         + (link.note ? `<span class="mb-note">${link.note}</span>` : '')
         + '</span>';
       drop.appendChild(a);
+    }
+  });
+
+  // ── View ────────────────────────────────────────────────────────────────
+  addMenu('View', (drop) => {
+    groupLabel(drop, 'interface scale');
+    const active = currentScale();
+    for (const s of SCALES) {
+      item(drop, {
+        checked: s.value === active,
+        label: `${s.label} · ${Math.round(s.value * 100)}%`,
+        note: s.note,
+        onSelect: () => applyScale(s.value),
+      });
     }
   });
 

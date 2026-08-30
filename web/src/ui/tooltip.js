@@ -29,7 +29,7 @@ const STYLE = `
     display: inline-flex; align-items: center; justify-content: center;
     width: 13px; height: 13px; border-radius: 50%;
     border: 1px solid var(--line-strong); background: none; color: var(--ink-dim);
-    font: inherit; font-size: 9px; line-height: 1; cursor: help; padding: 0;
+    font: inherit; font-size: 0.5625rem; line-height: 1; cursor: help; padding: 0;
     flex: none;
   }
   .tt-trigger:hover, .tt-trigger:focus-visible { border-color: var(--accent); color: var(--accent); }
@@ -39,14 +39,14 @@ const STYLE = `
     background: var(--bg-panel); border: 1px solid var(--line-strong); border-radius: 3px;
     padding: 9px 11px; color: var(--ink);
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 11px; line-height: 1.55;
+    font-size: 0.6875rem; line-height: 1.55;
     box-shadow: 0 8px 26px rgba(0, 0, 0, 0.14);
   }
   .tt-bubble[hidden] { display: none; }
   .tt-bubble b { color: var(--ink-bright); font-weight: 600; }
   .tt-meta {
     display: block; margin-top: 6px; padding-top: 6px;
-    border-top: 1px solid var(--line-hair); color: var(--ink-dim); font-size: 10px;
+    border-top: 1px solid var(--line-hair); color: var(--ink-dim); font-size: 0.625rem;
   }
   .tt-warn { color: var(--warn); }
   .tt-bubble a { color: var(--accent); }

@@ -29,7 +29,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: 'Segoe UI', system-ui, sans-serif;
-  font-size: 16px;
+  font-size: 1rem;
   line-height: 1.75;
   min-height: 100vh;
 }
@@ -49,7 +49,7 @@ header {
 
 .header-title {
   font-family: monospace;
-  font-size: 15px;
+  font-size: 0.9375rem;
   color: var(--accent2);
   letter-spacing: 0.08em;
   font-weight: bold;
@@ -60,7 +60,7 @@ header {
   border: 1px solid var(--border);
   color: var(--accent);
   font-family: monospace;
-  font-size: 13px;
+  font-size: 0.8125rem;
   padding: 5px 16px;
   border-radius: 5px;
   cursor: pointer;
@@ -87,7 +87,7 @@ h1 {
 
 .lede {
   color: var(--muted);
-  font-size: 15px;
+  font-size: 0.9375rem;
   margin-bottom: 28px;
   max-width: 68ch;
 }
@@ -98,7 +98,7 @@ pre {
   border-radius: 6px;
   padding: 14px 16px;
   overflow-x: auto;
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.5;
   margin-top: 28px;
   color: var(--ink-dim);
@@ -106,7 +106,7 @@ pre {
 
 .analysis-meta {
   font-family: monospace;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--muted);
   margin-bottom: 20px;
   line-height: 1.6;
@@ -124,7 +124,7 @@ pre {
 
 .analysis-toolbar label {
   font-family: monospace;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--accent);
   border: 1px solid var(--border);
   border-radius: 5px;
@@ -141,7 +141,7 @@ pre {
 
 .analysis-toolbar .btn-link {
   font-family: monospace;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--accent2);
   background: none;
   border: 1px solid var(--border);
@@ -156,7 +156,7 @@ pre {
 .analysis-error {
   color: var(--bad);
   font-family: monospace;
-  font-size: 13px;
+  font-size: 0.8125rem;
   margin-top: 12px;
   display: none;
 }
@@ -183,7 +183,7 @@ pre {
 }
 .analysis-notes li {
   color: var(--ink);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.65;
   padding: 6px 0 6px 14px;
   border-left: 1px solid var(--line-edge);
@@ -193,6 +193,6 @@ pre {
 .analysis-notes .note-why {
   display: block;
   color: var(--ink-dim);
-  font-size: 12px;
+  font-size: 0.75rem;
   margin-top: 2px;
 }

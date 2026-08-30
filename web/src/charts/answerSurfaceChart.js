@@ -219,18 +219,18 @@ export function answerSurfaceChart(container, opts) {
 
 export const ANSWER_SURFACE_STYLE = `
   .as-svg { display: block; }
-  .as-empty { color: var(--ink-dim); font-size: 11px; padding: 10px 0; }
+  .as-empty { color: var(--ink-dim); font-size: 0.6875rem; padding: 10px 0; }
   .as-frame { fill: none; stroke: var(--line-edge); stroke-width: 1; }
   .as-band { fill: rgba(154, 140, 196, 0.16); }
   .as-contour { stroke: var(--ink-faint); stroke-width: 1; stroke-dasharray: 3 3; }
-  .as-contour-label { fill: var(--ink-dim); font-size: 8.5px; font-family: inherit; }
+  .as-contour-label { fill: var(--ink-dim); font-size: 0.53125rem; font-family: inherit; }
   .as-tick { stroke: var(--line-edge); stroke-width: 1; }
   .as-tick-label {
-    fill: var(--ink-dim); font-size: 9px; font-family: inherit; text-anchor: middle;
+    fill: var(--ink-dim); font-size: 0.5625rem; font-family: inherit; text-anchor: middle;
   }
   .as-tick-y { text-anchor: end; }
   .as-axis-label {
-    fill: var(--ink-dim); font-size: 9.5px; font-family: inherit; text-anchor: middle;
+    fill: var(--ink-dim); font-size: 0.59375rem; font-family: inherit; text-anchor: middle;
   }
   .as-dot { stroke: var(--bg-panel); stroke-width: 1; }
   .as-current { stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 5 3; }

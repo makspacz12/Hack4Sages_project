@@ -36,7 +36,7 @@ function injectStyles() {
       background: var(--bg-panel);
       border-top: 1px solid var(--line-edge);
       padding: 7px 20px 10px;
-      font-family: monospace; font-size: 13px; color: var(--ink);
+      font-family: monospace; font-size: 0.8125rem; color: var(--ink);
       user-select: none; z-index: 900;
     }
     #replay-bar .rb-scrubber-row {
@@ -46,21 +46,25 @@ function injectStyles() {
       flex: 1; cursor: pointer; accent-color: var(--accent); height: 4px;
     }
     #replay-bar .rb-controls {
+      /* Wraps rather than clipping. At the presentation scales this row is
+         wider than the window, and the rightmost toggle was simply cut off. */
       display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; row-gap: 0.4rem;
     }
     #replay-bar .rb-btns { display: flex; gap: 4px; align-items: center; }
     #replay-bar button {
       background: var(--bg-raised); color: var(--ink); border: 1px solid var(--line-edge);
       border-radius: 5px; padding: 4px 10px; cursor: pointer;
-      font-size: 17px; line-height: 1; min-width: 36px;
+      font-size: 1.0625rem; line-height: 1; min-width: 36px;
     }
     #replay-bar button:hover { background: var(--line-hair); }
     #replay-bar button.rb-active {
       background: var(--accent-glow); border-color: var(--accent); color: var(--accent);
     }
     #replay-bar .rb-meta {
-      display: flex; align-items: center; gap: 16px;
-      font-size: 12px; color: var(--ink-dim);
+      display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+      row-gap: 0.35rem;
+      font-size: 0.75rem; color: var(--ink-dim);
     }
     #replay-bar .rb-label { flex: 1; white-space: nowrap; }
     #replay-bar .rb-sps {
@@ -69,12 +73,12 @@ function injectStyles() {
     #replay-bar .rb-sps input[type=number] {
       width: 58px; background: var(--bg-sunken); color: var(--ink);
       border: 1px solid var(--line-edge); border-radius: 4px;
-      padding: 2px 5px; font-family: monospace; font-size: 13px; text-align: right;
+      padding: 2px 5px; font-family: monospace; font-size: 0.8125rem; text-align: right;
     }
     #replay-bar .rb-scale input[type=number] {
       width: 54px; background: var(--bg-sunken); color: var(--warn);
       border: 1px solid var(--line-edge); border-radius: 4px;
-      padding: 2px 5px; font-family: monospace; font-size: 13px; text-align: right;
+      padding: 2px 5px; font-family: monospace; font-size: 0.8125rem; text-align: right;
     }
     #replay-bar .rb-scale input[type=number]:focus { outline: 1px solid var(--warn); }
     #replay-bar .rb-scale input[type=number]::-webkit-inner-spin-button { opacity: .35; }
@@ -83,11 +87,11 @@ function injectStyles() {
     }
     #replay-bar .rb-sps input[type=number]:focus { outline: 1px solid var(--accent); }
     #replay-bar .rb-sps input[type=number]::-webkit-inner-spin-button { opacity: .35; }
-    #replay-bar .rb-timemark { font-size: 11px; color: var(--ink-dim); min-width: 48px; }
+    #replay-bar .rb-timemark { font-size: 0.6875rem; color: var(--ink-dim); min-width: 48px; }
     #replay-bar .rb-timemark.right { text-align: left; }
     #replay-bar .rb-smooth {
       display: flex; align-items: center; gap: 6px;
-      font-size: 12px; color: var(--ink-dim); white-space: nowrap; cursor: pointer;
+      font-size: 0.75rem; color: var(--ink-dim); white-space: nowrap; cursor: pointer;
     }
     #replay-bar .rb-smooth input[type=checkbox] {
       accent-color: var(--accent); width: 14px; height: 14px; cursor: pointer;

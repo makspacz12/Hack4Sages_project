@@ -45,13 +45,13 @@ function injectStyles() {
       display: flex; align-items: flex-start; justify-content: space-between;
       gap: var(--sp-3); flex: 0 0 auto;
     }
-    #run-console .rc-brand { font-size: 12px; font-weight: 700; letter-spacing: .11em;
+    #run-console .rc-brand { font-size: 0.75rem; font-weight: 700; letter-spacing: .11em;
       text-transform: uppercase; color: var(--ink-bright); }
-    #run-console .rc-tagline { font-size: 10.5px; color: var(--ink-dim); margin-top: 3px;
+    #run-console .rc-tagline { font-size: 0.65625rem; color: var(--ink-dim); margin-top: 3px;
       line-height: 1.4; max-width: 30ch; }
     #run-console .rc-nav {
       display: inline-block; margin-top: var(--sp-2);
-      font-size: 10.5px; color: var(--accent); text-decoration: none;
+      font-size: 0.65625rem; color: var(--accent); text-decoration: none;
     }
     #run-console .rc-nav:hover { text-decoration: underline; }
 
@@ -61,7 +61,7 @@ function injectStyles() {
       border-bottom: 1px solid var(--line-hair);
       background: var(--bg-sunken); flex: 0 0 auto;
     }
-    #run-console .rc-status-text { font-size: 10.5px; color: var(--ink-dim); }
+    #run-console .rc-status-text { font-size: 0.65625rem; color: var(--ink-dim); }
     #run-console .rc-status-text b { color: var(--ink); font-weight: 600; }
 
     #run-console .rc-body { flex: 1 1 auto; overflow-y: auto; }
@@ -69,7 +69,7 @@ function injectStyles() {
     #run-console .rc-group { border-bottom: 1px solid var(--line-hair); padding: var(--sp-3) 0 var(--sp-2); }
     #run-console .rc-group-title {
       padding: 0 var(--sp-4) var(--sp-2);
-      font-size: 9.5px; font-weight: 700; letter-spacing: .12em;
+      font-size: 0.59375rem; font-weight: 700; letter-spacing: .12em;
       text-transform: uppercase; color: var(--ink-dim);
     }
 
@@ -78,34 +78,34 @@ function injectStyles() {
       display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-2);
     }
     #run-console .rc-field-label {
-      font-size: 11px; color: var(--ink); cursor: help;
+      font-size: 0.6875rem; color: var(--ink); cursor: help;
       border-bottom: 1px dotted transparent;
     }
     #run-console .rc-field:hover .rc-field-label { border-bottom-color: var(--line-strong); }
     #run-console .rc-field-value {
       font-family: var(--font-mono); font-variant-numeric: tabular-nums;
-      font-size: 11.5px; color: var(--ink-bright);
+      font-size: 0.71875rem; color: var(--ink-bright);
     }
-    #run-console .rc-field-value .u { color: var(--ink-dim); margin-left: 3px; font-size: 10px; }
+    #run-console .rc-field-value .u { color: var(--ink-dim); margin-left: 3px; font-size: 0.625rem; }
     /* The typed value is the control; the slider beneath it is the coarse one. */
     #run-console .rc-msg-sub {
-      color: var(--ink-dim); font-size: 11px; margin: 6px 0 10px;
+      color: var(--ink-dim); font-size: 0.6875rem; margin: 6px 0 10px;
     }
     #run-console .rc-howto {
       background: none; border: 1px solid var(--line); color: var(--ink-dim);
-      font-family: inherit; font-size: 11px; padding: 4px 9px;
+      font-family: inherit; font-size: 0.6875rem; padding: 4px 9px;
       cursor: pointer; border-radius: 2px;
     }
     #run-console .rc-howto:hover { border-color: var(--accent); color: var(--ink); }
     #run-console .rc-howto:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-    #run-console .rc-howto-body { margin-top: 10px; font-size: 11px; line-height: 1.5; }
+    #run-console .rc-howto-body { margin-top: 10px; font-size: 0.6875rem; line-height: 1.5; }
     #run-console .rc-num {
       background: transparent;
       border: 1px solid transparent;
       border-bottom-color: var(--line);
       color: var(--ink);
       font-family: inherit;
-      font-size: 12px;
+      font-size: 0.75rem;
       font-variant-numeric: tabular-nums;
       text-align: right;
       width: 8ch;
@@ -168,7 +168,7 @@ function injectStyles() {
       padding: 7px var(--sp-4); cursor: pointer;
     }
     #run-console .rc-toggle:hover { background: var(--bg-raised); }
-    #run-console .rc-toggle span { font-size: 11px; color: var(--ink); }
+    #run-console .rc-toggle span { font-size: 0.6875rem; color: var(--ink); }
     #run-console .rc-switch {
       width: 30px; height: 16px; border-radius: 9px; position: relative;
       background: var(--line-edge); transition: background .14s; flex: 0 0 auto;
@@ -187,7 +187,7 @@ function injectStyles() {
     }
     #run-console .rc-cost {
       display: flex; justify-content: space-between;
-      font-size: 10.5px; color: var(--ink-dim); margin-bottom: var(--sp-2);
+      font-size: 0.65625rem; color: var(--ink-dim); margin-bottom: var(--sp-2);
       font-family: var(--font-mono);
     }
     #run-console .rc-actions { display: flex; gap: var(--sp-2); }
@@ -204,18 +204,18 @@ function injectStyles() {
       height: 100%; width: 0%; background: var(--accent); transition: width .18s linear;
     }
     #run-console .rc-progress-text {
-      margin-top: 5px; font-size: 10.5px; font-family: var(--font-mono); color: var(--ink-dim);
+      margin-top: 5px; font-size: 0.65625rem; font-family: var(--font-mono); color: var(--ink-dim);
       display: flex; justify-content: space-between;
     }
 
     #run-console .rc-msg {
       margin: var(--sp-3) var(--sp-4) 0; padding: var(--sp-2) var(--sp-3);
       border-left: 2px solid var(--warn); background: rgba(240,180,41,.06);
-      font-size: 10.5px; line-height: 1.5; color: var(--ink-dim);
+      font-size: 0.65625rem; line-height: 1.5; color: var(--ink-dim);
     }
     #run-console .rc-msg.bad { border-left-color: var(--bad); background: rgba(224,86,79,.07); }
     #run-console .rc-msg code {
-      font-family: var(--font-mono); font-size: 10px; color: var(--ink);
+      font-family: var(--font-mono); font-size: 0.625rem; color: var(--ink);
       background: var(--bg-raised); padding: 1px 4px; border-radius: 2px;
     }
 

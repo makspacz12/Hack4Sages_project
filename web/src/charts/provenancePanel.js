@@ -74,18 +74,18 @@ export function trustSummary(prov) {
 }
 
 const STYLE = `
-  .pv { border-top: 1px solid var(--line-edge); padding: 10px 0 4px; font-size: 11px; }
+  .pv { border-top: 1px solid var(--line-edge); padding: 10px 0 4px; font-size: 0.6875rem; }
   .pv-head {
     display: flex; align-items: baseline; justify-content: space-between;
     gap: 8px; cursor: pointer; user-select: none;
   }
   .pv-title {
-    font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+    font-size: 0.625rem; letter-spacing: 0.08em; text-transform: uppercase;
     color: var(--ink-dim);
   }
   .pv-toggle {
     background: none; border: none; color: var(--ink-dim); cursor: pointer;
-    font-family: inherit; font-size: 11px; padding: 0;
+    font-family: inherit; font-size: 0.6875rem; padding: 0;
   }
   .pv-toggle:hover { color: var(--accent); }
   .pv-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -98,23 +98,23 @@ const STYLE = `
   .pv-trust span { color: var(--ink); line-height: 1.4; }
   .pv-rows { margin-top: 8px; display: grid; gap: 4px; }
   .pv-row { display: grid; grid-template-columns: 68px 1fr; gap: 8px; align-items: baseline; }
-  .pv-k { color: var(--ink-dim); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .pv-k { color: var(--ink-dim); font-size: 0.625rem; text-transform: uppercase; letter-spacing: 0.06em; }
   .pv-v { color: var(--ink-bright); font-variant-numeric: tabular-nums; word-break: break-all; }
   .pv-repro {
     margin-top: 8px; background: var(--bg-sunken); border: 1px solid var(--line-edge);
-    padding: 6px 7px; color: var(--ink); font-size: 10.5px; line-height: 1.45;
+    padding: 6px 7px; color: var(--ink); font-size: 0.65625rem; line-height: 1.45;
     word-break: break-all; border-radius: 2px;
   }
   .pv-copy {
     margin-top: 5px; background: none; border: 1px solid var(--line-edge); color: var(--ink);
-    font-family: inherit; font-size: 10px; padding: 3px 7px; cursor: pointer;
+    font-family: inherit; font-size: 0.625rem; padding: 3px 7px; cursor: pointer;
     border-radius: 2px;
   }
   .pv-copy:hover { border-color: var(--accent); color: var(--ink-bright); }
   .pv-copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .pv-coeffs { margin-top: 9px; display: grid; gap: 5px; }
   .pv-coeff { display: grid; grid-template-columns: 9px 1fr; gap: 7px; align-items: start; }
-  .pv-mark { font-size: 9px; line-height: 1.6; }
+  .pv-mark { font-size: 0.5625rem; line-height: 1.6; }
   .pv-mark--resolved   { color: var(--accent); }
   .pv-mark--unresolved { color: var(--warn); }
   .pv-mark--overridden { color: var(--data-trace); }

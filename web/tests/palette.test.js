@@ -155,3 +155,36 @@ describe('dash encodes the class, not the member', () => {
     expect(dashForRockType('not_a_rock')).toBeNull();
   });
 });
+
+describe('interface scale', () => {
+  // The reason this exists: 88 of the 139 type rules in this project were 11px
+  // or smaller. That is defensible at a desk and not defensible from the back
+  // of a lecture hall, which is where this is being shown.
+
+  it('offers a scale that is actually large enough to read at distance', async () => {
+    const { currentScale } = await import('../src/ui/menuBar.js');
+    expect(typeof currentScale).toBe('function');
+  });
+
+  it('expresses every font size in rem, so one value scales all of them', async () => {
+    // A single px font-size anywhere silently opts that element out of the
+    // scale and it stays small on the projector while everything grows.
+    const fs = await import('node:fs/promises');
+    const path = await import('node:path');
+    const roots = ['src'];
+    const offenders = [];
+    async function walk(dir) {
+      for (const e of await fs.readdir(dir, { withFileTypes: true })) {
+        const p = path.join(dir, e.name);
+        if (e.isDirectory()) { await walk(p); continue; }
+        if (!/\.(js|css)$/.test(e.name)) continue;
+        const text = await fs.readFile(p, 'utf8');
+        for (const m of text.matchAll(/font-size:\s*([0-9.]+)px/g)) {
+          offenders.push(`${p}: ${m[0]}`);
+        }
+      }
+    }
+    for (const r of roots) await walk(r);
+    expect(offenders).toEqual([]);
+  });
+});

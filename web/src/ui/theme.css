@@ -54,7 +54,28 @@
  *   --accent      8.06:1   --warn 4.71:1   --bad 6.90:1
  * and --accent-lit, which exists for the dark inset, reads 5.78:1 on --scene.
  */
+/*
+ * Interface scale.
+ *
+ * Every font size in this project is expressed in rem, so moving this one
+ * value scales the whole interface at once. It exists because of where this is
+ * shown: a projector in a lit room has a few hundred to one of real contrast,
+ * and the audience at the back of a lecture hall is several metres further
+ * from the screen than a developer is from a monitor. Eighty-eight of the
+ * hundred and thirty-nine type rules here were 11px or smaller, which is
+ * defensible at a desk and not defensible from row fifteen.
+ *
+ * 100% is the desk default and changes nothing. The presentation sizes are
+ * offered in the menu rather than forced, because the same build has to serve
+ * someone reading it at a laptop.
+ *
+ * The 3D scene is WebGL and is not affected by this; it scales with the
+ * viewport instead.
+ */
+html { font-size: calc(16px * var(--ui-scale, 1)); }
+
 :root {
+  --ui-scale: 1;
   color-scheme: light;
 
   /* Surfaces. A trace of blue rather than pure white: a pure neutral reads as
@@ -127,7 +148,8 @@
   --sp-6: 32px;
 
   --radius: 3px;
-  --panel-w: 340px;
+  --panel-w: 21.25rem;   /* left run console */
+  --dock-w:  21rem;      /* right analysis dock */
   --rail-h: 60px;
 }
 
@@ -135,7 +157,7 @@
 
 .ui-label {
   font-family: var(--font-ui);
-  font-size: 10px;
+  font-size: 0.625rem;
   font-weight: 600;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -145,13 +167,13 @@
 .ui-value {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--ink-bright);
 }
 
 .ui-unit {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 0.65625rem;
   color: var(--ink-dim);
   margin-left: 3px;
 }
@@ -164,7 +186,7 @@
 
 .ui-btn {
   font-family: var(--font-ui);
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;

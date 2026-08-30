@@ -17,17 +17,17 @@ function injectPlotStyles() {
   s.id = 'grid-plot-style';
   s.textContent = `
     #grid-plot svg .axis { stroke: var(--line-edge); stroke-width: 1; }
-    #grid-plot svg .tick { fill: var(--ink-dim); font-size: 10px; font-family: monospace; }
+    #grid-plot svg .tick { fill: var(--ink-dim); font-size: 0.625rem; font-family: monospace; }
     #grid-plot svg .tick-y { text-anchor: end; dominant-baseline: middle; }
     #grid-plot svg .tick-x { text-anchor: middle; }
-    #grid-plot svg .tick-legend { text-anchor: start; dominant-baseline: middle; font-size: 9px; }
-    #grid-plot svg .axis-label { fill: var(--ink-dim); font-size: 10px; font-family: monospace; }
+    #grid-plot svg .tick-legend { text-anchor: start; dominant-baseline: middle; font-size: 0.5625rem; }
+    #grid-plot svg .axis-label { fill: var(--ink-dim); font-size: 0.625rem; font-family: monospace; }
     #grid-plot .hm-cell { cursor: crosshair; }
     #grid-plot .hm-tooltip {
       position: absolute; pointer-events: none; z-index: 5;
       background: var(--bg-panel); border: 1px solid var(--line-edge);
       border-radius: 5px; padding: 8px 10px; font-family: monospace;
-      font-size: 11px; color: var(--ink); line-height: 1.5;
+      font-size: 0.6875rem; color: var(--ink); line-height: 1.5;
     }
     #grid-plot .hm-tooltip b { color: var(--ink-bright); }
   `;

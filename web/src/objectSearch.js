@@ -14,14 +14,14 @@ function injectStyles() {
   s.textContent = `
     #obj-search-panel {
       position: fixed;
-      top: calc(var(--headline-h, 0px) + var(--menubar-h, 0px) + 52px); right: 300px;
-      width: 240px;
+      top: calc(var(--headline-h, 0px) + var(--menubar-h, 0px) + 3.25rem); right: 19rem;
+      width: 15rem;
       max-height: calc(100vh - 120px);
       background: var(--bg-panel);
       border: 1px solid var(--line-edge);
       border-radius: 8px;
       display: flex; flex-direction: column;
-      font-family: monospace; font-size: 13px; color: var(--ink);
+      font-family: monospace; font-size: 0.8125rem; color: var(--ink);
       z-index: 800;
       box-shadow: 0 4px 24px #0008;
       transition: opacity .2s;
@@ -33,24 +33,24 @@ function injectStyles() {
       border-bottom: 1px solid var(--bg-raised);
     }
     #obj-search-panel .osp-header span {
-      font-size: 11px; color: var(--ink-dim); text-transform: uppercase; letter-spacing: .05em;
+      font-size: 0.6875rem; color: var(--ink-dim); text-transform: uppercase; letter-spacing: .05em;
       flex: 1;
     }
     #obj-search-panel .osp-close {
       background: none; border: none; color: var(--ink-dim); cursor: pointer;
-      font-size: 16px; line-height: 1; padding: 0 2px;
+      font-size: 1rem; line-height: 1; padding: 0 2px;
     }
     #obj-search-panel .osp-close:hover { color: var(--ink-dim); }
     #obj-search-panel .osp-input {
       margin: 7px 10px 5px;
       background: var(--bg-sunken); border: 1px solid var(--line-edge);
       border-radius: 5px; color: #ddf; padding: 5px 8px;
-      font-family: monospace; font-size: 13px; outline: none;
+      font-family: monospace; font-size: 0.8125rem; outline: none;
       width: calc(100% - 36px);
     }
     #obj-search-panel .osp-input:focus { border-color: var(--accent); }
     #obj-search-panel .osp-count {
-      font-size: 11px; color: var(--ink-dim); padding: 0 12px 4px; text-align: right;
+      font-size: 0.6875rem; color: var(--ink-dim); padding: 0 12px 4px; text-align: right;
     }
     #obj-search-panel .osp-list {
       overflow-y: auto; flex: 1;
@@ -69,18 +69,18 @@ function injectStyles() {
       background: var(--bg-raised);
       border-left-color: var(--accent);
     }
-    #obj-search-panel .osp-icon { font-size: 15px; width: 16px; text-align: center; flex-shrink: 0; }
+    #obj-search-panel .osp-icon { font-size: 0.9375rem; width: 16px; text-align: center; flex-shrink: 0; }
     #obj-search-panel .osp-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    #obj-search-panel .osp-type { font-size: 11px; color: var(--ink-dim); flex-shrink: 0; }
+    #obj-search-panel .osp-type { font-size: 0.6875rem; color: var(--ink-dim); flex-shrink: 0; }
 
     #obj-search-toggle {
       position: fixed;
       /* Below the headline band; see controlPanel.js for the same offset. */
-      top: calc(var(--headline-h, 0px) + var(--menubar-h, 0px) + 14px); right: 300px;
+      top: calc(var(--headline-h, 0px) + var(--menubar-h, 0px) + 0.875rem); right: 19rem;
       background: var(--bg-panel);
       border: 1px solid var(--line-edge);
       border-radius: 6px;
-      color: var(--ink); font-family: monospace; font-size: 13px;
+      color: var(--ink); font-family: monospace; font-size: 0.8125rem;
       padding: 5px 12px; cursor: pointer; z-index: 900;
     }
     #obj-search-toggle:hover { background: var(--bg-raised); }

@@ -36,7 +36,7 @@ import { createInfoPanel } from './infoPanel.js';
 import { createUVShells, setUVVisible, tickUVAnimation, updateHeatForNodes } from './uvRadiation.js';
 import { createObjectSearch } from './objectSearch.js';
 import { createLiveCharts } from './liveCharts.js';
-import { menuBar } from './ui/menuBar.js';
+import { menuBar, applyScale, currentScale } from './ui/menuBar.js';
 import { createControlPanel } from './ui/controlPanel.js';
 import { runReplay } from './api.js';
 import './ui/theme.css';
@@ -555,6 +555,10 @@ async function mainReplay(source) {
   // stay in step, so nothing that worked before stops working.
   const sceneLayer = (label, note, get, set) => ({ label, note, get, set });
 
+  // Restore the presenter's chosen scale before anything measures itself, so
+  // the headline band publishes a height that already accounts for it.
+  applyScale(currentScale());
+
   menuBar(document.body, {
     charts: liveCharts,
     scene: {
@@ -905,6 +909,10 @@ async function main() {
   // stay in step, so nothing that worked before stops working.
   const sceneLayer = (label, note, get, set) => ({ label, note, get, set });
 
+  // Restore the presenter's chosen scale before anything measures itself, so
+  // the headline band publishes a height that already accounts for it.
+  applyScale(currentScale());
+
   menuBar(document.body, {
     charts: liveCharts,
     scene: {
@@ -1034,8 +1042,8 @@ main().catch(err => {
     color: '#f55', fontFamily: 'monospace', fontSize: '14px', padding: '24px',
     zIndex: '9999', textAlign: 'center',
   });
-  box.innerHTML = `<div style="font-size:20px;margin-bottom:12px">⚠ Failed to load simulation</div>
+  box.innerHTML = `<div style="font-size: 1.25rem;margin-bottom:12px">⚠ Failed to load simulation</div>
 <div style="color:var(--ink-dim);margin-bottom:16px;max-width:600px;word-break:break-all">${String(err)}</div>
-<div style="color:#666;font-size:11px">BASE_URL: ${import.meta.env.BASE_URL}</div>`;
+<div style="color:#666;font-size: 0.6875rem">BASE_URL: ${import.meta.env.BASE_URL}</div>`;
   document.body.appendChild(box);
 });

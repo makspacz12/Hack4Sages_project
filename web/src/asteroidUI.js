@@ -11,7 +11,7 @@ const STYLES = `
 #asteroid-toggle {
   position: fixed; top: 16px; right: 16px;
   background: var(--bg-panel); color: var(--ink); border: 1px solid var(--line-edge);
-  font-family: monospace; font-size: 13px; padding: 6px 14px;
+  font-family: monospace; font-size: 0.8125rem; padding: 6px 14px;
   cursor: pointer; border-radius: 4px; z-index: 100;
 }
 #asteroid-toggle:hover { background: var(--bg-raised); }
@@ -19,15 +19,15 @@ const STYLES = `
 #asteroid-panel {
   position: fixed; top: 52px; right: 16px;
   background: var(--bg-sunken); color: var(--ink); border: 1px solid var(--line-edge);
-  font-family: monospace; font-size: 13px;
+  font-family: monospace; font-size: 0.8125rem;
   padding: 14px 16px; border-radius: 6px; z-index: 100;
-  display: none; width: 240px;
+  display: none; width: 15rem;
 }
-#asteroid-panel h2 { color: var(--ink); margin: 0 0 10px; font-size: 14px; }
+#asteroid-panel h2 { color: var(--ink); margin: 0 0 10px; font-size: 0.875rem; }
 #asteroid-panel label { display: block; margin: 6px 0 2px; color: #999; }
 #asteroid-panel input[type=number], #asteroid-panel input[type=color] {
   width: 100%; background: var(--bg-sunken); color: var(--ink); border: 1px solid var(--line-edge);
-  padding: 3px 6px; font-family: monospace; font-size: 12px; border-radius: 3px;
+  padding: 3px 6px; font-family: monospace; font-size: 0.75rem; border-radius: 3px;
 }
 #asteroid-panel input[type=checkbox] { width: auto; margin-right: 6px; cursor: pointer; }
 #asteroid-panel .physics-row {
@@ -36,33 +36,33 @@ const STYLES = `
 #asteroid-panel input[type=color] { height: 28px; padding: 2px; cursor: pointer; }
 .vec-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
 .vec-row input { width: 100%; }
-#asteroid-panel .hint { color: var(--ink-dim); font-size: 11px; margin-top: 4px; }
+#asteroid-panel .hint { color: var(--ink-dim); font-size: 0.6875rem; margin-top: 4px; }
 #asteroid-spawn-btn {
   margin-top: 12px; width: 100%;
   background: var(--line-edge); color: var(--ink); border: 1px solid var(--line-strong);
-  font-family: monospace; font-size: 13px; padding: 6px;
+  font-family: monospace; font-size: 0.8125rem; padding: 6px;
   cursor: pointer; border-radius: 4px;
 }
 #asteroid-spawn-btn:hover { background: var(--line-strong); }
 #trail-toggle-btn {
   margin-top: 8px; width: 100%;
   background: var(--bg-panel); color: var(--ink); border: 1px solid var(--line-edge);
-  font-family: monospace; font-size: 13px; padding: 6px;
+  font-family: monospace; font-size: 0.8125rem; padding: 6px;
   cursor: pointer; border-radius: 4px;
 }
 #trail-toggle-btn.active { background: var(--line-edge); border-color: var(--line-strong); color: var(--accent); }
 #asteroid-list { margin-top: 12px; max-height: 120px; overflow-y: auto; }
 .asteroid-entry {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 2px 0; border-bottom: 1px solid #222; font-size: 11px;
+  padding: 2px 0; border-bottom: 1px solid #222; font-size: 0.6875rem;
 }
 .asteroid-entry .btn-focus {
-  background: none; border: none; color: var(--accent); cursor: pointer; font-size: 12px;
+  background: none; border: none; color: var(--accent); cursor: pointer; font-size: 0.75rem;
   padding: 0 4px;
 }
 .asteroid-entry .btn-focus:hover { color: var(--accent); }
 .asteroid-entry .btn-remove {
-  background: none; border: none; color: #e06; cursor: pointer; font-size: 12px;
+  background: none; border: none; color: #e06; cursor: pointer; font-size: 0.75rem;
   padding: 0 4px;
 }
 .asteroid-entry .btn-remove:hover { color: #f66; }

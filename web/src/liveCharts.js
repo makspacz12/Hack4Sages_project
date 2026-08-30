@@ -231,7 +231,7 @@ function injectLayoutFixes(banner) {
     // and both toggle buttons sat underneath it.
     s.textContent = `
       body.charts-docked #info-panel,
-      body.charts-docked #obj-search-panel { right: 346px; }
+      body.charts-docked #obj-search-panel { right: calc(var(--dock-w) + 1rem); }
       #info-panel, #obj-search-panel, #focus-hud, #ui {
         top: calc(var(--headline-h, 0px) + var(--menubar-h, 0px) + 16px);
       }
@@ -264,7 +264,7 @@ function injectStyles() {
       background: var(--bg-raised);
     }
     .lc-coeff-label {
-      display: block; font-size: 10px; letter-spacing: 0.04em;
+      display: block; font-size: 0.625rem; letter-spacing: 0.04em;
       text-transform: uppercase; color: var(--ink-dim); margin-bottom: 4px;
     }
     .lc-coeff-val { color: var(--ink-bright); text-transform: none; letter-spacing: 0; }
@@ -275,7 +275,7 @@ function injectStyles() {
     }
     .lc-preset {
       background: none; border: 1px solid var(--line-edge); color: var(--ink-dim);
-      font-family: inherit; font-size: 9.5px; padding: 2px 6px;
+      font-family: inherit; font-size: 0.59375rem; padding: 2px 6px;
       border-radius: 2px; cursor: pointer; line-height: 1.4;
     }
     .lc-preset:hover { border-color: var(--accent); color: var(--ink-bright); }
@@ -283,32 +283,32 @@ function injectStyles() {
     .lc-coeff-num {
       width: 100%; box-sizing: border-box; margin: 4px 0 5px;
       background: var(--bg-sunken); border: 1px solid var(--line-edge); color: var(--ink-bright);
-      font-family: inherit; font-size: 11px; padding: 3px 6px; border-radius: 2px;
+      font-family: inherit; font-size: 0.6875rem; padding: 3px 6px; border-radius: 2px;
     }
     .lc-coeff-num:focus { outline: none; border-color: var(--accent); }
     .lc-coeff-num.bad { border-color: var(--data-trace); }
     .lc-coeff-name { border-bottom: 1px dotted var(--line-strong); }
-    .lc-coeff-band { font-size: 10px; color: var(--ink-dim); }
+    .lc-coeff-band { font-size: 0.625rem; color: var(--ink-dim); }
     .lc-coeff-band[data-warn="true"] { color: var(--data-trace); }
     .lc-coeff-reset {
       margin-top: 5px; background: none; border: 1px solid var(--line-edge);
-      color: var(--ink); font-family: monospace; font-size: 10px;
+      color: var(--ink); font-family: monospace; font-size: 0.625rem;
       padding: 2px 6px; cursor: pointer;
     }
     .lc-coeff-reset:hover { border-color: var(--accent); color: var(--ink-bright); }
     #live-charts .lc-fig-btns { display: flex; gap: 3px; }
     #live-charts .lc-popout {
       background: none; border: 1px solid transparent; color: transparent;
-      font-size: 12px; cursor: pointer; padding: 0 3px; line-height: 1.4;
+      font-size: 0.75rem; cursor: pointer; padding: 0 3px; line-height: 1.4;
     }
     #live-charts .lc-fig:hover .lc-popout { border-color: var(--line-edge); color: var(--ink-dim); }
     #live-charts .lc-popout:hover { color: var(--accent); border-color: var(--accent); }
     .lc-depth { border-top: 1px solid var(--line-edge); padding-top: 8px; }
     .lc-depth-plot svg { display: block; max-width: 100%; }
-    .dp-empty { font-size: 10.5px; color: var(--ink-dim); padding: 6px 0; }
+    .dp-empty { font-size: 0.65625rem; color: var(--ink-dim); padding: 6px 0; }
     #live-charts {
       position: fixed; top: 0; right: 0; bottom: 72px;
-      width: 330px; z-index: 860;
+      width: var(--dock-w); z-index: 860;
       background: var(--bg-panel);
       border-left: 1px solid var(--line-edge);
       font-family: monospace; color: var(--ink);
@@ -323,12 +323,12 @@ function injectStyles() {
       background: var(--bg-raised); flex: 0 0 auto;
     }
     #live-charts .lc-title {
-      font-size: 12px; font-weight: bold; color: var(--accent); letter-spacing: .08em;
+      font-size: 0.75rem; font-weight: bold; color: var(--accent); letter-spacing: .08em;
     }
-    #live-charts .lc-sub { font-size: 10px; color: var(--ink-dim); margin-top: 2px; }
+    #live-charts .lc-sub { font-size: 0.625rem; color: var(--ink-dim); margin-top: 2px; }
     #live-charts .lc-close {
       background: none; border: 1px solid var(--line-edge); border-radius: 5px;
-      color: var(--ink-dim); cursor: pointer; font-size: 13px; line-height: 1;
+      color: var(--ink-dim); cursor: pointer; font-size: 0.8125rem; line-height: 1;
       padding: 3px 8px;
     }
     #live-charts .lc-close:hover { color: var(--ink-bright); border-color: var(--accent); }
@@ -336,9 +336,9 @@ function injectStyles() {
     #live-charts .lc-body { overflow-y: auto; padding: 4px 0 12px; flex: 1 1 auto; }
     #live-charts .lc-fig { padding: 8px 12px 5px; border-bottom: 1px solid var(--line-hair); }
     #live-charts .lc-fig:last-child { border-bottom: none; }
-    #live-charts .lc-fig-title { font-size: 11.5px; color: var(--ink-bright); font-weight: bold; }
-    #live-charts .lc-fig-note { font-size: 10px; color: var(--ink-dim); margin-top: 1px; }
-    #live-charts .lc-readout { font-size: 10.5px; color: var(--ink-dim); margin-top: 4px; }
+    #live-charts .lc-fig-title { font-size: 0.71875rem; color: var(--ink-bright); font-weight: bold; }
+    #live-charts .lc-fig-note { font-size: 0.625rem; color: var(--ink-dim); margin-top: 1px; }
+    #live-charts .lc-readout { font-size: 0.65625rem; color: var(--ink-dim); margin-top: 4px; }
     #live-charts .lc-plot { margin-top: 4px; position: relative; }
 
     /* Scoped to the SVG, not to #live-charts. These same charts are rendered
@@ -347,22 +347,22 @@ function injectStyles() {
        out chart lost its grid, ticks and axis labels. */
     svg .grid   { stroke: var(--line-hair); stroke-width: 1; }
     svg .axis   { stroke: var(--line-edge); stroke-width: 1; }
-    svg .tick   { fill: var(--ink-dim); font-size: 9px; font-family: inherit; }
+    svg .tick   { fill: var(--ink-dim); font-size: 0.5625rem; font-family: inherit; }
     svg .tick-y { text-anchor: end; dominant-baseline: middle; }
     svg .tick-x { text-anchor: middle; }
-    svg .axis-label { fill: var(--ink-dim); font-size: 9.5px; text-anchor: middle; font-family: inherit; }
+    svg .axis-label { fill: var(--ink-dim); font-size: 0.59375rem; text-anchor: middle; font-family: inherit; }
     svg .crosshair { stroke: var(--ink-dim); stroke-width: 1; opacity: .45; }
-    #live-charts .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 5px; font-size: 10px; color: var(--ink-dim); }
+    #live-charts .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 5px; font-size: 0.625rem; color: var(--ink-dim); }
     #live-charts .legend-item { display: inline-flex; align-items: center; gap: 5px; }
     #live-charts .legend-swatch { width: 10px; height: 3px; border-radius: 2px; display: inline-block; }
-    #live-charts .empty { padding: 18px 0; text-align: center; color: var(--ink-dim); font-size: 10.5px; }
+    #live-charts .empty { padding: 18px 0; text-align: center; color: var(--ink-dim); font-size: 0.65625rem; }
 
     #live-charts .lc-fig-head {
       display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
     }
     #live-charts .lc-expand {
       background: none; border: 1px solid transparent; border-radius: 3px;
-      color: var(--ink-dim); cursor: pointer; font-size: 13px; line-height: 1;
+      color: var(--ink-dim); cursor: pointer; font-size: 0.8125rem; line-height: 1;
       padding: 2px 5px; flex: 0 0 auto;
     }
     #live-charts .lc-fig:hover .lc-expand { border-color: var(--line-edge); color: var(--ink-dim); }
@@ -371,13 +371,13 @@ function injectStyles() {
     #live-charts .lc-selection {
       display: flex; align-items: center; justify-content: space-between;
       padding: 6px 12px; background: rgba(43,163,171,.11);
-      border-bottom: 1px solid var(--line-edge); font-size: 10.5px; color: var(--ink);
+      border-bottom: 1px solid var(--line-edge); font-size: 0.65625rem; color: var(--ink);
       flex: 0 0 auto;
     }
     #live-charts .lc-selection b { color: var(--ink-bright); }
     #live-charts .lc-clear {
       background: none; border: 1px solid var(--line-strong); border-radius: 3px;
-      color: var(--ink-dim); font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase;
+      color: var(--ink-dim); font-size: 0.59375rem; letter-spacing: .06em; text-transform: uppercase;
       padding: 2px 7px; cursor: pointer; font-family: inherit;
     }
     #live-charts .lc-clear:hover { color: var(--ink-bright); border-color: var(--accent); }
@@ -386,7 +386,7 @@ function injectStyles() {
     #live-charts .tooltip, .lc-modal .tooltip {
       position: absolute; pointer-events: none; z-index: 5;
       background: var(--bg-raised); border: 1px solid var(--line-strong); border-radius: 3px;
-      padding: 6px 9px; font-size: 11px; color: var(--ink-bright);
+      padding: 6px 9px; font-size: 0.6875rem; color: var(--ink-bright);
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12); white-space: nowrap;
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     }
@@ -395,7 +395,7 @@ function injectStyles() {
     #live-charts .tt-swatch, .lc-modal .tt-swatch {
       width: 8px; height: 8px; border-radius: 2px; display: inline-block;
     }
-    #live-charts .tt-hint, .lc-modal .tt-hint { color: var(--accent); margin-top: 3px; font-size: 10px; }
+    #live-charts .tt-hint, .lc-modal .tt-hint { color: var(--accent); margin-top: 3px; font-size: 0.625rem; }
 
     /* ── Enlarged view ── */
     .lc-modal {
@@ -412,34 +412,34 @@ function injectStyles() {
       display: flex; align-items: flex-start; justify-content: space-between;
       padding: 14px 18px; border-bottom: 1px solid var(--line-edge); gap: 16px;
     }
-    .lc-modal-head .lc-fig-title { font-size: 14px; color: var(--ink-bright); font-weight: bold; }
-    .lc-modal-head .lc-fig-note { font-size: 11px; color: var(--ink-dim); margin-top: 3px; max-width: 80ch; }
+    .lc-modal-head .lc-fig-title { font-size: 0.875rem; color: var(--ink-bright); font-weight: bold; }
+    .lc-modal-head .lc-fig-note { font-size: 0.6875rem; color: var(--ink-dim); margin-top: 3px; max-width: 80ch; }
     .lc-modal-close {
       background: none; border: 1px solid var(--line-edge); border-radius: 3px;
-      color: var(--ink-dim); cursor: pointer; font-size: 16px; line-height: 1; padding: 3px 9px;
+      color: var(--ink-dim); cursor: pointer; font-size: 1rem; line-height: 1; padding: 3px 9px;
     }
     .lc-modal-close:hover { color: var(--ink-bright); border-color: var(--accent); }
     .lc-modal-plot { padding: 12px 18px 4px; position: relative; }
     .lc-modal-plot svg .grid { stroke: var(--line-hair); }
     .lc-modal-plot svg .axis { stroke: var(--line-edge); }
-    .lc-modal-plot svg .tick { fill: var(--ink-dim); font-size: 11px; font-family: inherit; }
+    .lc-modal-plot svg .tick { fill: var(--ink-dim); font-size: 0.6875rem; font-family: inherit; }
     .lc-modal-plot svg .tick-y { text-anchor: end; dominant-baseline: middle; }
     .lc-modal-plot svg .tick-x { text-anchor: middle; }
-    .lc-modal-plot svg .axis-label { fill: var(--ink); font-size: 12px; text-anchor: middle; font-family: inherit; }
+    .lc-modal-plot svg .axis-label { fill: var(--ink); font-size: 0.75rem; text-anchor: middle; font-family: inherit; }
     .lc-modal-plot svg .hoverline { stroke: var(--accent); stroke-width: 1; opacity: .55; }
     .lc-modal-plot svg .crosshair { stroke: var(--ink-dim); stroke-width: 1; opacity: .4; }
     .lc-modal-plot svg .hover-dot { stroke: var(--bg-panel); stroke-width: 2; }
-    .lc-modal-plot .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; font-size: 11px; color: var(--ink); }
+    .lc-modal-plot .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; font-size: 0.6875rem; color: var(--ink); }
     .lc-modal-plot .legend-swatch { width: 12px; height: 3px; border-radius: 2px; display: inline-block; }
     .lc-modal-foot {
-      padding: 8px 18px 14px; font-size: 10.5px; color: var(--ink-dim);
+      padding: 8px 18px 14px; font-size: 0.65625rem; color: var(--ink-dim);
       border-top: 1px solid var(--line-hair);
     }
 
     #btn-live-charts {
       position: fixed; top: 14px; right: 14px; z-index: 861;
       background: var(--bg-raised); border: 1px solid var(--line-edge);
-      color: var(--accent); font-family: monospace; font-size: 13px; font-weight: bold;
+      color: var(--accent); font-family: monospace; font-size: 0.8125rem; font-weight: bold;
       letter-spacing: .1em; padding: 6px 14px; border-radius: 6px; cursor: pointer;
     }
     #btn-live-charts:hover { border-color: var(--accent); background: rgba(43,163,171,.13); color: var(--accent); }
@@ -447,8 +447,8 @@ function injectStyles() {
 
     /* The object search sits at right:300px; slide it clear of the dock so the
        two never overlap. */
-    body.charts-docked #obj-search-toggle { right: 640px; }
-    body.charts-docked #obj-search-panel  { right: 640px; }
+    body.charts-docked #obj-search-toggle { right: calc(var(--dock-w) + 19rem); }
+    body.charts-docked #obj-search-panel  { right: calc(var(--dock-w) + 19rem); }
 
     @media (max-width: 900px) {
       #live-charts { display: none; }

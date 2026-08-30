@@ -20,11 +20,11 @@ const STYLE = `
   }
   #headline.hidden { display: none; }
   .hl-top { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
-  .hl-q { font-size: 11px; color: var(--ink-dim); letter-spacing: 0.06em; text-transform: uppercase; }
+  .hl-q { font-size: 0.6875rem; color: var(--ink-dim); letter-spacing: 0.06em; text-transform: uppercase; }
   .hl-horizons { display: flex; gap: 4px; margin-left: auto; }
   .hl-h {
     background: none; border: 1px solid var(--line-edge); color: var(--ink-dim);
-    font-family: inherit; font-size: 10.5px; padding: 2px 8px; cursor: pointer;
+    font-family: inherit; font-size: 0.65625rem; padding: 2px 8px; cursor: pointer;
     border-radius: 2px;
   }
   .hl-h:hover { color: var(--ink-bright); border-color: var(--ink-dim); }
@@ -46,17 +46,17 @@ const STYLE = `
     border-right: 2px solid var(--data-secondary);
   }
   .hl-end {
-    position: absolute; top: 0; font-size: 15px; font-variant-numeric: tabular-nums;
+    position: absolute; top: 0; font-size: 0.9375rem; font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
-  .hl-end small { display: block; font-size: 9.5px; color: var(--ink-dim); margin-top: 2px; }
+  .hl-end small { display: block; font-size: 0.59375rem; color: var(--ink-dim); margin-top: 2px; }
   .hl-end--lo { left: 0; text-align: left; }
   .hl-end--hi { right: 0; text-align: right; }
 
-  .hl-read { font-size: 11.5px; color: var(--ink); line-height: 1.5; margin-top: 6px; }
+  .hl-read { font-size: 0.71875rem; color: var(--ink); line-height: 1.5; margin-top: 6px; }
   .hl-read b { color: var(--ink-bright); font-weight: normal; }
   .hl-warn { color: var(--warn); }
-  .hl-note { font-size: 10.5px; color: var(--ink-dim); margin-top: 4px; line-height: 1.45; }
+  .hl-note { font-size: 0.65625rem; color: var(--ink-dim); margin-top: 4px; line-height: 1.45; }
 `;
 
 /**

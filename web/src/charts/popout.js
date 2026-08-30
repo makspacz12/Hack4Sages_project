@@ -31,14 +31,14 @@ const WINDOW_CSS = `
     padding: 10px 14px; border-bottom: 1px solid var(--line-edge);
     display: flex; align-items: baseline; gap: 10px; flex: none;
   }
-  h1 { font-size: 13px; margin: 0; letter-spacing: 0.06em;
+  h1 { font-size: 0.8125rem; margin: 0; letter-spacing: 0.06em;
        text-transform: uppercase; color: var(--ink-bright); font-weight: 600; }
-  .note { font-size: 11px; color: var(--ink-dim); }
+  .note { font-size: 0.6875rem; color: var(--ink-dim); }
   .plot { flex: 1 1 auto; padding: 10px 14px; min-height: 0; }
   .plot svg { display: block; }
   footer {
     padding: 8px 14px; border-top: 1px solid var(--line-edge);
-    font-size: 11px; color: var(--ink-dim); flex: none;
+    font-size: 0.6875rem; color: var(--ink-dim); flex: none;
   }
   .link { color: var(--accent); }
 `;
