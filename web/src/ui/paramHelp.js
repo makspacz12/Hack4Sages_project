@@ -229,6 +229,6 @@ export const C_RAD_PRESETS = [
   {
     label: 'acute low-LET D10',
     value: 6.1e-4,
-    note: 'laboratory irradiation — does not transfer to cosmic rays',
+    note: 'laboratory irradiation, does not transfer to cosmic rays',
   },
 ];

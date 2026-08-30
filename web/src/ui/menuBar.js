@@ -112,8 +112,8 @@ const STYLE = `
 const SCALE_KEY = 'lp.uiScale';
 const SCALES = [
   { value: 1, label: 'Desk', note: 'default sizes, for a monitor at arm’s length' },
-  { value: 1.25, label: 'Large', note: 'a quarter bigger — a shared screen or a small room' },
-  { value: 1.5, label: 'Projector', note: 'half again — readable from the back of a lecture hall' },
+  { value: 1.25, label: 'Large', note: 'a quarter bigger, a shared screen or a small room' },
+  { value: 1.5, label: 'Projector', note: 'half again, readable from the back of a lecture hall' },
   { value: 1.75, label: 'Large hall', note: 'for a deep room or a dim projector' },
 ];
 

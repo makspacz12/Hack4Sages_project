@@ -22,8 +22,7 @@
  * which is perceptually uniform, colourblind-safe and readable in greyscale.
  *
  * The lower stops are deliberately cut. The first version of this ramp started
- * near black at L* = 8, which measured 1.11:1 against the scene background —
- * the bottom 55% of it fell below 3:1, so the least irradiated half of the
+ * near black at L* = 8, which measured 1.11:1 against the scene background,  * the bottom 55% of it fell below 3:1, so the least irradiated half of the
  * swarm was invisible on a black sky. The comment above cited Crameri while
  * the ramp broke his guidance, because it was designed as if it would be drawn
  * on white. Starting at L* = 45 keeps the whole range readable against the

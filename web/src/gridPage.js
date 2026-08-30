@@ -1,5 +1,5 @@
 /**
- * gridPage.js — load and display parameter-grid ensemble JSON as a heatmap.
+ * gridPage.js, load and display parameter-grid ensemble JSON as a heatmap.
  */
 
 import './ui/analysisPage.css';

@@ -172,7 +172,7 @@ export function headlineBanner(container, simData, bands) {
     // one, which is the single most damaging misreading available here.
     root.querySelector('.hl-caveat').innerHTML =
       `<span class="hl-warn">A range of answers consistent with the published`
-      + ` literature, not a confidence interval</span> — c_rad is a fixed number`
+      + ` literature, not a confidence interval</span>. c_rad is a fixed number`
       + ` we do not know, not a sampled one.`;
   }
 

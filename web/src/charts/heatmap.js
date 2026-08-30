@@ -273,7 +273,7 @@ export function survivalHeatmap(container, payload, options = {}) {
     });
     warn.textContent =
       `variation below resolution: whole grid spans ${spread.toExponential(1)}`
-      + ' in survival — colour pinned to [0, 1]';
+      + ' in survival, colour pinned to [0, 1]';
     svg.appendChild(warn);
   }
   svg.appendChild(legTitle);

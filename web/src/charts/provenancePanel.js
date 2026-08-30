@@ -43,7 +43,7 @@ export function parseProvenance(payload) {
   };
 }
 
-/** Short form of a digest or commit — enough to compare two runs by eye. */
+/** Short form of a digest or commit, enough to compare two runs by eye. */
 export function shortHash(value, length = 12) {
   if (typeof value !== 'string' || value.length === 0) return '—';
   return value.slice(0, length);
@@ -61,7 +61,7 @@ export function trustSummary(prov) {
   if (prov.dirty) {
     return {
       level: 'bad',
-      text: 'generated from an uncommitted tree — the commit does not describe this run',
+      text: 'generated from an uncommitted tree, the commit does not describe this run',
     };
   }
   if (prov.unresolved > 0) {

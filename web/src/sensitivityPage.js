@@ -1,5 +1,5 @@
 /**
- * sensitivityPage.js — Morris elementary-effects screening.
+ * sensitivityPage.js, Morris elementary-effects screening.
  *
  * This page used to draw a one-at-a-time tornado. That was replaced rather
  * than annotated: see sensitivity.html for what its shipped sample actually

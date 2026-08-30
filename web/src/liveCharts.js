@@ -71,7 +71,7 @@ const PALETTE = {
  *
  * Nor was it fixable by picking better hues. Optimising twelve colours against
  * the worst of normal, protan, deutan and tritan vision, subject to 3:1
- * contrast on this background, tops out around 11.7 — below what six colours
+ * contrast on this background, tops out around 11.7, below what six colours
  * get for free. Twelve categories is not a job for colour.
  *
  * So the twelve rock types collapse to six physically meaningful classes, each
@@ -128,7 +128,7 @@ const PALETTE = {
  * class - and the exact rock type is named in the tooltip and the legend.
  *
  * Encoding a category by line style as well as hue is also required rather than
- * merely advisable: WCAG 1.4.1, and the AAS Journals figure guidance — "the use
+ * merely advisable: WCAG 1.4.1, and the AAS Journals figure guidance, "the use
  * of color as the only distinguishing delimiter in a figure should be generally
  * avoided. Colored lines should also use different line styles."
  */
@@ -706,7 +706,7 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
       yLabel: 'log10 hydrolysis rate [1/s]',
       yFormat: v => v.toFixed(0),
       readout: () => (arrheniusStats
-        ? `${arrheniusStats.activationKJ.toFixed(0)} kJ/mol — the textbook range `
+        ? `${arrheniusStats.activationKJ.toFixed(0)} kJ/mol, the textbook range `
           + 'for DNA phosphodiester hydrolysis'
         : '—'),
       source: null,
@@ -1262,7 +1262,7 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
       ? `${selectedId.replace('asteroid_', 'fragment ')} · `
         + `${profile.rockRadius.toFixed(3)} m · ${profile.rockType} · ${rho}`
       : `no fragment selected · configured ${baseProfile.rockRadius} m reference `
-        + `stone at ${rho} — click a fragment to use a real one`;
+        + `stone at ${rho}, click a fragment to use a real one`;
 
     // The transmitted fraction at the centre is the number that decides
     // whether shielding matters for THIS stone, and it is the number the

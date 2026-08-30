@@ -300,7 +300,7 @@ export function createControlPanel({ onFinished }) {
       <div>
         <div class="rc-brand">Lithopanspermia</div>
         <div class="rc-tagline">Mars ejecta transport, radiation dose and
-          microbial survival — a digital twin.</div>
+          microbial survival, a digital twin.</div>
         <a class="rc-nav" href="./research.html">Research background →</a>
         <a class="rc-nav" href="./grid.html">Survival heatmap →</a>
         <a class="rc-nav" href="./sensitivity.html">Sensitivity tornado →</a>
@@ -316,8 +316,8 @@ export function createControlPanel({ onFinished }) {
     </div>
     <div class="rc-foot">
       <div class="rc-cost">
-        <span id="rc-frames">— frames</span>
-        <span id="rc-bodies">— bodies</span>
+        <span id="rc-frames">, frames</span>
+        <span id="rc-bodies">, bodies</span>
       </div>
       <div class="rc-actions">
         <button class="ui-btn ui-btn--primary" id="rc-run" disabled>Run simulation</button>
@@ -741,7 +741,7 @@ export function createControlPanel({ onFinished }) {
            + 'its environment, so it cannot integrate anything. Install it with '
            + '<code>pip install rebound astropy</code>, then restart the solver. '
            + '<br><br>REBOUND ships a wheel for Windows, macOS and Linux. '
-           + '<code>reboundx</code> — needed only for radiation pressure — has no '
+           + '<code>reboundx</code>, needed only for radiation pressure, has no '
            + 'Windows wheel and does not compile under MSVC; without it the run '
            + 'still works and that one force is skipped.');
       }
@@ -777,7 +777,7 @@ export function createControlPanel({ onFinished }) {
           <code>.venv/bin/python -m microbe_radiation_model.server</code>
           <br><br>
           Use the interpreter from the project's virtual environment, not a bare
-          <code>python</code> — the solver runs the real REBOUND integration and
+          <code>python</code>, the solver runs the real REBOUND integration and
           needs <code>rebound</code> and <code>astropy</code>. On Windows that is
           <code>.venv&#92;Scripts&#92;python.exe</code>.
           <br><br>

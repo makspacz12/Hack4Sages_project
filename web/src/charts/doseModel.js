@@ -9,7 +9,7 @@
  *
  * with no approximation. The simulation therefore exports the accumulated dose
  * alongside the survival it produced, and any other coefficient is one
- * exponential away — no integration, no server, microseconds.
+ * exponential away, no integration, no server, microseconds.
  *
  * That matters because c_rad is the least certain number in the model: the
  * published chronic band spans 2.5e-5 to 4.3e-4 1/Gy, a factor of seventeen,
@@ -68,7 +68,7 @@ export function supportsRescaling(frames) {
  * Survival curves at a chosen coefficient.
  *
  * `cRad` may be a number, applied to every fragment, or null to use each
- * fragment's own sampled value from `sampledById` — which reproduces the run
+ * fragment's own sampled value from `sampledById`, which reproduces the run
  * exactly and is the honest default.
  */
 export function survivalAtCoefficient(doseSeries, cRad, sampledById = new Map()) {
@@ -109,7 +109,7 @@ export function bandFor(cRad) {
   if (cRad < COEFF_BANDS.chronicMin) return 'below published range';
   if (cRad <= COEFF_BANDS.chronicMax) return 'chronic, Mileikowsky 2000';
   if (cRad < COEFF_BANDS.acuteMin) return 'between bands';
-  if (cRad <= COEFF_BANDS.acuteMax) return 'acute low-LET — not applicable to GCR';
+  if (cRad <= COEFF_BANDS.acuteMax) return 'acute low-LET, not applicable to GCR';
   return 'above published range';
 }
 
@@ -118,7 +118,7 @@ export function bandFor(cRad) {
  *
  * A quantity known to within a factor is not symmetric on a linear scale, so
  * "±" misstates it: Limpert, Stahel & Abbt (2001), BioScience 51(5):341-352,
- * give "×/" — times-or-divided-by — as the multiplicative counterpart, where
+ * give "×/", times-or-divided-by, as the multiplicative counterpart, where
  * the interval is [x/s, x·s] rather than [x−s, x+s]. Writing a factor-of-2.5
  * uncertainty as a ± interval misstates its own coverage by roughly twenty
  * percentage points.

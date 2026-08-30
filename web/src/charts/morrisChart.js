@@ -109,13 +109,13 @@ export function morrisChart(container, screening, opts = {}) {
   const xl = el('text', {
     x: PAD.left + plotW / 2, y: PAD.top + plotH + 31, class: 'mo-axis-label',
   });
-  xl.textContent = 'μ*  — influence';
+  xl.textContent = 'μ*: influence';
   svg.appendChild(xl);
   const yl = el('text', {
     x: 12, y: PAD.top + plotH / 2, class: 'mo-axis-label',
     transform: `rotate(-90 12 ${PAD.top + plotH / 2})`,
   });
-  yl.textContent = 'σ  — non-linearity / interaction';
+  yl.textContent = 'σ: non-linearity and interaction';
   svg.appendChild(yl);
 
   // ── Factors ─────────────────────────────────────────────────────────────
@@ -167,7 +167,7 @@ export function morrisChart(container, screening, opts = {}) {
     title.textContent =
       `${f.label}${f.unit ? ` [${f.unit}]` : ''}\n`
       + `μ* ${fmt(f.muStar)} · μ ${fmt(f.mu)} · σ ${fmt(f.sigma)}\n`
-      + `σ/μ* ${f.ratio?.toFixed(2)} — ${classify(f)}\n`
+      + `σ/μ* ${f.ratio?.toFixed(2)}, ${classify(f)}\n`
       + `range ${fmt(f.low)} to ${fmt(f.high)}${f.log ? ' (log)' : ''}\n`
       + `${significant(f) ? 'outside' : 'inside'} Morris's ±2·SEM wedge`;
     g.appendChild(title);
@@ -252,7 +252,7 @@ export function morrisCostPanel(container, screening) {
       A one-at-a-time design's points all lie inside the hypersphere inscribed
       in the unit hypercube, whose volume ratio is
       r(k) = π<sup>k/2</sup> / (Γ(k/2+1)·2<sup>k</sup>)
-      — and that is an upper bound, since the points actually lie on a
+     , and that is an upper bound, since the points actually lie on a
       hypercross of measure zero. At k = 18, the full knob set, r = ${
   oatExploredFraction(18).toExponential(1)}.
       Saltelli &amp; Annoni (2010), <i>Env. Modelling &amp; Software</i> 25(12):1508–1517.

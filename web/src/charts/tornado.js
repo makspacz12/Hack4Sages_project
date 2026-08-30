@@ -1,5 +1,5 @@
 /**
- * tornado.js — SVG tornado chart for OAT sensitivity JSON.
+ * tornado.js, SVG tornado chart for OAT sensitivity JSON.
  */
 
 import { fmt } from './plot.js';

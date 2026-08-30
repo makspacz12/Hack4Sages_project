@@ -363,7 +363,7 @@ async function mainReplay(source) {
     const entry = replayTrailMap.get(id);
     const type  = (entry?.type ?? '');
     if (type === 'planet') return planetTrailsEnabled;
-    // asteroid / comet — filtered by "followed only" toggle
+    // asteroid / comet, filtered by "followed only" toggle
     if (onlyFollowTrail) return id === _followedTrailId;
     return trailsEnabled;
   }
@@ -821,7 +821,7 @@ async function mainReplay(source) {
       layers: [
         sceneLayer(
           'Fragment trails',
-          'the recent path of each fragment — see the caveat below',
+          'the recent path of each fragment, see the caveat below',
           () => trailsEnabled,
           (on) => { setReplayToggle('trails', on); },
         ),
@@ -1240,7 +1240,7 @@ async function main() {
       layers: [
         sceneLayer(
           'Fragment trails',
-          'the recent path of each fragment — see the caveat below',
+          'the recent path of each fragment, see the caveat below',
           () => trailsEnabled,
           (on) => { setReplayToggle('trails', on); },
         ),

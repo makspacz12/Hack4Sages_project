@@ -5,8 +5,7 @@
  * had to assemble the result themselves. The result is one sentence, and it is
  * dominated by a coefficient nobody has pinned down.
  *
- * Over the 3000-year run the survival fraction sits between 0.77 and 0.97 —
- * which reads as "almost nothing happens" and hides the disagreement entirely.
+ * Over the 3000-year run the survival fraction sits between 0.77 and 0.97,  * which reads as "almost nothing happens" and hides the disagreement entirely.
  * The run is simply too short to show its own uncertainty. Extrapolated to the
  * transfer times the literature actually discusses, the same published band
  * for c_rad opens from a factor of 4 to more than forty orders of magnitude.
