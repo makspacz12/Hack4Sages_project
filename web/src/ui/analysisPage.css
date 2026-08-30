@@ -186,7 +186,7 @@ pre {
   font-size: 13px;
   line-height: 1.65;
   padding: 6px 0 6px 14px;
-  border-left: 1px solid #3a2f29;
+  border-left: 1px solid var(--line-edge);
   margin-bottom: 4px;
 }
 .analysis-notes li b { color: var(--ink-bright); font-weight: 600; }

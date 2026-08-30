@@ -362,18 +362,33 @@ points, so the *drawing* is exact — but a per-frame readout still steps past e
 
 ## Design decisions worth defending
 
-**The data palette is not Wolfram's.** The interface deliberately resembles Mathematica in
-its chrome, typography and density — but Mathematica's own default series colours,
-`ColorData[97]`, fail an accessibility check: slots 2 and 3 separate by ΔE00 **1.8** under
-protanopia and 12.8 with normal vision. The six rock-class colours here are Okabe & Ito,
-darkened where the published values are too light to hold 3:1, and measured against the
-white panel: worst adjacent separation 10.4 under deuteranopia, 18.1 with normal vision.
+**The data palette is not Wolfram's, and its limits are stated.** The interface
+deliberately resembles Mathematica in chrome, typography and density — but Mathematica's
+own default series colours, `ColorData[97]`, fail an accessibility check: slots 2 and 3
+separate by ΔE00 **1.8** under protanopia and 12.8 with normal vision.
+
+The six rock classes here are Okabe & Ito, darkened where the published values are too
+light. Against **adjacent** pairs every check passes — worst 10.4 under deuteranopia, 18.1
+with normal vision — but adjacent pairs are not the test that matters, because two classes
+far apart in a list are still plotted on the same axes. Under an **all-pairs** check the
+original set had a genuine collision: organic-rich against silicate at ΔE00 **1.2** under
+protanopia and 10.6 with normal vision, two solid lines that were for practical purposes
+the same colour. Organic-rich is now a sienna, which lifts that pair to 5.9.
+
+What remains is stated rather than left to be discovered: icy vs metallic 5.9
+(deuteranopia), rubble vs chondrite 13.3 (normal vision), sky vs purple 4.3 (tritanopia,
+about one person in ten thousand). Six categorical hues cannot clear the all-pairs
+thresholds — that was tested, not assumed; every six-colour set tried failed some pair. The
+remedy is the one the guidance allows: class identity never rests on hue alone. Every
+series is named in the legend and again in its tooltip, and members within a class are
+separated by dash pattern. **The dashes do not separate the classes from each other**, so
+the direct labels are doing that work, and if they were removed the palette would stop
+being defensible.
+
 Selection is deliberately **not** blue — the navy accent already owns that register — and
 not the obvious magenta either: the first candidate separated from the icy rock class by
 ΔE00 **4.7** with normal vision, so a selected fragment and an icy one were the same
-colour. The violet that replaced it clears 15.8. One residual is stated rather
-than hidden — the sky/purple pair falls to 4.3 under tritanopia and is carried by dash
-patterns, which is what secondary encoding is for.
+colour. The violet that replaced it clears 15.8.
 
 **Light ground, restrained navy, dark scene.** Everything a reader lifts into a slide
 lands on white, and a projector in a lit room destroys exactly the low tones a dark scene

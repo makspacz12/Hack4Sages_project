@@ -83,12 +83,34 @@ const PALETTE = {
  * particular hues chosen to fill them were not checked.
  *
  * The replacements are Okabe & Ito, darkened where the published values were
- * too light to hold 3:1 against a dark ground. Measured: every check passes,
- * worst adjacent separation 10.4 under deuteranopia and 18.1 with normal
- * vision. One residual: the sky/purple pair falls to 4.3 under tritanopia,
- * which affects roughly one person in ten thousand and is carried by the dash
- * patterns below - that is what secondary encoding is for, and it is stated
- * here rather than left for someone to discover.
+ * too light to hold 3:1. Measured against ADJACENT pairs, every check passes:
+ * worst 10.4 under deuteranopia, 18.1 with normal vision.
+ *
+ * BUT ADJACENT PAIRS ARE NOT THE TEST THAT MATTERS. Two classes can sit far
+ * apart in this list and still be plotted on the same axes, so the honest
+ * check is every pair, not neighbours. Under that check the original set had a
+ * genuine collision: organic-rich against silicate at dE00 1.2 under
+ * protanopia and 10.6 with NORMAL vision - two solid lines that were, for
+ * practical purposes, the same colour. Both were oranges.
+ *
+ * Organic-rich is now a sienna, which lifts that pair to 5.9 protan while
+ * still clearing 3:1 on BOTH grounds - a darker brown cleared the separation
+ * but fell to 2.66:1 on the white panel, which the palette test caught.
+ * What remains, stated rather than discovered later:
+ *
+ *   icy vs metallic        5.9 (deuteranopia)
+ *   rubble vs chondrite   13.3 (normal vision)
+ *   sky/purple             4.3 (tritanopia, ~1 in 10 000)
+ *
+ * Six categorical hues cannot clear the all-pairs thresholds; that was tested,
+ * not assumed - every six-colour set tried failed some pair. The remedy is the
+ * one the guidance allows: never let class identity rest on hue alone. Every
+ * series is named in the legend and again in its hover tooltip, and members
+ * within a class are separated by dash pattern.
+ *
+ * The dashes do NOT separate the classes from each other - each class's first
+ * member is solid - so the direct labels are doing that work, and if they are
+ * ever removed this palette stops being defensible.
  *
  * Encoding a category by line style as well as hue is also required rather than
  * merely advisable: WCAG 1.4.1, and the AAS Journals figure guidance — "the use
@@ -99,7 +121,7 @@ const ROCK_CLASSES = {
   silicate:  { color: '#D55E00', label: 'silicates' },    // Okabe & Ito vermillion
   chondrite: { color: '#0072B2', label: 'chondrites' },   // Okabe & Ito blue
   metal:     { color: '#009E73', label: 'metallic' },     // Okabe & Ito bluish green
-  organic:   { color: '#9C6B00', label: 'organic-rich' }, // Okabe & Ito orange, darkened
+  organic:   { color: '#A0522D', label: 'organic-rich' }, // sienna; see the note above
   icy:       { color: '#B0578C', label: 'icy' },          // Okabe & Ito purple, darkened
   rubble:    { color: '#4E9BCF', label: 'rubble pile' },  // Okabe & Ito sky, darkened
 };

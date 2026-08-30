@@ -22,8 +22,16 @@ const contrast = (a, b) => {
   return (x + 0.05) / (y + 0.05);
 };
 
-const PANEL = hexToRgb('#14100e');
-const SCENE = hexToRgb('#0a0807');
+// These colours appear on BOTH grounds - in charts on a white panel, and as
+// fragment trails on the dark scene inset - so both are checked. The constant
+// here was #14100e, a panel colour that no longer exists anywhere in the
+// project: a test measuring against a surface that has been deleted passes
+// while telling you nothing.
+const PANEL = hexToRgb('#FFFFFF');
+// The dark inset the 3D scene is drawn on. This was #0a0807, the ground of the
+// old dark theme; the trajectory ramp below was therefore being checked
+// against a colour the application no longer paints anywhere.
+const SCENE = hexToRgb('#0B0E14');
 
 describe('rock class palette', () => {
   it('covers every rock type in the catalog', () => {
@@ -54,10 +62,11 @@ describe('rock class palette', () => {
     expect(dashForRockType('iron_nickel')).toBeNull();
   });
 
-  it('every class colour clears 3:1 against the panel', () => {
+  it('every class colour clears 3:1 against both grounds', () => {
     // WCAG 1.4.11: a graphical object needed to understand the content.
     for (const { id, color } of rockClasses()) {
-      expect(contrast(hexToRgb(color), PANEL), id).toBeGreaterThanOrEqual(3);
+      expect(contrast(hexToRgb(color), PANEL), `${id} on panel`).toBeGreaterThanOrEqual(3);
+      expect(contrast(hexToRgb(color), SCENE), `${id} on scene`).toBeGreaterThanOrEqual(3);
     }
   });
 

@@ -1,30 +1,24 @@
 /*
  * theme.css
- * Design tokens for the visualizer.
+ * The one set of design tokens. Nothing else in this project defines a colour.
  *
- * The palette is taken from the thing being simulated rather than from a
- * generic tech blue: BASALT for the ground (the default fragment in the rock
- * catalog is basalt), REGOLITH for the ink, and IRON OXIDE for the data - the
- * colour of the rock whose fate the model computes.
- *
- * The accent is a cool instrument teal, and the reason is measured rather than
- * aesthetic. A warm accent was tried first and had to be abandoned: against
- * iron-oxide data, both the amber warning and the red alert fell below the
- * ~15 discrimination threshold, so the two colours that must never be confused
- * became confusable. Moving the accent to the cool side frees the whole warm
- * band for data and attention.
- *
- * Validated against the panel surface (#14100e) in dark mode: every colour
- * clears 3:1 contrast, and the worst normal-vision pair is 15.2. Amber against
- * iron oxide sits in the 6-8 CVD band, which is legal only because every
- * warning here ships with text beside it, never colour alone.
+ * This header used to describe a different palette entirely - a basalt ground,
+ * regolith ink and a cool instrument teal, "validated against the panel surface
+ * #14100e in dark mode". None of that is true any more, and a comment that
+ * confidently states measurements of a palette that no longer exists is worse
+ * than no comment: it is the thing a reader trusts instead of checking. The
+ * measurements below were taken against the current values.
  *
  * Rules the rest of the CSS follows:
+ *   - Every colour comes from a token here. Three literals survive in the
+ *     JavaScript, each commented, because they are handed to THREE.Color, which
+ *     parses CSS colour syntax but has no document against which to resolve a
+ *     custom property - a var() there fails silently and paints black.
  *   - Labels are uppercase, letter-spaced, small, in muted ink.
  *   - Every number carries its unit, set separately and dimmer.
  *   - Panels are square-ish (3px), not rounded; radius is for controls only.
- *   - Colour is reserved for data and for attention. Chrome is basalt greys
- *     plus the one teal.
+ *   - Colour is reserved for data and for attention. Chrome is cool greys plus
+ *     the one navy.
  */
 
 /* ── The light ground ──────────────────────────────────────────────────────
@@ -104,9 +98,9 @@
   --bad:          #A32B22;
   --ok:           #1B6E4A;
 
-  /* Data. Okabe & Ito, darkened where the published values are too light to
-     hold 3:1. Validated against the white panel: worst adjacent separation
-     10.4 under deuteranopia, 18.1 with normal vision. Selection is deliberately
+  /* Data. Okabe & Ito, darkened where needed. Adjacent pairs clear every
+     check; the all-pairs residuals and why six hues cannot do better are
+     documented at ROCK_CLASSES in liveCharts.js. Selection is deliberately
      NOT blue here - the accent already owns that register, so a selected
      fragment would be indistinguishable from ordinary chrome. Nor is it the
      obvious magenta: the first choice, #A64D9E, separated from the icy rock
