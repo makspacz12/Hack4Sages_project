@@ -15,9 +15,13 @@
   --bg: var(--bg-void);
   --surface: var(--bg-panel);
   --border: var(--line-edge);
-  --accent2: var(--warn);
+  /* Was --warn. A warning colour carrying the page title and every link is
+     the confusion the navy accent exists to remove: if orange means caution,
+     nothing on the page can mean caution while orange is ordinary chrome. */
+  --accent2: var(--accent);
   --text: var(--ink);
-  --muted: var(--ink-faint);
+  /* --ink-faint is a rule colour at 2.98:1, not a text colour. */
+  --muted: var(--ink-dim);
   --heading: var(--ink-bright);
 }
 
@@ -34,7 +38,7 @@ header {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: rgba(8, 6, 5, 0.90);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
   padding: 14px 40px;
@@ -97,7 +101,7 @@ pre {
   font-size: 12px;
   line-height: 1.5;
   margin-top: 28px;
-  color: #98897d;
+  color: var(--ink-dim);
 }
 
 .analysis-meta {
@@ -150,7 +154,7 @@ pre {
 .analysis-toolbar .btn-link:hover { border-color: var(--accent2); }
 
 .analysis-error {
-  color: #e0564f;
+  color: var(--bad);
   font-family: monospace;
   font-size: 13px;
   margin-top: 12px;
@@ -178,17 +182,17 @@ pre {
   max-width: 72ch;
 }
 .analysis-notes li {
-  color: #cbbfb4;
+  color: var(--ink);
   font-size: 13px;
   line-height: 1.65;
   padding: 6px 0 6px 14px;
   border-left: 1px solid #3a2f29;
   margin-bottom: 4px;
 }
-.analysis-notes li b { color: #f2ebe4; font-weight: 600; }
+.analysis-notes li b { color: var(--ink-bright); font-weight: 600; }
 .analysis-notes .note-why {
   display: block;
-  color: #8d7f74;
+  color: var(--ink-dim);
   font-size: 12px;
   margin-top: 2px;
 }

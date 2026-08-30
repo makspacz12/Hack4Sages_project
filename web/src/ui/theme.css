@@ -29,76 +29,97 @@
 
 /* ── The light ground ──────────────────────────────────────────────────────
  *
- * The application reads on paper, not on a night sky.
+ * White paper, one restrained navy, and the sky kept inside a frame.
  *
- * Three reasons it moved. The audience is scientific and everything they lift
- * off this screen into a slide or a paper lands on white. The venue is a
- * projector, whose real contrast in a lit room is a few hundred to one and
- * which raises the black level — precisely destroying the low tones a dark
- * scene of small dots depends on. And the visual language this was asked to
- * resemble, Mathematica and Wolfram Alpha, is overwhelmingly light: you cannot
- * look like it on #12100e.
+ * Three reasons the application reads on paper. The audience is scientific and
+ * everything they lift off this screen into a slide or a paper lands on white.
+ * The venue is a projector, whose real contrast in a lit room is a few hundred
+ * to one and which raises the black level - destroying exactly the low tones a
+ * dark scene of small dots depends on. And white is what a figure is read on.
+ *
+ * The accent is a muted navy rather than an orange. Orange is a warning colour
+ * in most instrument conventions, and spending it on ordinary headings and
+ * links leaves nothing louder for an actual caution; navy is the register
+ * scientific publishing already uses for structure and reference. It also
+ * keeps the warm end of the spectrum entirely free for DATA, which is where
+ * the vermillion now lives and nowhere else.
+ *
+ * The neutrals are cooled to match: a warm grey beside a navy accent reads as
+ * two unrelated decisions, and a pure neutral grey reads as unconsidered. They
+ * carry a slight blue bias, which is what makes them look chosen.
  *
  * The 3D scene stays dark, and that is a decision rather than an exception.
- * Space is not white, and a chart of it on paper would be a caricature. So the
- * scene is an inset with its own ground and a hairline edge, exactly as
- * Wolfram insets a graphic inside a Manipulate panel. The rule the reader
- * learns in two seconds: the dark rectangle is the observation, everything
- * around it is the instrument.
+ * Space is not white. It is an inset with its own ground and a hairline edge,
+ * exactly as Wolfram insets a graphic inside a Manipulate panel, and the rule a
+ * reader picks up in two seconds is: the dark rectangle is the observation,
+ * everything around it is the instrument.
  *
- * Every contrast below is measured, not judged, against --bg #FBFAF8:
- *   --ink-bright 17.92:1   --ink 11.35:1   --ink-dim 5.45:1
- *   --ink-faint   3.28:1 (non-text only)  --accent 4.74:1
- *   --warn        4.50:1   --bad 6.27:1
+ * Every contrast below is measured, not judged, against --bg-void #FBFAFC:
+ *   --ink-bright 17.78:1   --ink 12.00:1   --ink-dim 5.77:1
+ *   --ink-faint   2.98:1 (non-text only)
+ *   --accent      8.06:1   --warn 4.71:1   --bad 6.90:1
+ * and --accent-lit, which exists for the dark inset, reads 5.78:1 on --scene.
  */
 :root {
   color-scheme: light;
 
-  /* Surfaces. Warm white rather than #FFF: a pure mid-grey or pure white
-     reads as unconsidered, and the slight warmth keeps continuity with the
-     iron-oxide data hue. */
-  --bg-void:      #FBFAF8;   /* page ground */
+  /* Surfaces. A trace of blue rather than pure white: a pure neutral reads as
+     unconsidered, and the bias ties the ground to the accent. */
+  --bg-void:      #FBFAFC;   /* page ground */
   --bg-panel:     #FFFFFF;   /* panel body */
-  --bg-raised:    #F5F4F1;   /* inputs, hovered rows, band headers */
-  --bg-sunken:    #F7F7F6;   /* code blocks, plot wells */
+  --bg-raised:    #F1F3F7;   /* inputs, hovered rows, band headers */
+  --bg-sunken:    #F5F6FA;   /* code blocks, plot wells */
 
-  /* The one dark surface: the 3D scene, and anything drawn on top of it. */
-  --scene:        #0B0A09;
-  --scene-ink:    #E8E4DE;
-  --scene-line:   #2A2320;
+  /* The one dark surface: the 3D scene, and anything drawn on top of it.
+     Very slightly blue, so the sky is not a neutral black hole in a cool page. */
+  --scene:        #0B0E14;
+  --scene-ink:    #DFE4EC;
+  --scene-line:   #1E2632;
 
   /* Rules. Alpha rather than flat greys, so they sit correctly on both the
-     page ground and a white panel without a second set of values. */
-  --line-hair:    rgba(0, 0, 0, 0.08);
-  --line-edge:    rgba(0, 0, 0, 0.14);
-  --line-strong:  #8F8A83;
+     page ground and a white panel without needing a second set of values. */
+  --line-hair:    rgba(16, 24, 40, 0.08);
+  --line-edge:    rgba(16, 24, 40, 0.14);
+  --line-strong:  #8A93A1;
 
-  /* Ink, four levels. --ink-faint is below 4.5:1 and is therefore for ticks,
-     hairlines and rules only — never for text. */
-  --ink-bright:   #14120F;
-  --ink:          #3A3733;
-  --ink-dim:      #6B6660;
-  --ink-faint:    #8F8A83;
+  /* Ink, four levels, cooled to sit with the navy. --ink-faint is below 4.5:1
+     and is therefore for ticks, hairlines and rules only - never for text. */
+  --ink-bright:   #101418;
+  --ink:          #2E3440;
+  --ink-dim:      #5A6472;
+  --ink-faint:    #8A93A1;
 
-  /* Accent. Wolfram's section-heading orange, darkened until it clears 4.5:1
-     for body text; the published #D96500 measures 3.6:1 here and fails. The
-     lit variant is for filled buttons, where the contrast that matters is
-     white-on-accent, and for the dark scene inset where it reads 6.4:1. */
-  --accent:       #B85209;
-  --accent-lit:   #E8700F;
-  --accent-dim:   #C98A52;
-  --accent-glow:  rgba(232, 112, 15, 0.10);
+  /* Accent: one muted navy. --accent is the text-safe value and carries links,
+     section headings and selected state. --accent-lit is NOT a text colour on
+     paper - it is the variant for the dark scene inset, where it reads 5.78:1
+     while the navy itself would read 2.30:1. */
+  --accent:       #1D4E89;
+  --accent-lit:   #4A90D9;
+  --accent-dim:   #7C93B5;
+  --accent-glow:  rgba(29, 78, 137, 0.09);
 
-  /* Attention. */
-  --warn:         #9A6B00;
-  --bad:          #B3261E;
+  /* Attention. Orange and red are reserved for this and are not spent on
+     chrome, which is the point of moving the accent to navy. */
+  --warn:         #8A6D1F;
+  --bad:          #A32B22;
+  --ok:           #1B6E4A;
 
   /* Data. Okabe & Ito, darkened where the published values are too light to
-     hold 3:1. Validated in both grounds; see liveCharts.js for the measured
-     separations and the one residual under tritanopia. */
+     hold 3:1. Validated against the white panel: worst adjacent separation
+     10.4 under deuteranopia, 18.1 with normal vision. Selection is deliberately
+     NOT blue here - the accent already owns that register, so a selected
+     fragment would be indistinguishable from ordinary chrome. Nor is it the
+     obvious magenta: the first choice, #A64D9E, separated from the icy rock
+     class by dE00 4.7 with NORMAL vision, so a selected fragment and an icy
+     one were the same colour. This violet clears 15.8 against it. */
   --data-trace:    #D55E00;
-  --data-mean:     #14120F;
-  --data-selected: #0072B2;
+  --data-mean:     #101418;
+  --data-selected: #5D4E9C;
+  /* A second data channel that is neither a rock class nor the aggregate: the
+     internal-decay dose beside the cosmic-ray dose, and the published band on
+     the headline. Measured against the selection violet it separates by dE00
+     19.9 even under protanopia, so the two violets are not confusable. */
+  --data-secondary: #9A8CC4;
 
   --font-ui: ui-sans-serif, system-ui, "Segoe UI", Inter, Roboto, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, "Cascadia Mono", Menlo, monospace;
@@ -137,7 +158,7 @@
 .ui-unit {
   font-family: var(--font-mono);
   font-size: 10.5px;
-  color: var(--ink-faint);
+  color: var(--ink-dim);
   margin-left: 3px;
 }
 
@@ -169,14 +190,17 @@
 .ui-btn:disabled { opacity: .45; cursor: not-allowed; }
 
 .ui-btn--primary {
-  color: #06100f;
+  /* White on the navy fill: 8.4:1. The label was near-black, which measured
+     2.3:1 against it - a filled dark button needs light text, and this only
+     became wrong when the accent moved from orange to navy. */
+  color: #FFFFFF;
   background: var(--accent);
   border-color: var(--accent);
 }
 .ui-btn--primary:hover:not(:disabled) {
-  color: #06100f;
-  background: var(--accent-lit);
-  border-color: var(--accent-lit);
+  color: #FFFFFF;
+  background: #16406F;
+  border-color: #16406F;
 }
 
 .ui-btn:focus-visible,

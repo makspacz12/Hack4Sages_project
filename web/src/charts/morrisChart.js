@@ -265,7 +265,7 @@ export const MORRIS_STYLE = `
   .mo-empty { color: var(--ink-dim); font-size: 11px; padding: 10px 0; }
   .mo-frame { fill: none; stroke: var(--line-edge); }
   .mo-ratio { stroke: var(--line-strong); stroke-width: 1; stroke-dasharray: 4 3; }
-  .mo-ratio-label { fill: var(--ink-faint); font-size: 8px; font-family: inherit; }
+  .mo-ratio-label { fill: var(--ink-dim); font-size: 8px; font-family: inherit; }
   .mo-tick { stroke: var(--line-edge); }
   .mo-tick-label {
     fill: var(--ink-dim); font-size: 8.5px; font-family: inherit; text-anchor: middle;
@@ -278,11 +278,11 @@ export const MORRIS_STYLE = `
   .mo-dot--sig { fill: var(--ink-bright); }
   /* Hollow when Morris's own wedge cannot call the mean effect non-zero. */
   .mo-dot--ns { fill: none; stroke: var(--ink-dim); stroke-width: 1.4; }
-  .mo-mu { fill: none; stroke: #9a8cc4; stroke-width: 1.2; }
-  .mo-signgap { stroke: #9a8cc4; stroke-width: 1; stroke-dasharray: 2 2; }
+  .mo-mu { fill: none; stroke: var(--data-selected); stroke-width: 1.2; }
+  .mo-signgap { stroke: var(--data-selected); stroke-width: 1; stroke-dasharray: 2 2; }
   .mo-label { fill: var(--ink); font-size: 9px; font-family: inherit; }
   .mo-has-sel .mo-dot { opacity: 0.3; }
-  .mo-has-sel .mo-pt--sel .mo-dot { opacity: 1; stroke: var(--accent-lit); stroke-width: 1.6; }
+  .mo-has-sel .mo-pt--sel .mo-dot { opacity: 1; stroke: var(--accent); stroke-width: 1.6; }
 
   .mo-table {
     width: 100%; border-collapse: collapse; font-size: 10px; margin-top: 8px;
@@ -295,8 +295,8 @@ export const MORRIS_STYLE = `
   }
   .mo-table td { padding: 3px 5px; color: var(--ink); border-bottom: 1px solid var(--line-hair); }
   .mo-num { font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .mo-unit { color: var(--ink-faint); }
-  .mo-flip { color: #9a8cc4; }
+  .mo-unit { color: var(--ink-dim); }
+  .mo-flip { color: var(--data-selected); }
 
   .mo-cost {
     margin-top: 10px; border: 1px solid var(--line-edge); padding: 7px 8px; border-radius: 2px;
@@ -306,5 +306,5 @@ export const MORRIS_STYLE = `
     color: var(--ink-dim); line-height: 1.6;
   }
   .mo-cost-row b { color: var(--ink-bright); font-weight: normal; text-align: right; }
-  .mo-cost-note { font-size: 9.5px; color: var(--ink-faint); line-height: 1.5; margin-top: 5px; }
+  .mo-cost-note { font-size: 9.5px; color: var(--ink-dim); line-height: 1.5; margin-top: 5px; }
 `;

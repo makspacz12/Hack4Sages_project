@@ -47,7 +47,7 @@ function injectStyles() {
     }
     #run-console .rc-brand { font-size: 12px; font-weight: 700; letter-spacing: .11em;
       text-transform: uppercase; color: var(--ink-bright); }
-    #run-console .rc-tagline { font-size: 10.5px; color: var(--ink-faint); margin-top: 3px;
+    #run-console .rc-tagline { font-size: 10.5px; color: var(--ink-dim); margin-top: 3px;
       line-height: 1.4; max-width: 30ch; }
     #run-console .rc-nav {
       display: inline-block; margin-top: var(--sp-2);
@@ -70,7 +70,7 @@ function injectStyles() {
     #run-console .rc-group-title {
       padding: 0 var(--sp-4) var(--sp-2);
       font-size: 9.5px; font-weight: 700; letter-spacing: .12em;
-      text-transform: uppercase; color: var(--ink-faint);
+      text-transform: uppercase; color: var(--ink-dim);
     }
 
     #run-console .rc-field { padding: var(--sp-2) var(--sp-4); }
@@ -86,10 +86,10 @@ function injectStyles() {
       font-family: var(--font-mono); font-variant-numeric: tabular-nums;
       font-size: 11.5px; color: var(--ink-bright);
     }
-    #run-console .rc-field-value .u { color: var(--ink-faint); margin-left: 3px; font-size: 10px; }
+    #run-console .rc-field-value .u { color: var(--ink-dim); margin-left: 3px; font-size: 10px; }
     /* The typed value is the control; the slider beneath it is the coarse one. */
     #run-console .rc-msg-sub {
-      color: var(--ink-faint); font-size: 11px; margin: 6px 0 10px;
+      color: var(--ink-dim); font-size: 11px; margin: 6px 0 10px;
     }
     #run-console .rc-howto {
       background: none; border: 1px solid var(--line); color: var(--ink-dim);
@@ -126,7 +126,7 @@ function injectStyles() {
     /* Accepted but moved to the nearest legal value - never silently. */
     #run-console .rc-num.out-of-range { border-color: var(--warn, var(--warn)); }
     #run-console .rc-num-lo, #run-console .rc-num-hi { width: 6.5ch; }
-    #run-console .rc-dash { color: var(--ink-faint); margin: 0 2px; }
+    #run-console .rc-dash { color: var(--ink-dim); margin: 0 2px; }
 
     #run-console input[type=range] {
       -webkit-appearance: none; appearance: none;

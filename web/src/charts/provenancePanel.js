@@ -87,11 +87,11 @@ const STYLE = `
     background: none; border: none; color: var(--ink-dim); cursor: pointer;
     font-family: inherit; font-size: 11px; padding: 0;
   }
-  .pv-toggle:hover { color: var(--accent-lit); }
-  .pv-toggle:focus-visible { outline: 2px solid var(--accent-lit); outline-offset: 2px; }
+  .pv-toggle:hover { color: var(--accent); }
+  .pv-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .pv-trust { display: flex; align-items: baseline; gap: 6px; margin: 6px 0 2px; }
   .pv-dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
-  .pv-dot--ok   { background: var(--accent-lit); }
+  .pv-dot--ok   { background: var(--accent); }
   .pv-dot--warn { background: var(--warn); }
   .pv-dot--bad  { background: var(--data-trace); }
   .pv-dot--none { background: var(--ink-faint); }
@@ -110,12 +110,12 @@ const STYLE = `
     font-family: inherit; font-size: 10px; padding: 3px 7px; cursor: pointer;
     border-radius: 2px;
   }
-  .pv-copy:hover { border-color: var(--accent-lit); color: var(--ink-bright); }
-  .pv-copy:focus-visible { outline: 2px solid var(--accent-lit); outline-offset: 2px; }
+  .pv-copy:hover { border-color: var(--accent); color: var(--ink-bright); }
+  .pv-copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .pv-coeffs { margin-top: 9px; display: grid; gap: 5px; }
   .pv-coeff { display: grid; grid-template-columns: 9px 1fr; gap: 7px; align-items: start; }
   .pv-mark { font-size: 9px; line-height: 1.6; }
-  .pv-mark--resolved   { color: var(--accent-lit); }
+  .pv-mark--resolved   { color: var(--accent); }
   .pv-mark--unresolved { color: var(--warn); }
   .pv-mark--overridden { color: var(--data-trace); }
   .pv-cname { color: var(--ink); }

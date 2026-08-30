@@ -31,12 +31,12 @@ const STYLES = `
 }
 #asteroid-panel input[type=checkbox] { width: auto; margin-right: 6px; cursor: pointer; }
 #asteroid-panel .physics-row {
-  display: flex; align-items: center; margin-top: 8px; color: var(--accent-lit);
+  display: flex; align-items: center; margin-top: 8px; color: var(--accent);
 }
 #asteroid-panel input[type=color] { height: 28px; padding: 2px; cursor: pointer; }
 .vec-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
 .vec-row input { width: 100%; }
-#asteroid-panel .hint { color: var(--ink-faint); font-size: 11px; margin-top: 4px; }
+#asteroid-panel .hint { color: var(--ink-dim); font-size: 11px; margin-top: 4px; }
 #asteroid-spawn-btn {
   margin-top: 12px; width: 100%;
   background: var(--line-edge); color: var(--ink); border: 1px solid var(--line-strong);
@@ -50,17 +50,17 @@ const STYLES = `
   font-family: monospace; font-size: 13px; padding: 6px;
   cursor: pointer; border-radius: 4px;
 }
-#trail-toggle-btn.active { background: var(--line-edge); border-color: var(--line-strong); color: var(--accent-lit); }
+#trail-toggle-btn.active { background: var(--line-edge); border-color: var(--line-strong); color: var(--accent); }
 #asteroid-list { margin-top: 12px; max-height: 120px; overflow-y: auto; }
 .asteroid-entry {
   display: flex; justify-content: space-between; align-items: center;
   padding: 2px 0; border-bottom: 1px solid #222; font-size: 11px;
 }
 .asteroid-entry .btn-focus {
-  background: none; border: none; color: var(--accent-lit); cursor: pointer; font-size: 12px;
+  background: none; border: none; color: var(--accent); cursor: pointer; font-size: 12px;
   padding: 0 4px;
 }
-.asteroid-entry .btn-focus:hover { color: var(--accent-lit); }
+.asteroid-entry .btn-focus:hover { color: var(--accent); }
 .asteroid-entry .btn-remove {
   background: none; border: none; color: #e06; cursor: pointer; font-size: 12px;
   padding: 0 4px;
@@ -104,7 +104,7 @@ function buildPanelHTML() {
     <input type="color" id="ast-color" value="var(--ink-dim)" />
     <div class="physics-row">
       <input type="checkbox" id="ast-use-physics" />
-      <label for="ast-use-physics" style="margin:0;color:var(--accent-lit)">Enable gravity</label>
+      <label for="ast-use-physics" style="margin:0;color:var(--accent)">Enable gravity</label>
     </div>
     <button id="asteroid-spawn-btn">Spawn asteroid</button>
     <button id="trail-toggle-btn">☄ Trails: OFF</button>

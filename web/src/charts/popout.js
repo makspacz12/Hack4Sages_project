@@ -40,7 +40,7 @@ const WINDOW_CSS = `
     padding: 8px 14px; border-top: 1px solid var(--line-edge);
     font-size: 11px; color: var(--ink-dim); flex: none;
   }
-  .link { color: var(--accent-lit); }
+  .link { color: var(--accent); }
 `;
 
 function isOpen(win) {

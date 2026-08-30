@@ -27,9 +27,9 @@ const STYLE = `
     font-family: inherit; font-size: 10.5px; padding: 2px 8px; cursor: pointer;
     border-radius: 2px;
   }
-  .hl-h:hover { color: var(--ink-bright); border-color: var(--ink-faint); }
+  .hl-h:hover { color: var(--ink-bright); border-color: var(--ink-dim); }
   .hl-h[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
-  .hl-h:focus-visible { outline: 2px solid var(--accent-lit); outline-offset: 2px; }
+  .hl-h:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   .hl-box { margin: 9px 0 2px; position: relative; height: 46px; }
   .hl-axis {
@@ -41,8 +41,9 @@ const STYLE = `
   .hl-span {
     position: absolute; top: 18px; height: 9px;
     background: repeating-linear-gradient(
-      90deg, #9a8cc4 0 6px, rgba(154,140,196,0.45) 6px 12px);
-    border-left: 2px solid #9a8cc4; border-right: 2px solid #9a8cc4;
+      90deg, var(--data-secondary) 0 6px, rgba(154, 140, 196, 0.40) 6px 12px);
+    border-left: 2px solid var(--data-secondary);
+    border-right: 2px solid var(--data-secondary);
   }
   .hl-end {
     position: absolute; top: 0; font-size: 15px; font-variant-numeric: tabular-nums;

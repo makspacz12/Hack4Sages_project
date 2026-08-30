@@ -58,7 +58,7 @@ function injectStyles() {
 
     /* section label */
     #info-panel .ip-section {
-      font-size: 10px; letter-spacing: .08em; color: var(--ink-faint); text-transform: uppercase;
+      font-size: 10px; letter-spacing: .08em; color: var(--ink-dim); text-transform: uppercase;
       margin: 10px 0 4px; border-top: 1px solid var(--bg-raised); padding-top: 6px;
     }
     #info-panel .ip-section:first-of-type { margin-top: 0; }
@@ -70,10 +70,10 @@ function injectStyles() {
     }
     #info-panel .ip-key  { color: var(--ink-dim); flex-shrink: 0; }
     #info-panel .ip-val  { color: var(--ink); text-align: right; word-break: break-all; }
-    #info-panel .ip-unit { color: var(--ink-faint); margin-left: 3px; font-size: 10px; }
+    #info-panel .ip-unit { color: var(--ink-dim); margin-left: 3px; font-size: 10px; }
 
     /* highlighted live rows */
-    #info-panel .ip-row.live .ip-val { color: var(--accent-lit); }
+    #info-panel .ip-row.live .ip-val { color: var(--accent); }
     #info-panel .ip-row.live .ip-key { color: var(--accent); }
 
     /* progress bars */
@@ -87,7 +87,7 @@ function injectStyles() {
     }
     #info-panel .ip-bar-key { color: var(--ink-dim); flex-shrink: 0; font-size: 11px; }
     #info-panel .ip-bar-val { color: var(--ink); text-align: right; font-size: 11px; }
-    #info-panel .ip-bar-unit { color: var(--ink-faint); margin-left: 2px; font-size: 10px; }
+    #info-panel .ip-bar-unit { color: var(--ink-dim); margin-left: 2px; font-size: 10px; }
     #info-panel .ip-bar-track {
       height: 4px; background: var(--bg-sunken); border: 1px solid var(--bg-raised);
       border-radius: 3px; overflow: hidden; position: relative;
@@ -146,7 +146,7 @@ function section(title) {
  * @param {string} color  CSS color for the fill
  * @returns {HTMLElement}
  */
-function bar(key, val, max, unit = '', color = 'var(--accent-lit)') {
+function bar(key, val, max, unit = '', color = 'var(--accent)') {
   const percent = Math.max(0, Math.min(100, (val / max) * 100));
   
   const container = document.createElement('div');

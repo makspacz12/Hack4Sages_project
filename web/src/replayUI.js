@@ -81,9 +81,9 @@ function injectStyles() {
     #replay-bar .rb-scale {
       display: flex; align-items: center; gap: 6px; white-space: nowrap;
     }
-    #replay-bar .rb-sps input[type=number]:focus { outline: 1px solid var(--accent-lit); }
+    #replay-bar .rb-sps input[type=number]:focus { outline: 1px solid var(--accent); }
     #replay-bar .rb-sps input[type=number]::-webkit-inner-spin-button { opacity: .35; }
-    #replay-bar .rb-timemark { font-size: 11px; color: var(--ink-faint); min-width: 48px; }
+    #replay-bar .rb-timemark { font-size: 11px; color: var(--ink-dim); min-width: 48px; }
     #replay-bar .rb-timemark.right { text-align: left; }
     #replay-bar .rb-smooth {
       display: flex; align-items: center; gap: 6px;
@@ -268,7 +268,7 @@ export function initReplayUI(ctrl, onFrameChange, opts = {}) {
   // "Only followed trail" checkbox
   const onlyFollowWrap = document.createElement('label');
   onlyFollowWrap.className = 'rb-smooth';
-  onlyFollowWrap.style.color = 'var(--accent-lit)';
+  onlyFollowWrap.style.color = 'var(--accent)';
   const onlyFollowChk = document.createElement('input');
   onlyFollowChk.type    = 'checkbox';
   onlyFollowChk.checked = false;

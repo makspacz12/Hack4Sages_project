@@ -366,17 +366,30 @@ points, so the *drawing* is exact — but a per-frame readout still steps past e
 its chrome, typography and density — but Mathematica's own default series colours,
 `ColorData[97]`, fail an accessibility check: slots 2 and 3 separate by ΔE00 **1.8** under
 protanopia and 12.8 with normal vision. The six rock-class colours here are Okabe & Ito,
-darkened where the published values are too light to hold 3:1, and measured: worst adjacent
-separation 10.4 under deuteranopia, 18.1 with normal vision. One residual is stated rather
+darkened where the published values are too light to hold 3:1, and measured against the
+white panel: worst adjacent separation 10.4 under deuteranopia, 18.1 with normal vision.
+Selection is deliberately **not** blue — the navy accent already owns that register — and
+not the obvious magenta either: the first candidate separated from the icy rock class by
+ΔE00 **4.7** with normal vision, so a selected fragment and an icy one were the same
+colour. The violet that replaced it clears 15.8. One residual is stated rather
 than hidden — the sky/purple pair falls to 4.3 under tritanopia and is carried by dash
 patterns, which is what secondary encoding is for.
 
-**Light ground, dark scene.** Everything a reader lifts into a slide lands on white, and a
-projector in a lit room destroys exactly the low tones a dark scene of small dots depends
-on. The 3D view stays dark as an inset with its own ground, so the rule reads in two
-seconds: the dark rectangle is the observation, everything around it is the instrument.
-Every colour is measured against the ground — `--ink` 11.35:1, `--accent` 4.74:1; Wolfram's
-own #D96500 measures 3.6:1 here and was darkened until it passed.
+**Light ground, restrained navy, dark scene.** Everything a reader lifts into a slide
+lands on white, and a projector in a lit room destroys exactly the low tones a dark scene
+of small dots depends on. The accent is a muted navy rather than an orange: orange is a
+*warning* colour in instrument conventions, and spending it on ordinary headings and links
+leaves nothing louder for an actual caution — navy is the register scientific publishing
+already uses for structure and reference, and it keeps the warm end of the spectrum free
+for **data**, where the vermillion now lives and nowhere else. The neutrals are cooled to
+match, because a warm grey beside a navy accent reads as two unrelated decisions.
+
+The 3D view stays dark as an inset with its own ground, so the rule reads in two seconds:
+the dark rectangle is the observation, everything around it is the instrument.
+
+Every colour is measured against the ground — `--ink` 12.00:1, `--accent` 8.06:1, `--warn`
+4.71:1, `--bad` 6.90:1 — and `--accent-lit` exists **only** for the dark inset, where it
+reads 5.78:1 while the navy itself would read 2.30:1.
 
 **Multiplicative notation.** Uncertain coefficients are written `1.0e-4 ×/ 4.1 1/Gy`, not
 `±`. A quantity known to within a factor is not symmetric on a linear scale (Limpert, Stahel

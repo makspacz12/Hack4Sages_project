@@ -37,7 +37,7 @@ function injectStyles() {
       flex: 1;
     }
     #obj-search-panel .osp-close {
-      background: none; border: none; color: var(--ink-faint); cursor: pointer;
+      background: none; border: none; color: var(--ink-dim); cursor: pointer;
       font-size: 16px; line-height: 1; padding: 0 2px;
     }
     #obj-search-panel .osp-close:hover { color: var(--ink-dim); }
@@ -48,9 +48,9 @@ function injectStyles() {
       font-family: monospace; font-size: 13px; outline: none;
       width: calc(100% - 36px);
     }
-    #obj-search-panel .osp-input:focus { border-color: var(--accent-lit); }
+    #obj-search-panel .osp-input:focus { border-color: var(--accent); }
     #obj-search-panel .osp-count {
-      font-size: 11px; color: var(--ink-faint); padding: 0 12px 4px; text-align: right;
+      font-size: 11px; color: var(--ink-dim); padding: 0 12px 4px; text-align: right;
     }
     #obj-search-panel .osp-list {
       overflow-y: auto; flex: 1;
@@ -67,11 +67,11 @@ function injectStyles() {
     #obj-search-panel .osp-item:hover { background: var(--bg-raised); }
     #obj-search-panel .osp-item.osp-active {
       background: var(--bg-raised);
-      border-left-color: var(--accent-lit);
+      border-left-color: var(--accent);
     }
     #obj-search-panel .osp-icon { font-size: 15px; width: 16px; text-align: center; flex-shrink: 0; }
     #obj-search-panel .osp-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    #obj-search-panel .osp-type { font-size: 11px; color: var(--ink-faint); flex-shrink: 0; }
+    #obj-search-panel .osp-type { font-size: 11px; color: var(--ink-dim); flex-shrink: 0; }
 
     #obj-search-toggle {
       position: fixed;

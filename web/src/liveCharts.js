@@ -41,13 +41,13 @@ const PALETTE = {
   // Selection borrows the instrument accent, the one cool colour on the page.
   trace: 'var(--data-trace)',      // iron oxide - fallback when the rock type is unknown
   mean: 'var(--ink-bright)',       // regolith, lit - the aggregate
-  selected: 'var(--accent-lit)',   // instrument teal - what you are pointing at
+  selected: 'var(--accent)',   // instrument teal - what you are pointing at
   // A second data channel that is NOT a rock class and NOT the aggregate: the
   // internal decay dose beside the cosmic-ray dose. Measured against the
   // regolith line on this surface it separates by dE00 28.4 under protanopia
   // and 28.6 with normal vision, and clears 3:1 contrast; it also carries a
   // dash, so identity never rests on hue alone.
-  secondary: '#9a8cc4',
+  secondary: 'var(--data-secondary)',
   // Annotations - an escape threshold, a reference level - are not data and
   // must stay recessive, or the eye reads the guide as a result.
   guide: 'var(--ink-dim)',
@@ -212,8 +212,8 @@ function injectStyles() {
       text-transform: uppercase; color: var(--ink-dim); margin-bottom: 4px;
     }
     .lc-coeff-val { color: var(--ink-bright); text-transform: none; letter-spacing: 0; }
-    .lc-coeff-slider { width: 100%; margin: 2px 0; accent-color: var(--accent-lit); }
-    .lc-coeff-slider:focus-visible { outline: 2px solid var(--accent-lit); outline-offset: 2px; }
+    .lc-coeff-slider { width: 100%; margin: 2px 0; accent-color: var(--accent); }
+    .lc-coeff-slider:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .lc-coeff-presets {
       display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0 5px;
     }
@@ -222,14 +222,14 @@ function injectStyles() {
       font-family: inherit; font-size: 9.5px; padding: 2px 6px;
       border-radius: 2px; cursor: pointer; line-height: 1.4;
     }
-    .lc-preset:hover { border-color: var(--accent-lit); color: var(--ink-bright); }
-    .lc-preset:focus-visible { outline: 2px solid var(--accent-lit); outline-offset: 1px; }
+    .lc-preset:hover { border-color: var(--accent); color: var(--ink-bright); }
+    .lc-preset:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
     .lc-coeff-num {
       width: 100%; box-sizing: border-box; margin: 4px 0 5px;
       background: var(--bg-sunken); border: 1px solid var(--line-edge); color: var(--ink-bright);
       font-family: inherit; font-size: 11px; padding: 3px 6px; border-radius: 2px;
     }
-    .lc-coeff-num:focus { outline: none; border-color: var(--accent-lit); }
+    .lc-coeff-num:focus { outline: none; border-color: var(--accent); }
     .lc-coeff-num.bad { border-color: var(--data-trace); }
     .lc-coeff-name { border-bottom: 1px dotted var(--line-strong); }
     .lc-coeff-band { font-size: 10px; color: var(--ink-dim); }
@@ -239,7 +239,7 @@ function injectStyles() {
       color: var(--ink); font-family: monospace; font-size: 10px;
       padding: 2px 6px; cursor: pointer;
     }
-    .lc-coeff-reset:hover { border-color: var(--accent-lit); color: var(--ink-bright); }
+    .lc-coeff-reset:hover { border-color: var(--accent); color: var(--ink-bright); }
     #live-charts .lc-fig-btns { display: flex; gap: 3px; }
     #live-charts .lc-popout {
       background: none; border: 1px solid transparent; color: transparent;
@@ -269,7 +269,7 @@ function injectStyles() {
     #live-charts .lc-title {
       font-size: 12px; font-weight: bold; color: var(--accent); letter-spacing: .08em;
     }
-    #live-charts .lc-sub { font-size: 10px; color: var(--ink-faint); margin-top: 2px; }
+    #live-charts .lc-sub { font-size: 10px; color: var(--ink-dim); margin-top: 2px; }
     #live-charts .lc-close {
       background: none; border: 1px solid var(--line-edge); border-radius: 5px;
       color: var(--ink-dim); cursor: pointer; font-size: 13px; line-height: 1;
@@ -281,7 +281,7 @@ function injectStyles() {
     #live-charts .lc-fig { padding: 8px 12px 5px; border-bottom: 1px solid var(--line-hair); }
     #live-charts .lc-fig:last-child { border-bottom: none; }
     #live-charts .lc-fig-title { font-size: 11.5px; color: var(--ink-bright); font-weight: bold; }
-    #live-charts .lc-fig-note { font-size: 10px; color: var(--ink-faint); margin-top: 1px; }
+    #live-charts .lc-fig-note { font-size: 10px; color: var(--ink-dim); margin-top: 1px; }
     #live-charts .lc-readout { font-size: 10.5px; color: var(--ink-dim); margin-top: 4px; }
     #live-charts .lc-plot { margin-top: 4px; position: relative; }
 
@@ -299,14 +299,14 @@ function injectStyles() {
     #live-charts .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 5px; font-size: 10px; color: var(--ink-dim); }
     #live-charts .legend-item { display: inline-flex; align-items: center; gap: 5px; }
     #live-charts .legend-swatch { width: 10px; height: 3px; border-radius: 2px; display: inline-block; }
-    #live-charts .empty { padding: 18px 0; text-align: center; color: var(--ink-faint); font-size: 10.5px; }
+    #live-charts .empty { padding: 18px 0; text-align: center; color: var(--ink-dim); font-size: 10.5px; }
 
     #live-charts .lc-fig-head {
       display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
     }
     #live-charts .lc-expand {
       background: none; border: 1px solid transparent; border-radius: 3px;
-      color: var(--ink-faint); cursor: pointer; font-size: 13px; line-height: 1;
+      color: var(--ink-dim); cursor: pointer; font-size: 13px; line-height: 1;
       padding: 2px 5px; flex: 0 0 auto;
     }
     #live-charts .lc-fig:hover .lc-expand { border-color: var(--line-edge); color: var(--ink-dim); }
@@ -376,7 +376,7 @@ function injectStyles() {
     .lc-modal-plot .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; font-size: 11px; color: var(--ink); }
     .lc-modal-plot .legend-swatch { width: 12px; height: 3px; border-radius: 2px; display: inline-block; }
     .lc-modal-foot {
-      padding: 8px 18px 14px; font-size: 10.5px; color: var(--ink-faint);
+      padding: 8px 18px 14px; font-size: 10.5px; color: var(--ink-dim);
       border-top: 1px solid var(--line-hair);
     }
 
@@ -386,7 +386,7 @@ function injectStyles() {
       color: var(--accent); font-family: monospace; font-size: 13px; font-weight: bold;
       letter-spacing: .1em; padding: 6px 14px; border-radius: 6px; cursor: pointer;
     }
-    #btn-live-charts:hover { border-color: var(--accent); background: rgba(43,163,171,.13); color: var(--accent-lit); }
+    #btn-live-charts:hover { border-color: var(--accent); background: rgba(43,163,171,.13); color: var(--accent); }
     #btn-live-charts.docked { right: 344px; }
 
     /* The object search sits at right:300px; slide it clear of the dock so the

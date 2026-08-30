@@ -32,8 +32,8 @@ const STYLE = `
     font: inherit; font-size: 9px; line-height: 1; cursor: help; padding: 0;
     flex: none;
   }
-  .tt-trigger:hover, .tt-trigger:focus-visible { border-color: var(--accent-lit); color: var(--accent-lit); }
-  .tt-trigger:focus-visible { outline: 2px solid var(--accent-lit); outline-offset: 1px; }
+  .tt-trigger:hover, .tt-trigger:focus-visible { border-color: var(--accent); color: var(--accent); }
+  .tt-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
   .tt-bubble {
     position: fixed; z-index: 990; max-width: 300px;
     background: var(--bg-panel); border: 1px solid var(--line-strong); border-radius: 3px;
@@ -49,7 +49,7 @@ const STYLE = `
     border-top: 1px solid var(--line-hair); color: var(--ink-dim); font-size: 10px;
   }
   .tt-warn { color: var(--warn); }
-  .tt-bubble a { color: var(--accent-lit); }
+  .tt-bubble a { color: var(--accent); }
 `;
 
 let bubble = null;
