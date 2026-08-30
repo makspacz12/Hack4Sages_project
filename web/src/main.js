@@ -169,6 +169,44 @@ async function mainReplay(source) {
    * of several hundred against the orbital distances, so this makes no claim
    * to true scale; it only stops the sizes being actively wrong.
    */
+  /**
+   * How large the planets are drawn.
+   *
+   * These were 0.55 to 1.70 world units, and measuring the rendered frame
+   * showed what that actually produced: the Sun 11 pixels across, the largest
+   * planet 5, and the rest 3 by 4 - twelve pixels for a whole planet, beside
+   * 302 two-pixel stars. A 512x256 surface map on a body four pixels wide
+   * contributes about three thousandths of one percent of its texels, so no
+   * texture, at any resolution, from any source, could have made those planets
+   * look like anything. They were too small to see, not badly painted.
+   *
+   * The scene is already exaggerated by a factor of several hundred: 1 AU is
+   * 60 world units, so Earth at true scale would be 0.0000426 units against
+   * that 60 and would never occupy a single pixel. There is no version of this
+   * view that is simultaneously to scale and legible, which is why every
+   * planetarium visualisation - NASA's Eyes on the Solar System included -
+   * exaggerates body size and says so. The scene says so: see the note the
+   * scale caption puts on screen.
+   *
+   * What is NOT exaggerated is the thing the model is actually about. Orbital
+   * distances, transfer times, doses and survival are untouched. Only the
+   * spheres marking where the planets are got bigger.
+   */
+  /* The ceiling on all of this: Mercury's orbit is 0.46 AU, which at 60 units
+     per AU is 28 world units from the centre. A Sun drawn larger than about
+     half of that starts to swallow the orbit it sits inside, and the scene
+     would then be asserting something false about the system's structure -
+     the one kind of exaggeration this project cannot make. An earlier pass
+     had SUN_R at 44, i.e. 1.6x Mercury's orbital radius. These values are the
+     largest that stay clearly inside that limit. */
+  const PLANET_R_MIN = 5.0;    // Mercury
+  const PLANET_R_MAX = 11.0;   // Jupiter
+  /* The Sun kept the replay's 5 units, which after the change above would have
+     left it smaller than Jupiter. It is really about 10x Jupiter's radius; at
+     that ratio it would swallow the inner system, so it is drawn just clearly
+     largest instead. Same exaggeration, same caption. */
+  const SUN_R = 14.0;
+
   function planetRadii(objects) {
     const planets = objects.filter(o => (o.type ?? '').toLowerCase() === 'planet');
     const radii = planets
@@ -182,7 +220,7 @@ async function mainReplay(source) {
       const r = obj.info?.Radius?.value;
       if (!Number.isFinite(r) || r <= 0) return null;
       const t = (Math.cbrt(r) - lo) / (hi - lo);
-      return 0.55 + t * 1.15;   // Mercury 0.55 -> Jupiter 1.70
+      return PLANET_R_MIN + t * (PLANET_R_MAX - PLANET_R_MIN);
     };
   }
   const planetRadius = planetRadii(simData.objects ?? []);
@@ -207,7 +245,8 @@ async function mainReplay(source) {
       id:        obj.id,
       name:      obj.name ?? obj.id,
       radius: ((obj.type ?? '').toLowerCase() === 'planet' && planetRadius
-        ? planetRadius(obj) : null) ?? obj.visual?.radius ?? 1,
+        ? planetRadius(obj) : null)
+        ?? (obj.id === 'sun' ? SUN_R : obj.visual?.radius) ?? 1,
       color:     obj.visual?.color   ?? '#ffffff',
       distance:  0,
       parentId:  null,

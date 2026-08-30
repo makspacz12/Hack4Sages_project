@@ -24,6 +24,26 @@
         font-size: 14px;
       }
       #focus-hud.visible { display: flex; }
+
+      /* The bodies are drawn far larger than scale so their surfaces are
+         visible at all - at true scale Earth is 0.0000426 world units against
+         an AU of 60, which never reaches one pixel. Every planetarium
+         visualisation does this; the ones worth trusting say so on screen
+         rather than in a footnote nobody opens. Distances, times and every
+         computed quantity are untouched. */
+      #scale-note {
+        position: fixed; left: 0; bottom: var(--rail-h);
+        z-index: 300; pointer-events: none;
+        padding: 5px 12px;
+        font-family: var(--font-mono);
+        font-size: 0.625rem; line-height: 1.5;
+        color: var(--scene-ink); opacity: 0.72;
+        background: linear-gradient(to right, rgba(11,14,20,0.82), rgba(11,14,20,0));
+      }
+      #scale-note b { font-weight: 600; opacity: 0.95; }
+      /* Follow the run console when it is docked, or the note reads as half a
+         sentence emerging from behind the panel. */
+      body.console-docked #scale-note { left: var(--panel-w); }
       #focus-label {
         color: var(--scene-ink);
         background: rgba(11, 10, 9, 0.72);
@@ -70,6 +90,11 @@
          longer called, plus four lines of mouse instructions. The workspace
          menu carries navigation now and the run console carries the name, so
          the only thing this added was a wrong title over the scene. -->
+
+    <div id="scale-note">
+      <b>Body sizes exaggerated.</b> Orbits, distances and all computed
+      quantities are to scale.
+    </div>
 
     <div id="focus-hud">
       <div id="focus-label"></div>

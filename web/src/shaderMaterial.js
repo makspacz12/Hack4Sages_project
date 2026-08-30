@@ -36,12 +36,32 @@ export const PLANET_FRAG = /* glsl */`
   varying vec2 vUv;
 
   void main() {
-    // Surface map where one is loaded, flat colour otherwise. The map is
-    // MULTIPLIED by uColor rather than replacing it, so a body keeps its
-    // identity tint and a failed texture load degrades to exactly what the
-    // scene looked like before textures existed.
+    // Surface map where one is loaded, flat colour otherwise.
+    //
+    // The map REPLACES uColor rather than multiplying it. Multiplying was
+    // colour times colour: the texture already carries the body's real
+    // appearance, and scaling that by a saturated identity tint destroyed it.
+    // Measured against the shipped maps, the subsolar result was
+    //
+    //   earth    mean 84,101,130  ->  29,101,214   red channel annihilated,
+    //                                              so continents could not
+    //                                              appear at all
+    //   mars     mean 183,99,72   ->  263,50,7     one channel clipped, two
+    //                                              crushed
+    //   uranus   mean 155,203,210 ->  147,331,399  two channels clipped
+    //   saturn, venus, jupiter, neptune all clipped or crushed as well
+    //
+    // Seven of the nine bodies were either blowing out to white or losing a
+    // channel entirely, which is what made them read as grey mud. The Sun
+    // escaped only by accident: its #FFD580 nearly matches its own texture,
+    // so for that one body the multiply was close to a no-op. That accident
+    // is the entire reason the Sun looked right while the planets did not.
+    //
+    // uColor is still the fallback when no map loaded, so a failed texture
+    // fetch degrades to exactly what the scene looked like before textures
+    // existed - the property the old comment was protecting, kept intact.
     vec3 base = uHasMap > 0.5
-      ? texture2D(uMap, vUv).rgb * uColor * 1.9
+      ? texture2D(uMap, vUv).rgb
       : uColor;
     vec3 toSun   = normalize(-vWorldPos);
     float diff   = max(dot(vNormal, toSun), 0.0);
@@ -59,7 +79,16 @@ export const PLANET_FRAG = /* glsl */`
     // Soft fill from the camera direction, so the night side is dark rather
     // than black. Also reduced: it was competing with the sunlight.
     vec3 viewDir  = normalize(cameraPosition - vWorldPos);
-    float fill    = max(dot(vNormal, viewDir), 0.0) * 0.10;
+    // Fill from the camera, raised from 0.10 to 0.34.
+    //
+    // The lighting is physically right - the Sun is at the origin and lights
+    // outward - but the default camera looks INWARD from beyond the swarm, so
+    // the hemisphere facing it is the night side of every planet. Rendered
+    // strictly, the scene is a bright Sun surrounded by black discs, which is
+    // what the sky really looks like from out there and is useless to an
+    // audience. The fill is the one term that lights what the viewer can
+    // actually see, so it carries the surface detail here.
+    float fill    = max(dot(vNormal, viewDir), 0.0) * 0.34;
 
     // Specular highlight from sun.
     vec3 halfDir  = normalize(toSun + viewDir);
@@ -132,7 +161,7 @@ export const SUN_FRAG = /* glsl */`
     // Slow pulse for living-star feel.
     float pulse  = 0.93 + 0.07 * sin(uTime * 1.2);
 
-    vec3 sunBase = uHasMap > 0.5 ? texture2D(uMap, vUv).rgb * uColor * 2.1 : uColor;
+    vec3 sunBase = uHasMap > 0.5 ? texture2D(uMap, vUv).rgb * 1.35 : uColor;
     vec3 col     = sunBase * pulse + sunBase * corona;
     gl_FragColor = vec4(col, 1.0);
   }
