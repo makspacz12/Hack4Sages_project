@@ -22,6 +22,9 @@ import {
 } from './charts/popout.js';
 import { provenancePanel } from './charts/provenancePanel.js';
 import { headlineBanner } from './charts/headlineBanner.js';
+import {
+  erosionPhaseData, lifetimeLawAccuracy, survivalPhaseChart,
+} from './charts/survivalPhase.js';
 import { withTooltip, renderContent } from './ui/tooltip.js';
 import { C_RAD_HELP, C_RAD_PRESETS } from './ui/paramHelp.js';
 import { answerSurfaceChart, ANSWER_SURFACE_STYLE } from './charts/answerSurfaceChart.js';
@@ -1153,6 +1156,47 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
     }
   }
 
+  /* The survival phase diagram.
+   *
+   * Only drawn when the replay is long enough to have lost a fragment. Over
+   * 3000 years nothing is destroyed, so there is no boundary to draw and a
+   * figure showing one would be inventing it. */
+  let phaseFig = null;
+
+  function renderSurvivalPhase() {
+    const rows = erosionPhaseData(frames);
+    if (rows.length < 3) return;
+    const lost = rows.filter(r => r.destroyed).length;
+    if (lost === 0) return;
+
+    const runKyr = (frames.at(-1)?.time ?? 0) / 1000;
+    const law = lifetimeLawAccuracy(rows, runKyr);
+
+    const fig = document.createElement('figure');
+    fig.className = 'lc-fig lc-phase';
+    fig.innerHTML = `
+      <figcaption>
+        <div class="lc-fig-title">What decides which fragments survive</div>
+        <div class="lc-fig-note"></div>
+      </figcaption>
+      <div class="lc-phase-plot"></div>
+      <div class="lc-readout"></div>
+    `;
+    fig.querySelector('.lc-fig-note').textContent =
+      `initial radius against erosion rate, over ${fmt(runKyr, 3)} kyr`;
+    body.appendChild(fig);
+    phaseFig = fig;
+
+    survivalPhaseChart(fig.querySelector('.lc-phase-plot'), rows, {
+      runLengthKyr: runKyr,
+      colorFor: (r) => colorForRockType(rockTypes.get(r.id) ?? r.rockType),
+    });
+
+    fig.querySelector('.lc-readout').textContent =
+      `lifetime = radius / erosion rate predicts ${law.correct} of ${law.total} `
+      + `fates, with no free parameters`;
+  }
+
   function renderDepthProfile() {
     if (!baseProfile) return;
     const fig = document.createElement('figure');
@@ -1226,6 +1270,7 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
       redrawChartWindows();
     });
     renderDepthProfile();
+    renderSurvivalPhase();
     // Last, deliberately: it describes the run the charts above came from, so
     // it reads as a footer to them rather than as a control.
     const prov = document.createElement('div');

@@ -196,14 +196,22 @@ export function headlineBanner(container, simData, bands) {
   function setProse(open) {
     prose.hidden = !open;
     moreBtn.setAttribute('aria-expanded', String(open));
-    moreBtn.textContent = open ? 'Hide detail' : 'What does this mean?';
+    moreBtn.textContent = open
+      ? 'Hide the reasoning'
+      : 'How this number was reached';
     try { localStorage.setItem(PROSE_KEY, open ? 'open' : 'closed'); } catch { /* ignore */ }
   }
 
+  /* Closed by default, on every screen.
+   *
+   * It used to open itself on a tall display, on the reasoning that there was
+   * room for it. Room is not the test: the band's job at first paint is to
+   * state the result, and two paragraphs of argument underneath it are
+   * something a reader should be able to ask for rather than have to dismiss.
+   * The number, the range and the caveat stay visible; the reasoning is one
+   * click away and remembers being opened. */
   const stored = readStoredProse();
-  setProse(stored === null
-    ? (typeof window !== 'undefined' && window.innerHeight >= 900)
-    : stored);
+  setProse(stored === null ? false : stored);
   moreBtn.addEventListener('click', () => setProse(prose.hidden));
 
   paint();
