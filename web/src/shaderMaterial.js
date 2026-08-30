@@ -29,6 +29,8 @@ export const PLANET_FRAG = /* glsl */`
   uniform sampler2D uMap;
   uniform float     uAirless;
   uniform float     uHasMap;
+  uniform vec3      uDoseColor;      // batlow ramp at this fragment's dose
+  uniform float     uDoseIntensity;  // 0 = not shown, 1 = full
   uniform float uTime;
   uniform float uHeatIntensity;   // 0 = cool, 1 = burning
 
@@ -126,6 +128,22 @@ export const PLANET_FRAG = /* glsl */`
     // Sunlight now dominates rather than merely tipping the balance.
     vec3 litColor = base * (ambient + diff * 1.15 + fill) + base * spec + vec3(rim * 0.30);
 
+    // Absorbed dose, as a rim.
+    //
+    // Added rather than tinted: a fragment's surface is generated from its own
+    // catalogued albedo and porosity, and replacing that colour would throw
+    // away the one thing the surface was built to show. A rim leaves the rock
+    // itself intact and still reads at a few pixels across, which is the size
+    // these bodies are drawn at.
+    //
+    // Steady, with no flicker. The heat effect below flickers because fire
+    // does; accumulated dose does not, and animating it would suggest a
+    // variability the number does not have.
+    if (uDoseIntensity > 0.001) {
+      float doseRim = pow(1.0 - max(dot(viewDir, vNormal), 0.0), 2.0);
+      litColor += uDoseColor * (doseRim * 0.85 + 0.16) * uDoseIntensity;
+    }
+
     // ── UV heat / burning effect ───────────────────────────
     if (uHeatIntensity > 0.001) {
       // Raw rim for fire effect (sharper falloff than atmosphere rim)
@@ -211,6 +229,8 @@ export function createPlanetMaterial(colorHex, map = null, airless = false) {
       // Backscattering regolith, for bodies that actually have any. See the
       // note beside the diffuse term in PLANET_FRAG.
       uAirless:       { value: airless ? 1 : 0 },
+      uDoseColor:     { value: new THREE.Color(0, 0, 0) },
+      uDoseIntensity: { value: 0 },
       uTime:          { value: 0 },
       uHeatIntensity: { value: 0 },
     },

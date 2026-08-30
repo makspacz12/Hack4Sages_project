@@ -44,6 +44,32 @@
       /* Follow the run console when it is docked, or the note reads as half a
          sentence emerging from behind the panel. */
       body.console-docked #scale-note { left: var(--panel-w); }
+
+      /* The dose colour bar.
+       *
+       * The fragments are coloured by absorbed dose on a fixed 0-1000 Gy
+       * scale. A colour encoding with no labelled scale is decoration rather
+       * than data, so this is not optional and not hidden behind a menu. The
+       * bounds are constants, so a colour read here means the same thing in
+       * any screenshot of this tool. */
+      #dose-legend {
+        position: fixed; right: 0; bottom: var(--rail-h);
+        z-index: 300; pointer-events: none;
+        padding: 7px 14px 6px;
+        font-family: var(--font-mono); font-size: 0.5625rem;
+        color: var(--scene-ink);
+        background: linear-gradient(to left, rgba(11,14,20,0.84), rgba(11,14,20,0));
+      }
+      body.charts-docked #dose-legend { right: var(--dock-w); }
+      #dose-legend .dl-title {
+        letter-spacing: .09em; text-transform: uppercase;
+        opacity: 0.78; margin-bottom: 4px;
+      }
+      #dose-legend .dl-bar { height: 7px; width: 156px; border-radius: 1px; }
+      #dose-legend .dl-scale {
+        display: flex; justify-content: space-between;
+        width: 156px; margin-top: 3px; opacity: 0.82;
+      }
       #focus-label {
         color: var(--scene-ink);
         background: rgba(11, 10, 9, 0.72);
@@ -94,6 +120,12 @@
     <div id="scale-note">
       <b>Body sizes exaggerated.</b> Orbits, distances and all computed
       quantities are to scale.
+    </div>
+
+    <div id="dose-legend">
+      <div class="dl-title">Absorbed dose</div>
+      <div class="dl-bar"></div>
+      <div class="dl-scale"><span>0</span><span>500</span><span>1000 Gy</span></div>
     </div>
 
     <div id="focus-hud">

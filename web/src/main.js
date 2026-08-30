@@ -34,6 +34,9 @@ import {
 import {
   createOrbitalClock, tickOrbitalClock, resetOrbitalClock, applyOrbitalClock,
 } from './orbitalClock.js';
+import {
+  doseColor, dosesAtFrame, doseLegendStops, DOSE_MAX_GY,
+} from './doseColor.js';
 import { initReplayUI } from './replayUI.js';
 import { createInfoPanel } from './infoPanel.js';
 import { createUVShells, setUVVisible, tickUVAnimation, updateHeatForNodes } from './uvRadiation.js';
@@ -442,7 +445,50 @@ async function mainReplay(source) {
      structure - orbits are periodic in years, dose is a straight line to
      0.19% - so neither is misrepresented by being shown at its own rate. */
   const orbitalClock = createOrbitalClock();
+
+  /* Paint each fragment by the dose it has absorbed.
+   *
+   * Dose rather than survival: every fragment ends the run between 77.5% and
+   * 97.1% surviving, so a survival ramp would stretch a 20-point difference
+   * across the whole colour range and imply drama the numbers do not contain.
+   * Dose is what the model integrates, runs 0 to 726 Gy, and rises
+   * monotonically, so the scene changes visibly as the run advances.
+   *
+   * The scale is fixed at 0-1000 Gy in doseColor.js, never derived from what
+   * happens to be on screen, so a colour means the same thing in any two
+   * screenshots. */
+  let doseShown = true;
+  function paintDose(frame) {
+    const doses = dosesAtFrame(frame);
+    for (const [id, mesh] of meshById) {
+      const u = mesh?.material?.uniforms;
+      if (!u?.uDoseIntensity) continue;
+      const gy = doses.get(id);
+      if (!doseShown || !Number.isFinite(gy)) { u.uDoseIntensity.value = 0; continue; }
+      const c = doseColor(gy);
+      u.uDoseColor.value.setRGB(c.r, c.g, c.b);
+      u.uDoseIntensity.value = 1;
+    }
+  }
   applyReplayFrame(ctrl, meshById);   // apply frame 0 immediately
+  paintDose(ctrl.frames[0]);          // and colour it, so nothing loads blank
+
+  /* Fill the colour bar from the same function that colours the fragments.
+   *
+   * Writing the stops into the stylesheet would let the legend drift away from
+   * the colours it claims to describe - the failure mode where a figure's key
+   * is quietly wrong. Generated here, the two cannot disagree. */
+  (() => {
+    const bar = document.querySelector('#dose-legend .dl-bar');
+    if (!bar) return;
+    const stops = doseLegendStops(9).map(({ gy, color }) => {
+      const c = [color.r, color.g, color.b].map(v => Math.round(v * 255)).join(',');
+      return `rgb(${c}) ${((gy / DOSE_MAX_GY) * 100).toFixed(0)}%`;
+    });
+    bar.style.background = `linear-gradient(to right, ${stops.join(', ')})`;
+    const last = document.querySelector('#dose-legend .dl-scale span:last-child');
+    if (last) last.textContent = `${DOSE_MAX_GY} Gy`;
+  })();
   frameCameraOnSwarm();
 
   // Lookup: id → full simData object (for info panel)
@@ -754,7 +800,12 @@ async function mainReplay(source) {
       // instead of being eight revolutions wide. The transport still owns the
       // frame index, the dose, the charts and every number on screen.
       tickOrbitalClock(orbitalClock, scaledDeltaSec, ctrl.playing);
-      if (frameChanged) resetOrbitalClock(orbitalClock, ctrl.currentFrame);
+      if (frameChanged) {
+        resetOrbitalClock(orbitalClock, ctrl.currentFrame);
+        // Dose only changes when the transport moves, so it is repainted
+        // there rather than every animation tick.
+        paintDose(curFrame());
+      }
 
       const posScale = (ctrl.meta?.positionScale ?? 1) * (ctrl.scaleMultiplier ?? 1);
       const orbitalDrove = orbitalClock.enabled
