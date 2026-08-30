@@ -57,7 +57,7 @@ export function parseGridPayload(raw) {
 
 /** Map survival in [lo, hi] to an RGB colour (dark iron → instrument teal). */
 export function colorForSurvival(value, lo = 0, hi = 1) {
-  if (!Number.isFinite(value)) return '#2a2320';
+  if (!Number.isFinite(value)) return 'var(--line-hair)';
   const span = hi - lo || 1;
   const t = Math.min(1, Math.max(0, (value - lo) / span));
   const r = Math.round(107 + t * (43 - 107));
@@ -165,7 +165,7 @@ export function survivalHeatmap(container, payload, options = {}) {
         width: cellW,
         height: cellH,
         fill: colorForSurvival(Number(value), pLo, pHi),
-        stroke: '#14100e',
+        stroke: 'var(--bg-panel)',
         'stroke-width': 0.5,
         class: 'hm-cell',
       });
@@ -249,7 +249,7 @@ export function survivalHeatmap(container, payload, options = {}) {
     width: 12,
     height: legendH,
     fill: 'url(#hm-grad)',
-    stroke: '#3a2f29',
+    stroke: 'var(--line-edge)',
     'stroke-width': 1,
   }));
   const loLab = el('text', { x: legendX + 18, y: PAD.top + legendH, class: 'tick tick-legend' });
@@ -266,7 +266,7 @@ export function survivalHeatmap(container, payload, options = {}) {
   if (!significant) {
     const warn = el('text', {
       x: PAD.left, y: height - 6,
-      fill: '#d8a33c', 'font-size': 11, 'font-family': 'monospace',
+      fill: 'var(--warn)', 'font-size': 11, 'font-family': 'monospace',
     });
     warn.textContent =
       `variation below resolution: whole grid spans ${spread.toExponential(1)}`

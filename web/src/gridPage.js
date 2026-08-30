@@ -16,20 +16,20 @@ function injectPlotStyles() {
   const s = document.createElement('style');
   s.id = 'grid-plot-style';
   s.textContent = `
-    #grid-plot svg .axis { stroke: #3a2f29; stroke-width: 1; }
-    #grid-plot svg .tick { fill: #98897d; font-size: 10px; font-family: monospace; }
+    #grid-plot svg .axis { stroke: var(--line-edge); stroke-width: 1; }
+    #grid-plot svg .tick { fill: var(--ink-dim); font-size: 10px; font-family: monospace; }
     #grid-plot svg .tick-y { text-anchor: end; dominant-baseline: middle; }
     #grid-plot svg .tick-x { text-anchor: middle; }
     #grid-plot svg .tick-legend { text-anchor: start; dominant-baseline: middle; font-size: 9px; }
-    #grid-plot svg .axis-label { fill: #98897d; font-size: 10px; font-family: monospace; }
+    #grid-plot svg .axis-label { fill: var(--ink-dim); font-size: 10px; font-family: monospace; }
     #grid-plot .hm-cell { cursor: crosshair; }
     #grid-plot .hm-tooltip {
       position: absolute; pointer-events: none; z-index: 5;
-      background: rgba(20,16,14,.94); border: 1px solid #3a2f29;
+      background: rgba(20,16,14,.94); border: 1px solid var(--line-edge);
       border-radius: 5px; padding: 8px 10px; font-family: monospace;
-      font-size: 11px; color: #cbbfb4; line-height: 1.5;
+      font-size: 11px; color: var(--ink); line-height: 1.5;
     }
-    #grid-plot .hm-tooltip b { color: #f2ebe4; }
+    #grid-plot .hm-tooltip b { color: var(--ink-bright); }
   `;
   document.head.appendChild(s);
 }

@@ -120,11 +120,11 @@ function injectStyles() {
     }
     /* Not a number: keep what was typed so it can be corrected, and say so. */
     #run-console .rc-num.invalid {
-      border-color: var(--bad, #e2683c);
-      color: var(--bad, #e2683c);
+      border-color: var(--bad, var(--data-trace));
+      color: var(--bad, var(--data-trace));
     }
     /* Accepted but moved to the nearest legal value - never silently. */
-    #run-console .rc-num.out-of-range { border-color: var(--warn, #d8a33c); }
+    #run-console .rc-num.out-of-range { border-color: var(--warn, var(--warn)); }
     #run-console .rc-num-lo, #run-console .rc-num-hi { width: 6.5ch; }
     #run-console .rc-dash { color: var(--ink-faint); margin: 0 2px; }
 

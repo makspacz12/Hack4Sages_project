@@ -28,28 +28,28 @@ const STYLE = `
   .tt-trigger {
     display: inline-flex; align-items: center; justify-content: center;
     width: 13px; height: 13px; border-radius: 50%;
-    border: 1px solid #4a3e37; background: none; color: #8d7f74;
+    border: 1px solid var(--line-strong); background: none; color: var(--ink-dim);
     font: inherit; font-size: 9px; line-height: 1; cursor: help; padding: 0;
     flex: none;
   }
-  .tt-trigger:hover, .tt-trigger:focus-visible { border-color: #45c2ca; color: #45c2ca; }
-  .tt-trigger:focus-visible { outline: 2px solid #45c2ca; outline-offset: 1px; }
+  .tt-trigger:hover, .tt-trigger:focus-visible { border-color: var(--accent-lit); color: var(--accent-lit); }
+  .tt-trigger:focus-visible { outline: 2px solid var(--accent-lit); outline-offset: 1px; }
   .tt-bubble {
     position: fixed; z-index: 990; max-width: 300px;
-    background: #16120f; border: 1px solid #4a3e37; border-radius: 3px;
-    padding: 9px 11px; color: #cbbfb4;
+    background: var(--bg-panel); border: 1px solid var(--line-strong); border-radius: 3px;
+    padding: 9px 11px; color: var(--ink);
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 11px; line-height: 1.55;
     box-shadow: 0 8px 26px rgba(0,0,0,.62);
   }
   .tt-bubble[hidden] { display: none; }
-  .tt-bubble b { color: #f2ebe4; font-weight: 600; }
+  .tt-bubble b { color: var(--ink-bright); font-weight: 600; }
   .tt-meta {
     display: block; margin-top: 6px; padding-top: 6px;
-    border-top: 1px solid #2a2320; color: #8d7f74; font-size: 10px;
+    border-top: 1px solid var(--line-hair); color: var(--ink-dim); font-size: 10px;
   }
-  .tt-warn { color: #d8a33c; }
-  .tt-bubble a { color: #45c2ca; }
+  .tt-warn { color: var(--warn); }
+  .tt-bubble a { color: var(--accent-lit); }
 `;
 
 let bubble = null;

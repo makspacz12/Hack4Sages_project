@@ -7,8 +7,8 @@ import { fmt } from './plot.js';
 const NS = 'http://www.w3.org/2000/svg';
 const PAD = { top: 24, right: 28, bottom: 36, left: 168 };
 const ROW_H = 28;
-const COLOR_LOW = '#e2683c';
-const COLOR_HIGH = '#2ba3ab';
+const COLOR_LOW = 'var(--data-trace)';
+const COLOR_HIGH = 'var(--accent)';
 
 function el(name, attrs = {}) {
   const node = document.createElementNS(NS, name);

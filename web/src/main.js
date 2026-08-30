@@ -213,13 +213,17 @@ async function mainReplay(source) {
   // ── Comet trails for replay-mode objects ─────────────────────────────
   const TRAIL_LEN        = 10;   // asteroids
   const PLANET_TRAIL_LEN = 40;   // planets – longer arc
-  const PLANET_TRAIL_COLOR = '#98897d'; // slate-grey
+  // Literal for the same reason as orbitLine: THREE.Color cannot resolve a
+  // custom property. Tracks --ink-dim by hand.
+  const PLANET_TRAIL_COLOR = '#98897d';
   const trailPosScale  = simData.meta?.positionScale ?? 1;
   const replayTrailMap = new Map();
   for (const { body, mesh } of nodes) {
     const t = (body.type ?? '').toLowerCase();
     if (t === 'asteroid') {
-      const color = simData.objects?.find(o => o.id === body.id)?.visual?.color ?? '#aaaaaa';
+      // Literal fallback: this reaches THREE.Color, which cannot resolve a CSS
+      // custom property. Tracks --ink-dim by hand.
+      const color = simData.objects?.find(o => o.id === body.id)?.visual?.color ?? '#98897d';
       const trail = createTrail(scene, color, TRAIL_LEN);
       trail.line.visible = false;
       replayTrailMap.set(body.id, { trail, mesh, type: 'asteroid', trailLen: TRAIL_LEN });
@@ -1031,7 +1035,7 @@ main().catch(err => {
     zIndex: '9999', textAlign: 'center',
   });
   box.innerHTML = `<div style="font-size:20px;margin-bottom:12px">⚠ Failed to load simulation</div>
-<div style="color:#aaa;margin-bottom:16px;max-width:600px;word-break:break-all">${String(err)}</div>
+<div style="color:var(--ink-dim);margin-bottom:16px;max-width:600px;word-break:break-all">${String(err)}</div>
 <div style="color:#666;font-size:11px">BASE_URL: ${import.meta.env.BASE_URL}</div>`;
   document.body.appendChild(box);
 });

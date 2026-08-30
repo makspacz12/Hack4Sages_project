@@ -262,49 +262,49 @@ export function morrisCostPanel(container, screening) {
 
 export const MORRIS_STYLE = `
   .mo-svg { display: block; }
-  .mo-empty { color: #8d7f74; font-size: 11px; padding: 10px 0; }
-  .mo-frame { fill: none; stroke: #3a2f29; }
-  .mo-ratio { stroke: #4a3e37; stroke-width: 1; stroke-dasharray: 4 3; }
-  .mo-ratio-label { fill: #6f5f55; font-size: 8px; font-family: inherit; }
-  .mo-tick { stroke: #3a2f29; }
+  .mo-empty { color: var(--ink-dim); font-size: 11px; padding: 10px 0; }
+  .mo-frame { fill: none; stroke: var(--line-edge); }
+  .mo-ratio { stroke: var(--line-strong); stroke-width: 1; stroke-dasharray: 4 3; }
+  .mo-ratio-label { fill: var(--ink-faint); font-size: 8px; font-family: inherit; }
+  .mo-tick { stroke: var(--line-edge); }
   .mo-tick-label {
-    fill: #8d7f74; font-size: 8.5px; font-family: inherit; text-anchor: middle;
+    fill: var(--ink-dim); font-size: 8.5px; font-family: inherit; text-anchor: middle;
   }
   .mo-tick-y { text-anchor: end; }
   .mo-axis-label {
-    fill: #8d7f74; font-size: 9.5px; font-family: inherit; text-anchor: middle;
+    fill: var(--ink-dim); font-size: 9.5px; font-family: inherit; text-anchor: middle;
   }
   .mo-dot { stroke: rgba(18,16,14,0.9); stroke-width: 1; }
-  .mo-dot--sig { fill: #f2ebe4; }
+  .mo-dot--sig { fill: var(--ink-bright); }
   /* Hollow when Morris's own wedge cannot call the mean effect non-zero. */
-  .mo-dot--ns { fill: none; stroke: #8d7f74; stroke-width: 1.4; }
+  .mo-dot--ns { fill: none; stroke: var(--ink-dim); stroke-width: 1.4; }
   .mo-mu { fill: none; stroke: #9a8cc4; stroke-width: 1.2; }
   .mo-signgap { stroke: #9a8cc4; stroke-width: 1; stroke-dasharray: 2 2; }
-  .mo-label { fill: #cbbfb4; font-size: 9px; font-family: inherit; }
+  .mo-label { fill: var(--ink); font-size: 9px; font-family: inherit; }
   .mo-has-sel .mo-dot { opacity: 0.3; }
-  .mo-has-sel .mo-pt--sel .mo-dot { opacity: 1; stroke: #45c2ca; stroke-width: 1.6; }
+  .mo-has-sel .mo-pt--sel .mo-dot { opacity: 1; stroke: var(--accent-lit); stroke-width: 1.6; }
 
   .mo-table {
     width: 100%; border-collapse: collapse; font-size: 10px; margin-top: 8px;
     font-family: inherit;
   }
   .mo-table th {
-    text-align: left; color: #8d7f74; font-weight: normal; padding: 3px 5px;
-    border-bottom: 1px solid #3a2f29; text-transform: uppercase;
+    text-align: left; color: var(--ink-dim); font-weight: normal; padding: 3px 5px;
+    border-bottom: 1px solid var(--line-edge); text-transform: uppercase;
     letter-spacing: 0.05em; font-size: 9px;
   }
-  .mo-table td { padding: 3px 5px; color: #cbbfb4; border-bottom: 1px solid #241d19; }
+  .mo-table td { padding: 3px 5px; color: var(--ink); border-bottom: 1px solid var(--line-hair); }
   .mo-num { font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .mo-unit { color: #6f5f55; }
+  .mo-unit { color: var(--ink-faint); }
   .mo-flip { color: #9a8cc4; }
 
   .mo-cost {
-    margin-top: 10px; border: 1px solid #3a2f29; padding: 7px 8px; border-radius: 2px;
+    margin-top: 10px; border: 1px solid var(--line-edge); padding: 7px 8px; border-radius: 2px;
   }
   .mo-cost-row {
     display: flex; justify-content: space-between; gap: 10px; font-size: 10px;
-    color: #8d7f74; line-height: 1.6;
+    color: var(--ink-dim); line-height: 1.6;
   }
-  .mo-cost-row b { color: #f2ebe4; font-weight: normal; text-align: right; }
-  .mo-cost-note { font-size: 9.5px; color: #6f5f55; line-height: 1.5; margin-top: 5px; }
+  .mo-cost-row b { color: var(--ink-bright); font-weight: normal; text-align: right; }
+  .mo-cost-note { font-size: 9.5px; color: var(--ink-faint); line-height: 1.5; margin-top: 5px; }
 `;

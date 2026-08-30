@@ -18,10 +18,10 @@ function injectStyles() {
       width: 240px;
       max-height: calc(100vh - 120px);
       background: rgba(20, 16, 14, 0.94);
-      border: 1px solid #3a2f29;
+      border: 1px solid var(--line-edge);
       border-radius: 8px;
       display: flex; flex-direction: column;
-      font-family: monospace; font-size: 13px; color: #ccc;
+      font-family: monospace; font-size: 13px; color: var(--ink);
       z-index: 800;
       box-shadow: 0 4px 24px #0008;
       transition: opacity .2s;
@@ -30,60 +30,60 @@ function injectStyles() {
     #obj-search-panel .osp-header {
       display: flex; align-items: center; gap: 6px;
       padding: 8px 10px 5px;
-      border-bottom: 1px solid #1e1917;
+      border-bottom: 1px solid var(--bg-raised);
     }
     #obj-search-panel .osp-header span {
-      font-size: 11px; color: #778; text-transform: uppercase; letter-spacing: .05em;
+      font-size: 11px; color: var(--ink-dim); text-transform: uppercase; letter-spacing: .05em;
       flex: 1;
     }
     #obj-search-panel .osp-close {
-      background: none; border: none; color: #6b5e55; cursor: pointer;
+      background: none; border: none; color: var(--ink-faint); cursor: pointer;
       font-size: 16px; line-height: 1; padding: 0 2px;
     }
-    #obj-search-panel .osp-close:hover { color: #aaa; }
+    #obj-search-panel .osp-close:hover { color: var(--ink-dim); }
     #obj-search-panel .osp-input {
       margin: 7px 10px 5px;
-      background: #0e1220; border: 1px solid #3a2f29;
+      background: var(--bg-sunken); border: 1px solid var(--line-edge);
       border-radius: 5px; color: #ddf; padding: 5px 8px;
       font-family: monospace; font-size: 13px; outline: none;
       width: calc(100% - 36px);
     }
-    #obj-search-panel .osp-input:focus { border-color: #5af; }
+    #obj-search-panel .osp-input:focus { border-color: var(--accent-lit); }
     #obj-search-panel .osp-count {
-      font-size: 11px; color: #6b5e55; padding: 0 12px 4px; text-align: right;
+      font-size: 11px; color: var(--ink-faint); padding: 0 12px 4px; text-align: right;
     }
     #obj-search-panel .osp-list {
       overflow-y: auto; flex: 1;
       padding: 2px 0 8px;
     }
     #obj-search-panel .osp-list::-webkit-scrollbar { width: 5px; }
-    #obj-search-panel .osp-list::-webkit-scrollbar-thumb { background: #3a2f29; border-radius: 3px; }
+    #obj-search-panel .osp-list::-webkit-scrollbar-thumb { background: var(--line-edge); border-radius: 3px; }
     #obj-search-panel .osp-item {
       display: flex; align-items: center; gap: 7px;
       padding: 5px 12px;
       cursor: pointer; border-left: 3px solid transparent;
       transition: background .1s;
     }
-    #obj-search-panel .osp-item:hover { background: #1e1917; }
+    #obj-search-panel .osp-item:hover { background: var(--bg-raised); }
     #obj-search-panel .osp-item.osp-active {
-      background: #1e1917;
-      border-left-color: #5af;
+      background: var(--bg-raised);
+      border-left-color: var(--accent-lit);
     }
     #obj-search-panel .osp-icon { font-size: 15px; width: 16px; text-align: center; flex-shrink: 0; }
     #obj-search-panel .osp-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    #obj-search-panel .osp-type { font-size: 11px; color: #6b5e55; flex-shrink: 0; }
+    #obj-search-panel .osp-type { font-size: 11px; color: var(--ink-faint); flex-shrink: 0; }
 
     #obj-search-toggle {
       position: fixed;
       /* Below the headline band; see controlPanel.js for the same offset. */
       top: calc(var(--headline-h, 0px) + var(--menubar-h, 0px) + 14px); right: 300px;
       background: rgba(20,16,14,0.92);
-      border: 1px solid #3a2f29;
+      border: 1px solid var(--line-edge);
       border-radius: 6px;
-      color: #cbbfb4; font-family: monospace; font-size: 13px;
+      color: var(--ink); font-family: monospace; font-size: 13px;
       padding: 5px 12px; cursor: pointer; z-index: 900;
     }
-    #obj-search-toggle:hover { background: #1e1917; }
+    #obj-search-toggle:hover { background: var(--bg-raised); }
   `;
   document.head.appendChild(s);
 }

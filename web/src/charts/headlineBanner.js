@@ -13,28 +13,28 @@ const STYLE = `
   #headline {
     position: fixed; top: 0; left: 0; right: 0; z-index: 940;
     background: linear-gradient(180deg, rgba(18,14,12,0.97) 0%, rgba(18,14,12,0.90) 100%);
-    border-bottom: 1px solid #3a2f29;
+    border-bottom: 1px solid var(--line-edge);
     padding: 10px 18px 11px;
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    color: #f2ebe4;
+    color: var(--ink-bright);
   }
   #headline.hidden { display: none; }
   .hl-top { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
-  .hl-q { font-size: 11px; color: #8d7f74; letter-spacing: 0.06em; text-transform: uppercase; }
+  .hl-q { font-size: 11px; color: var(--ink-dim); letter-spacing: 0.06em; text-transform: uppercase; }
   .hl-horizons { display: flex; gap: 4px; margin-left: auto; }
   .hl-h {
-    background: none; border: 1px solid #3a2f29; color: #8d7f74;
+    background: none; border: 1px solid var(--line-edge); color: var(--ink-dim);
     font-family: inherit; font-size: 10.5px; padding: 2px 8px; cursor: pointer;
     border-radius: 2px;
   }
-  .hl-h:hover { color: #f2ebe4; border-color: #6f5f55; }
-  .hl-h[aria-pressed="true"] { color: #45c2ca; border-color: #45c2ca; }
-  .hl-h:focus-visible { outline: 2px solid #45c2ca; outline-offset: 2px; }
+  .hl-h:hover { color: var(--ink-bright); border-color: var(--ink-faint); }
+  .hl-h[aria-pressed="true"] { color: var(--accent-lit); border-color: var(--accent-lit); }
+  .hl-h:focus-visible { outline: 2px solid var(--accent-lit); outline-offset: 2px; }
 
   .hl-box { margin: 9px 0 2px; position: relative; height: 46px; }
   .hl-axis {
     position: absolute; left: 0; right: 0; top: 21px; height: 3px;
-    background: #2a2320;
+    background: var(--line-hair);
   }
   /* The p-box itself. Deliberately a flat bar with hard ends and no gradient:
      a soft edge or a gradient would read as a density, and there is none. */
@@ -48,14 +48,14 @@ const STYLE = `
     position: absolute; top: 0; font-size: 15px; font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
-  .hl-end small { display: block; font-size: 9.5px; color: #8d7f74; margin-top: 2px; }
+  .hl-end small { display: block; font-size: 9.5px; color: var(--ink-dim); margin-top: 2px; }
   .hl-end--lo { left: 0; text-align: left; }
   .hl-end--hi { right: 0; text-align: right; }
 
-  .hl-read { font-size: 11.5px; color: #cbbfb4; line-height: 1.5; margin-top: 6px; }
-  .hl-read b { color: #f2ebe4; font-weight: normal; }
-  .hl-warn { color: #d8a33c; }
-  .hl-note { font-size: 10.5px; color: #8d7f74; margin-top: 4px; line-height: 1.45; }
+  .hl-read { font-size: 11.5px; color: var(--ink); line-height: 1.5; margin-top: 6px; }
+  .hl-read b { color: var(--ink-bright); font-weight: normal; }
+  .hl-warn { color: var(--warn); }
+  .hl-note { font-size: 10.5px; color: var(--ink-dim); margin-top: 4px; line-height: 1.45; }
 `;
 
 /**

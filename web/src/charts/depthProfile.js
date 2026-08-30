@@ -73,7 +73,7 @@ export function penetrationRatio(profile) {
 }
 
 const CHANNELS = [
-  { key: 'photon', label: 'stellar photons', color: '#d8a33c' },
+  { key: 'photon', label: 'stellar photons', color: 'var(--warn)' },
   { key: 'cosmic', label: 'cosmic rays', color: '#4aa3c7' },
 ];
 
@@ -129,11 +129,11 @@ export function depthProfileChart(container, profile, options = {}) {
     const y = yPos(10 ** e);
     svg.appendChild(el('line', {
       x1: PAD.left, x2: PAD.left + plotW, y1: y, y2: y,
-      stroke: '#2a2320', 'stroke-width': 1,
+      stroke: 'var(--line-hair)', 'stroke-width': 1,
     }));
     const t = el('text', {
       x: PAD.left - 8, y: y + 3, 'text-anchor': 'end',
-      fill: '#8d7f74', 'font-size': 10, 'font-family': 'monospace',
+      fill: 'var(--ink-dim)', 'font-size': 10, 'font-family': 'monospace',
     });
     t.textContent = e === 0 ? '1' : `1e${e}`;
     svg.appendChild(t);
@@ -154,7 +154,7 @@ export function depthProfileChart(container, profile, options = {}) {
     if (Number.isFinite(depth) && depth <= maxDepth) {
       svg.appendChild(el('circle', {
         cx: xPos(depth), cy: yPos(Math.exp(-1)), r: 3.5,
-        fill: color, stroke: '#14100e', 'stroke-width': 1,
+        fill: color, stroke: 'var(--bg-panel)', 'stroke-width': 1,
       }));
     }
 
@@ -174,11 +174,11 @@ export function depthProfileChart(container, profile, options = {}) {
     if (coreDepth > 0 && coreDepth < maxDepth) {
       svg.appendChild(el('line', {
         x1: xPos(coreDepth), x2: xPos(coreDepth), y1: PAD.top, y2: PAD.top + plotH,
-        stroke: '#6f5f55', 'stroke-width': 1, 'stroke-dasharray': '3 3',
+        stroke: 'var(--ink-faint)', 'stroke-width': 1, 'stroke-dasharray': '3 3',
       }));
       const t = el('text', {
         x: xPos(coreDepth) + 4, y: PAD.top + 11,
-        fill: '#8d7f74', 'font-size': 9.5, 'font-family': 'monospace',
+        fill: 'var(--ink-dim)', 'font-size': 9.5, 'font-family': 'monospace',
       });
       t.textContent = 'biological core';
       svg.appendChild(t);
@@ -194,20 +194,20 @@ export function depthProfileChart(container, profile, options = {}) {
     const d = (maxDepth * i) / 4;
     const t = el('text', {
       x: xPos(d), y: PAD.top + plotH + 15, 'text-anchor': 'middle',
-      fill: '#8d7f74', 'font-size': 10, 'font-family': 'monospace',
+      fill: 'var(--ink-dim)', 'font-size': 10, 'font-family': 'monospace',
     });
     t.textContent = d.toFixed(2);
     svg.appendChild(t);
   }
   const xl = el('text', {
     x: PAD.left + plotW / 2, y: height - 8, 'text-anchor': 'middle',
-    fill: '#8d7f74', 'font-size': 10.5, 'font-family': 'monospace',
+    fill: 'var(--ink-dim)', 'font-size': 10.5, 'font-family': 'monospace',
   });
   xl.textContent = 'depth below surface [m]';
   svg.appendChild(xl);
 
   const yl = el('text', {
-    x: 14, y: PAD.top + plotH / 2, fill: '#8d7f74',
+    x: 14, y: PAD.top + plotH / 2, fill: 'var(--ink-dim)',
     'font-size': 10.5, 'font-family': 'monospace', 'text-anchor': 'middle',
     transform: `rotate(-90 14 ${PAD.top + plotH / 2})`,
   });

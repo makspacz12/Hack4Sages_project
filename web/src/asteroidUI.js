@@ -10,7 +10,7 @@ const PANEL_ID = 'asteroid-panel';
 const STYLES = `
 #asteroid-toggle {
   position: fixed; top: 16px; right: 16px;
-  background: #1a1a2e; color: #cbbfb4; border: 1px solid #334;
+  background: var(--bg-panel); color: var(--ink); border: 1px solid var(--line-edge);
   font-family: monospace; font-size: 13px; padding: 6px 14px;
   cursor: pointer; border-radius: 4px; z-index: 100;
 }
@@ -18,12 +18,12 @@ const STYLES = `
 
 #asteroid-panel {
   position: fixed; top: 52px; right: 16px;
-  background: #0d0d1a; color: #ccc; border: 1px solid #334;
+  background: var(--bg-sunken); color: var(--ink); border: 1px solid var(--line-edge);
   font-family: monospace; font-size: 13px;
   padding: 14px 16px; border-radius: 6px; z-index: 100;
   display: none; width: 240px;
 }
-#asteroid-panel h2 { color: #cbbfb4; margin: 0 0 10px; font-size: 14px; }
+#asteroid-panel h2 { color: var(--ink); margin: 0 0 10px; font-size: 14px; }
 #asteroid-panel label { display: block; margin: 6px 0 2px; color: #999; }
 #asteroid-panel input[type=number], #asteroid-panel input[type=color] {
   width: 100%; background: #111; color: #eee; border: 1px solid #335;
@@ -31,36 +31,36 @@ const STYLES = `
 }
 #asteroid-panel input[type=checkbox] { width: auto; margin-right: 6px; cursor: pointer; }
 #asteroid-panel .physics-row {
-  display: flex; align-items: center; margin-top: 8px; color: #9cf;
+  display: flex; align-items: center; margin-top: 8px; color: var(--accent-lit);
 }
 #asteroid-panel input[type=color] { height: 28px; padding: 2px; cursor: pointer; }
 .vec-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
 .vec-row input { width: 100%; }
-#asteroid-panel .hint { color: #6b5e55; font-size: 11px; margin-top: 4px; }
+#asteroid-panel .hint { color: var(--ink-faint); font-size: 11px; margin-top: 4px; }
 #asteroid-spawn-btn {
   margin-top: 12px; width: 100%;
-  background: #3a2f29; color: #cbbfb4; border: 1px solid #57453b;
+  background: var(--line-edge); color: var(--ink); border: 1px solid var(--line-strong);
   font-family: monospace; font-size: 13px; padding: 6px;
   cursor: pointer; border-radius: 4px;
 }
-#asteroid-spawn-btn:hover { background: #57453b; }
+#asteroid-spawn-btn:hover { background: var(--line-strong); }
 #trail-toggle-btn {
   margin-top: 8px; width: 100%;
-  background: #1a1a2e; color: #cbbfb4; border: 1px solid #334;
+  background: var(--bg-panel); color: var(--ink); border: 1px solid var(--line-edge);
   font-family: monospace; font-size: 13px; padding: 6px;
   cursor: pointer; border-radius: 4px;
 }
-#trail-toggle-btn.active { background: #3a2f29; border-color: #57453b; color: #7af; }
+#trail-toggle-btn.active { background: var(--line-edge); border-color: var(--line-strong); color: var(--accent-lit); }
 #asteroid-list { margin-top: 12px; max-height: 120px; overflow-y: auto; }
 .asteroid-entry {
   display: flex; justify-content: space-between; align-items: center;
   padding: 2px 0; border-bottom: 1px solid #222; font-size: 11px;
 }
 .asteroid-entry .btn-focus {
-  background: none; border: none; color: #7af; cursor: pointer; font-size: 12px;
+  background: none; border: none; color: var(--accent-lit); cursor: pointer; font-size: 12px;
   padding: 0 4px;
 }
-.asteroid-entry .btn-focus:hover { color: #adf; }
+.asteroid-entry .btn-focus:hover { color: var(--accent-lit); }
 .asteroid-entry .btn-remove {
   background: none; border: none; color: #e06; cursor: pointer; font-size: 12px;
   padding: 0 4px;
@@ -101,10 +101,10 @@ function buildPanelHTML() {
     <label>Mass</label>
     <input type="number" id="ast-mass" step="1" min="0.1" value="10" />
     <label>Color</label>
-    <input type="color" id="ast-color" value="#aaaaaa" />
+    <input type="color" id="ast-color" value="var(--ink-dim)" />
     <div class="physics-row">
       <input type="checkbox" id="ast-use-physics" />
-      <label for="ast-use-physics" style="margin:0;color:#9cf">Enable gravity</label>
+      <label for="ast-use-physics" style="margin:0;color:var(--accent-lit)">Enable gravity</label>
     </div>
     <button id="asteroid-spawn-btn">Spawn asteroid</button>
     <button id="trail-toggle-btn">☄ Trails: OFF</button>

@@ -22,10 +22,10 @@ function injectStyles() {
       max-height: calc(100vh - 100px);
       overflow-y: auto;
       background: rgba(20, 16, 14, 0.94);
-      border: 1px solid #3a2f29;
+      border: 1px solid var(--line-edge);
       border-radius: 10px;
       padding: 14px 16px 16px;
-      font-family: monospace; font-size: 12px; color: #cbd;
+      font-family: monospace; font-size: 12px; color: var(--ink);
       z-index: 800;
       display: none;
       box-shadow: 0 4px 24px rgba(0,0,0,.6);
@@ -46,7 +46,7 @@ function injectStyles() {
       overflow: hidden; text-overflow: ellipsis;
     }
     #info-panel .ip-type {
-      font-size: 10px; background: #1e1917; border: 1px solid #57453b;
+      font-size: 10px; background: var(--bg-raised); border: 1px solid var(--line-strong);
       border-radius: 4px; padding: 1px 6px; color: #89a; letter-spacing: .04em;
       text-transform: uppercase;
     }
@@ -54,12 +54,12 @@ function injectStyles() {
       background: none; border: none; color: #667; cursor: pointer;
       font-size: 15px; line-height: 1; padding: 0 2px; margin-left: 4px;
     }
-    #info-panel .ip-close:hover { color: #cbbfb4; }
+    #info-panel .ip-close:hover { color: var(--ink); }
 
     /* section label */
     #info-panel .ip-section {
-      font-size: 10px; letter-spacing: .08em; color: #6b5e55; text-transform: uppercase;
-      margin: 10px 0 4px; border-top: 1px solid #1e1917; padding-top: 6px;
+      font-size: 10px; letter-spacing: .08em; color: var(--ink-faint); text-transform: uppercase;
+      margin: 10px 0 4px; border-top: 1px solid var(--bg-raised); padding-top: 6px;
     }
     #info-panel .ip-section:first-of-type { margin-top: 0; }
 
@@ -68,13 +68,13 @@ function injectStyles() {
       display: flex; justify-content: space-between; align-items: baseline;
       padding: 2px 0; gap: 8px;
     }
-    #info-panel .ip-key  { color: #778; flex-shrink: 0; }
-    #info-panel .ip-val  { color: #cbbfb4; text-align: right; word-break: break-all; }
-    #info-panel .ip-unit { color: #6b5e55; margin-left: 3px; font-size: 10px; }
+    #info-panel .ip-key  { color: var(--ink-dim); flex-shrink: 0; }
+    #info-panel .ip-val  { color: var(--ink); text-align: right; word-break: break-all; }
+    #info-panel .ip-unit { color: var(--ink-faint); margin-left: 3px; font-size: 10px; }
 
     /* highlighted live rows */
-    #info-panel .ip-row.live .ip-val { color: #8ef; }
-    #info-panel .ip-row.live .ip-key { color: #5a8; }
+    #info-panel .ip-row.live .ip-val { color: var(--accent-lit); }
+    #info-panel .ip-row.live .ip-key { color: var(--accent); }
 
     /* progress bars */
     #info-panel .ip-bar-row {
@@ -85,11 +85,11 @@ function injectStyles() {
       display: flex; justify-content: space-between; align-items: baseline;
       gap: 8px;
     }
-    #info-panel .ip-bar-key { color: #778; flex-shrink: 0; font-size: 11px; }
-    #info-panel .ip-bar-val { color: #cbbfb4; text-align: right; font-size: 11px; }
-    #info-panel .ip-bar-unit { color: #6b5e55; margin-left: 2px; font-size: 10px; }
+    #info-panel .ip-bar-key { color: var(--ink-dim); flex-shrink: 0; font-size: 11px; }
+    #info-panel .ip-bar-val { color: var(--ink); text-align: right; font-size: 11px; }
+    #info-panel .ip-bar-unit { color: var(--ink-faint); margin-left: 2px; font-size: 10px; }
     #info-panel .ip-bar-track {
-      height: 4px; background: #0e1220; border: 1px solid #1e1917;
+      height: 4px; background: var(--bg-sunken); border: 1px solid var(--bg-raised);
       border-radius: 3px; overflow: hidden; position: relative;
     }
     #info-panel .ip-bar-fill {
@@ -146,7 +146,7 @@ function section(title) {
  * @param {string} color  CSS color for the fill
  * @returns {HTMLElement}
  */
-function bar(key, val, max, unit = '', color = '#5af') {
+function bar(key, val, max, unit = '', color = 'var(--accent-lit)') {
   const percent = Math.max(0, Math.min(100, (val / max) * 100));
   
   const container = document.createElement('div');
@@ -229,8 +229,8 @@ export function createInfoPanel() {
       // Temperature section
       if (prop.T_surface_K != null || prop.T_center_K != null) {
         frag.appendChild(section('Temperature (current frame)'));
-        if (prop.T_surface_K != null) frag.appendChild(bar('Surface', prop.T_surface_K, 300, 'K', '#f84'));
-        if (prop.T_center_K != null)  frag.appendChild(bar('Center', prop.T_center_K, 300, 'K', '#f84'));
+        if (prop.T_surface_K != null) frag.appendChild(bar('Surface', prop.T_surface_K, 300, 'K', 'var(--data-trace)'));
+        if (prop.T_center_K != null)  frag.appendChild(bar('Center', prop.T_center_K, 300, 'K', 'var(--data-trace)'));
       }
       // Biology section (for asteroids)
       if (prop.population_fraction != null || prop.hydrolysis_rate_s_inv != null) {
@@ -269,7 +269,7 @@ export function createInfoPanel() {
 
     const dot = document.createElement('div');
     dot.className = 'ip-dot';
-    dot.style.background = simObj.visual?.color ?? '#aaa';
+    dot.style.background = simObj.visual?.color ?? 'var(--ink-dim)';
 
     const name = document.createElement('span');
     name.className = 'ip-name';

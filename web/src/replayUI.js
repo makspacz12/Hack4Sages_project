@@ -34,61 +34,61 @@ function injectStyles() {
       bottom: 0; left: 0; right: 0;
       display: flex; flex-direction: column; gap: 5px;
       background: rgba(20, 16, 14, 0.92);
-      border-top: 1px solid #3a2f29;
+      border-top: 1px solid var(--line-edge);
       padding: 7px 20px 10px;
-      font-family: monospace; font-size: 13px; color: #ccc;
+      font-family: monospace; font-size: 13px; color: var(--ink);
       user-select: none; z-index: 900;
     }
     #replay-bar .rb-scrubber-row {
       display: flex; align-items: center; gap: 8px;
     }
     #replay-bar .rb-scrubber {
-      flex: 1; cursor: pointer; accent-color: #2ba3ab; height: 4px;
+      flex: 1; cursor: pointer; accent-color: var(--accent); height: 4px;
     }
     #replay-bar .rb-controls {
       display: flex; align-items: center; justify-content: space-between;
     }
     #replay-bar .rb-btns { display: flex; gap: 4px; align-items: center; }
     #replay-bar button {
-      background: #1a1e2e; color: #dde; border: 1px solid #3a2f29;
+      background: var(--bg-raised); color: #dde; border: 1px solid var(--line-edge);
       border-radius: 5px; padding: 4px 10px; cursor: pointer;
       font-size: 17px; line-height: 1; min-width: 36px;
     }
-    #replay-bar button:hover { background: #241d1a; }
-    #replay-bar button.rb-active { background: #3a2f29; border-color: #5af; color: #7cf; }
+    #replay-bar button:hover { background: var(--line-hair); }
+    #replay-bar button.rb-active { background: var(--line-edge); border-color: var(--accent-lit); color: #7cf; }
     #replay-bar .rb-meta {
       display: flex; align-items: center; gap: 16px;
-      font-size: 12px; color: #889;
+      font-size: 12px; color: var(--ink-dim);
     }
     #replay-bar .rb-label { flex: 1; white-space: nowrap; }
     #replay-bar .rb-sps {
       display: flex; align-items: center; gap: 6px; white-space: nowrap;
     }
     #replay-bar .rb-sps input[type=number] {
-      width: 58px; background: #111520; color: #adf;
-      border: 1px solid #3a2f29; border-radius: 4px;
+      width: 58px; background: var(--bg-sunken); color: var(--accent-lit);
+      border: 1px solid var(--line-edge); border-radius: 4px;
       padding: 2px 5px; font-family: monospace; font-size: 13px; text-align: right;
     }
     #replay-bar .rb-scale input[type=number] {
-      width: 54px; background: #111520; color: #fda;
-      border: 1px solid #3a2f29; border-radius: 4px;
+      width: 54px; background: var(--bg-sunken); color: var(--warn);
+      border: 1px solid var(--line-edge); border-radius: 4px;
       padding: 2px 5px; font-family: monospace; font-size: 13px; text-align: right;
     }
-    #replay-bar .rb-scale input[type=number]:focus { outline: 1px solid #fda; }
+    #replay-bar .rb-scale input[type=number]:focus { outline: 1px solid var(--warn); }
     #replay-bar .rb-scale input[type=number]::-webkit-inner-spin-button { opacity: .35; }
     #replay-bar .rb-scale {
       display: flex; align-items: center; gap: 6px; white-space: nowrap;
     }
-    #replay-bar .rb-sps input[type=number]:focus { outline: 1px solid #5af; }
+    #replay-bar .rb-sps input[type=number]:focus { outline: 1px solid var(--accent-lit); }
     #replay-bar .rb-sps input[type=number]::-webkit-inner-spin-button { opacity: .35; }
-    #replay-bar .rb-timemark { font-size: 11px; color: #6b5e55; min-width: 48px; }
+    #replay-bar .rb-timemark { font-size: 11px; color: var(--ink-faint); min-width: 48px; }
     #replay-bar .rb-timemark.right { text-align: left; }
     #replay-bar .rb-smooth {
       display: flex; align-items: center; gap: 6px;
-      font-size: 12px; color: #889; white-space: nowrap; cursor: pointer;
+      font-size: 12px; color: var(--ink-dim); white-space: nowrap; cursor: pointer;
     }
     #replay-bar .rb-smooth input[type=checkbox] {
-      accent-color: #2ba3ab; width: 14px; height: 14px; cursor: pointer;
+      accent-color: var(--accent); width: 14px; height: 14px; cursor: pointer;
     }
     #replay-bar .rb-smooth label { cursor: pointer; }
   `;
@@ -219,7 +219,7 @@ export function initReplayUI(ctrl, onFrameChange, opts = {}) {
   });
   const scaleLbl = document.createElement('span');
   scaleLbl.textContent = '× scale';
-  scaleLbl.style.color = '#fda';
+  scaleLbl.style.color = 'var(--warn)';
   scaleWrap.append(scaleInput, scaleLbl);
 
   // smooth checkbox
@@ -253,7 +253,7 @@ export function initReplayUI(ctrl, onFrameChange, opts = {}) {
   // Comet trails checkbox
   const trailWrap = document.createElement('label');
   trailWrap.className = 'rb-smooth';
-  trailWrap.style.color = '#45c2ca';
+  trailWrap.style.color = 'var(--accent-lit)';
   const trailChk = document.createElement('input');
   trailChk.type    = 'checkbox';
   trailChk.checked = false;
@@ -266,7 +266,7 @@ export function initReplayUI(ctrl, onFrameChange, opts = {}) {
   // "Only followed trail" checkbox
   const onlyFollowWrap = document.createElement('label');
   onlyFollowWrap.className = 'rb-smooth';
-  onlyFollowWrap.style.color = '#45c2ca';
+  onlyFollowWrap.style.color = 'var(--accent-lit)';
   const onlyFollowChk = document.createElement('input');
   onlyFollowChk.type    = 'checkbox';
   onlyFollowChk.checked = false;
@@ -279,7 +279,7 @@ export function initReplayUI(ctrl, onFrameChange, opts = {}) {
   // Planet trails checkbox
   const planetTrailWrap = document.createElement('label');
   planetTrailWrap.className = 'rb-smooth';
-  planetTrailWrap.style.color = '#cbbfb4';
+  planetTrailWrap.style.color = 'var(--ink)';
   const planetTrailChk = document.createElement('input');
   planetTrailChk.type    = 'checkbox';
   planetTrailChk.checked = false;
@@ -292,7 +292,7 @@ export function initReplayUI(ctrl, onFrameChange, opts = {}) {
   // Background starfield checkbox
   const bgWrap = document.createElement('label');
   bgWrap.className = 'rb-smooth';
-  bgWrap.style.color = '#cbbfb4';
+  bgWrap.style.color = 'var(--ink)';
   const bgChk  = document.createElement('input');
   bgChk.type    = 'checkbox';
   bgChk.checked = true;

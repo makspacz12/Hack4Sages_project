@@ -54,7 +54,7 @@ export function logTicksFor(lo, hi) {
  */
 export function answerSurfaceChart(container, opts) {
   const {
-    frames, bands, horizonYears = 1e6, colorForRockType = () => '#e2683c',
+    frames, bands, horizonYears = 1e6, colorForRockType = () => 'var(--data-trace)',
     onPick, selected = null, width = 300, height = 260, currentCoefficient = null,
   } = opts;
 
@@ -219,22 +219,22 @@ export function answerSurfaceChart(container, opts) {
 
 export const ANSWER_SURFACE_STYLE = `
   .as-svg { display: block; }
-  .as-empty { color: #8d7f74; font-size: 11px; padding: 10px 0; }
-  .as-frame { fill: none; stroke: #3a2f29; stroke-width: 1; }
+  .as-empty { color: var(--ink-dim); font-size: 11px; padding: 10px 0; }
+  .as-frame { fill: none; stroke: var(--line-edge); stroke-width: 1; }
   .as-band { fill: rgba(154, 140, 196, 0.16); }
-  .as-contour { stroke: #6f5f55; stroke-width: 1; stroke-dasharray: 3 3; }
-  .as-contour-label { fill: #8d7f74; font-size: 8.5px; font-family: inherit; }
-  .as-tick { stroke: #3a2f29; stroke-width: 1; }
+  .as-contour { stroke: var(--ink-faint); stroke-width: 1; stroke-dasharray: 3 3; }
+  .as-contour-label { fill: var(--ink-dim); font-size: 8.5px; font-family: inherit; }
+  .as-tick { stroke: var(--line-edge); stroke-width: 1; }
   .as-tick-label {
-    fill: #8d7f74; font-size: 9px; font-family: inherit; text-anchor: middle;
+    fill: var(--ink-dim); font-size: 9px; font-family: inherit; text-anchor: middle;
   }
   .as-tick-y { text-anchor: end; }
   .as-axis-label {
-    fill: #8d7f74; font-size: 9.5px; font-family: inherit; text-anchor: middle;
+    fill: var(--ink-dim); font-size: 9.5px; font-family: inherit; text-anchor: middle;
   }
   .as-dot { stroke: rgba(18,16,14,0.9); stroke-width: 1; }
-  .as-current { stroke: #45c2ca; stroke-width: 1.5; stroke-dasharray: 5 3; }
+  .as-current { stroke: var(--accent-lit); stroke-width: 1.5; stroke-dasharray: 5 3; }
   /* Dim the rest only once something is actually selected. */
   .as-has-sel .as-dot { opacity: 0.32; }
-  .as-has-sel .as-pt--sel .as-dot { opacity: 1; stroke: #45c2ca; stroke-width: 1.6; }
+  .as-has-sel .as-pt--sel .as-dot { opacity: 1; stroke: var(--accent-lit); stroke-width: 1.6; }
 `;

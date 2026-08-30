@@ -27,58 +27,58 @@ const STYLE = `
     top: var(--headline-h, 0px);
     display: flex; align-items: stretch; gap: 0;
     background: rgba(14, 12, 10, 0.97);
-    border-bottom: 1px solid #3a2f29;
+    border-bottom: 1px solid var(--line-edge);
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 11.5px; user-select: none;
   }
   .mb-menu { position: relative; }
   .mb-top {
-    background: none; border: none; color: #cbbfb4; font: inherit;
-    padding: 7px 13px; cursor: pointer; border-right: 1px solid #241d19;
+    background: none; border: none; color: var(--ink); font: inherit;
+    padding: 7px 13px; cursor: pointer; border-right: 1px solid var(--line-hair);
   }
-  .mb-top:hover, .mb-menu.open .mb-top { background: #241d19; color: #f2ebe4; }
-  .mb-top:focus-visible { outline: 2px solid #45c2ca; outline-offset: -2px; }
+  .mb-top:hover, .mb-menu.open .mb-top { background: var(--line-hair); color: var(--ink-bright); }
+  .mb-top:focus-visible { outline: 2px solid var(--accent-lit); outline-offset: -2px; }
   .mb-drop {
     position: absolute; top: 100%; left: 0; min-width: 310px;
-    background: #16120f; border: 1px solid #3a2f29; border-top: none;
+    background: var(--bg-panel); border: 1px solid var(--line-edge); border-top: none;
     box-shadow: 0 10px 28px rgba(0,0,0,.6); padding: 4px 0; z-index: 931;
   }
   .mb-drop[hidden] { display: none; }
   .mb-group {
     font-size: 9px; letter-spacing: .09em; text-transform: uppercase;
-    color: #6f5f55; padding: 7px 12px 3px;
+    color: var(--ink-faint); padding: 7px 12px 3px;
   }
   .mb-item {
     display: flex; align-items: flex-start; gap: 9px; width: 100%;
-    background: none; border: none; color: #cbbfb4; font: inherit;
+    background: none; border: none; color: var(--ink); font: inherit;
     text-align: left; padding: 6px 12px; cursor: pointer;
   }
-  .mb-item:hover { background: #241d19; color: #f2ebe4; }
-  .mb-item:focus-visible { outline: 2px solid #45c2ca; outline-offset: -2px; }
+  .mb-item:hover { background: var(--line-hair); color: var(--ink-bright); }
+  .mb-item:focus-visible { outline: 2px solid var(--accent-lit); outline-offset: -2px; }
   .mb-check {
-    width: 11px; flex: none; color: #45c2ca; line-height: 1.45;
+    width: 11px; flex: none; color: var(--accent-lit); line-height: 1.45;
   }
   .mb-label { flex: 1; line-height: 1.45; }
   .mb-note {
-    display: block; color: #8d7f74; font-size: 10px; margin-top: 1px;
+    display: block; color: var(--ink-dim); font-size: 10px; margin-top: 1px;
     line-height: 1.4;
   }
   /* Tearing a figure off is a separate act from showing it, so it gets its own
      target rather than a modifier key nobody would discover. */
   .mb-pop {
-    flex: none; background: none; border: 1px solid transparent; color: #6f5f55;
+    flex: none; background: none; border: 1px solid transparent; color: var(--ink-faint);
     font: inherit; font-size: 11px; padding: 0 4px; cursor: pointer;
     border-radius: 2px; line-height: 1.4;
   }
-  .mb-pop:hover { color: #45c2ca; border-color: #3a2f29; }
-  .mb-sep { height: 1px; background: #241d19; margin: 4px 0; }
+  .mb-pop:hover { color: var(--accent-lit); border-color: var(--line-edge); }
+  .mb-sep { height: 1px; background: var(--line-hair); margin: 4px 0; }
   .mb-spacer { flex: 1; }
   .mb-right {
     display: flex; align-items: center; gap: 12px; padding: 0 14px;
-    color: #6f5f55; font-size: 10.5px;
+    color: var(--ink-faint); font-size: 10.5px;
   }
-  .mb-right a { color: #8d7f74; text-decoration: none; }
-  .mb-right a:hover { color: #45c2ca; text-decoration: underline; }
+  .mb-right a { color: var(--ink-dim); text-decoration: none; }
+  .mb-right a:hover { color: var(--accent-lit); text-decoration: underline; }
 `;
 
 /**

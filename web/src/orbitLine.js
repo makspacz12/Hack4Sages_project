@@ -28,6 +28,9 @@ export function buildOrbitPoints(radius, segments = 128) {
  * @param {string} [color='#3a2f29']
  * @returns {THREE.LineLoop}
  */
+// Literal, not a CSS custom property: this colour is handed to THREE.Color,
+// which parses CSS colour SYNTAX but has no document to resolve a var() against.
+// It tracks --line-edge in theme.css by hand.
 export function createOrbitLine(radius, color = '#3a2f29') {
   const pts = buildOrbitPoints(radius);
   const geo = new THREE.BufferGeometry();

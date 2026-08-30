@@ -1,16 +1,24 @@
 /* Shared layout for grid.html and sensitivity.html */
 
+@import './theme.css';
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* Aliases onto the one token set in theme.css, imported above.
+ *
+ * This block used to be an independent palette, and it had drifted: the ground
+ * was #04060f, a blue-black, against the application's warm #14100e, and the
+ * heading colour #e8f0ff was blue-white. Two pages of the same project were
+ * literally different colours. The names are kept so the rest of this
+ * stylesheet is untouched; only their sources change. */
 :root {
-  --bg: #04060f;
-  --surface: #0a0807;
-  --border: #1e1917;
-  --accent: #2ba3ab;
-  --accent2: #fdb813;
-  --text: #cbbfb4;
-  --muted: #6b5e55;
-  --heading: #e8f0ff;
+  --bg: var(--bg-void);
+  --surface: var(--bg-panel);
+  --border: var(--line-edge);
+  --accent2: var(--warn);
+  --text: var(--ink);
+  --muted: var(--ink-faint);
+  --heading: var(--ink-bright);
 }
 
 body {

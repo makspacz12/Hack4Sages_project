@@ -23,24 +23,24 @@ const OPEN = new Map();
 const WINDOW_CSS = `
   :root { color-scheme: dark; }
   body {
-    margin: 0; background: #14100e; color: #cbbfb4;
+    margin: 0; background: var(--bg-panel); color: var(--ink);
     font-family: monospace; display: flex; flex-direction: column;
     height: 100vh; overflow: hidden;
   }
   header {
-    padding: 10px 14px; border-bottom: 1px solid #3a2f29;
+    padding: 10px 14px; border-bottom: 1px solid var(--line-edge);
     display: flex; align-items: baseline; gap: 10px; flex: none;
   }
   h1 { font-size: 13px; margin: 0; letter-spacing: 0.06em;
-       text-transform: uppercase; color: #f2ebe4; font-weight: 600; }
-  .note { font-size: 11px; color: #8d7f74; }
+       text-transform: uppercase; color: var(--ink-bright); font-weight: 600; }
+  .note { font-size: 11px; color: var(--ink-dim); }
   .plot { flex: 1 1 auto; padding: 10px 14px; min-height: 0; }
   .plot svg { display: block; }
   footer {
-    padding: 8px 14px; border-top: 1px solid #3a2f29;
-    font-size: 11px; color: #98897d; flex: none;
+    padding: 8px 14px; border-top: 1px solid var(--line-edge);
+    font-size: 11px; color: var(--ink-dim); flex: none;
   }
-  .link { color: #45c2ca; }
+  .link { color: var(--accent-lit); }
 `;
 
 function isOpen(win) {
