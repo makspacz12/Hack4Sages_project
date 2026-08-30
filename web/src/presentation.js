@@ -65,6 +65,10 @@ const CHAPTERS = [
     frame: 1,
     zoom: 1.0,
     panels: { console: false, dock: true },
+    /* The live drag. Survival factorises exactly, so moving this recomputes
+       the whole answer in the browser with no new run - which is the thing
+       nobody else can demonstrate on stage. */
+    coefficient: true,
   },
 ];
 
@@ -105,6 +109,42 @@ const STYLE = `
   }
   #chapter-hud .ch-note { font-size: 0.75rem; opacity: 0.82; line-height: 1.45; }
 
+  /* The coefficient, promoted to the stage.
+   *
+   * Chapter 5 is the live drag: c_rad spans a factor of seventeen in the
+   * literature and that becomes 43 orders of magnitude in the answer, which is
+   * the demonstration nothing else in the talk can match. It only works
+   * because survival factorises exactly, so the browser recomputes it with no
+   * new run.
+   *
+   * The control is MOVED here, not copied. Two sliders for one number can
+   * disagree, and the one on stage would be the one nobody had wired to
+   * anything. This is the same element with the same handlers, borrowed for
+   * the chapter and put back afterwards. */
+  #stage-coeff {
+    position: fixed; left: 50%; transform: translateX(-50%);
+    bottom: calc(var(--rail-h) + 5.5rem);
+    z-index: 941; display: none;
+    width: min(38rem, 82vw);
+    padding: 14px 20px 16px; border-radius: 4px;
+    background: rgba(11, 14, 20, 0.90);
+    border: 1px solid var(--scene-line);
+    font-family: var(--font-mono); color: var(--scene-ink);
+  }
+  body.presenting #stage-coeff.live { display: block; }
+  /* On the dark stage panel the dock's own ink tokens are unreadable, so the
+     borrowed control is re-inked rather than restyled. */
+  #stage-coeff .lc-coeff { display: block; padding: 0; border: 0; background: none; }
+  #stage-coeff .lc-coeff-label { font-size: 0.8125rem; color: var(--scene-ink); }
+  #stage-coeff .lc-coeff-val { color: #fff; font-size: 1rem; }
+  #stage-coeff .lc-coeff-slider { height: 1.5rem; }
+  #stage-coeff .lc-coeff-band,
+  #stage-coeff .lc-coeff-presets button { color: var(--scene-ink); opacity: 0.85; }
+  #stage-coeff .lc-coeff-num {
+    background: rgba(255,255,255,0.08); color: #fff;
+    border-color: var(--scene-line);
+  }
+
   #present-hint {
     position: fixed; right: 12px; top: calc(var(--headline-h, 0px) + 8px);
     z-index: 940; pointer-events: none;
@@ -141,6 +181,41 @@ export function initPresentation(deps = {}) {
   hint.textContent = 'P exit · 1-5 chapters';
   document.body.appendChild(hint);
 
+  const stage = document.createElement('div');
+  stage.id = 'stage-coeff';
+  document.body.appendChild(stage);
+
+  /* Borrow the coefficient control, and always give it back.
+   *
+   * The element is moved out of the analysis dock and returned to exactly the
+   * place it came from, so the dock is not left with a hole in it after a
+   * talk. Its handlers travel with it because it is the same node - a copy
+   * would be a second slider for one number, and the two could disagree. */
+  let borrowed = null;
+  let borrowedHome = null;
+
+  function borrowCoefficient(on) {
+    if (on) {
+      if (borrowed) return;
+      const el = document.querySelector('#live-charts .lc-coeff');
+      if (!el) return;
+      borrowed = el;
+      borrowedHome = { parent: el.parentNode, next: el.nextSibling, hidden: el.hidden };
+      // The dock hides it until a fragment is selected; on stage it is the
+      // whole point of the chapter, so it is shown.
+      el.hidden = false;
+      stage.appendChild(el);
+      stage.classList.add('live');
+    } else {
+      stage.classList.remove('live');
+      if (!borrowed) return;
+      borrowed.hidden = borrowedHome.hidden;
+      borrowedHome.parent.insertBefore(borrowed, borrowedHome.next);
+      borrowed = null;
+      borrowedHome = null;
+    }
+  }
+
   let active = false;
   let current = -1;
 
@@ -157,6 +232,7 @@ export function initPresentation(deps = {}) {
     deps.frameCamera?.(ch.zoom);
     deps.setConsoleVisible?.(ch.panels.console);
     deps.setDockVisible?.(ch.panels.dock);
+    borrowCoefficient(Boolean(ch.coefficient));
 
     hud.innerHTML = '';
     const num = document.createElement('span');
@@ -177,6 +253,7 @@ export function initPresentation(deps = {}) {
     document.body.classList.toggle('presenting', on);
     if (!on) {
       hud.classList.remove('live');
+      borrowCoefficient(false);
       current = -1;
       // Give the research layout its panels back, or leaving the mode strands
       // the user with a stripped UI and no obvious way to restore it.

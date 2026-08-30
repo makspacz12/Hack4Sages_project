@@ -130,3 +130,35 @@ describe('the caveat is never folded away', () => {
     for (const rule of hidden) expect(rule).not.toContain('hl-caveat');
   });
 });
+
+/**
+ * The coefficient control survives being moved.
+ *
+ * Presentation mode borrows the .lc-coeff block out of the analysis dock for
+ * the chapter built around dragging it - moved rather than copied, because two
+ * sliders for one number can disagree and the stage one would be the one wired
+ * to nothing.
+ *
+ * That broke its repaint: paintCoefficient looked the element up with
+ * panel.querySelector, which finds nothing once the element is no longer a
+ * child of the panel. The slider moved and the readout never changed, which on
+ * stage would have looked like the model itself was frozen.
+ */
+describe('the borrowed coefficient control keeps working', () => {
+  it('does not scope its repeated lookup to the dock', async () => {
+    const src = await readFile(new URL('../src/liveCharts.js', import.meta.url), 'utf8');
+    const fn = src.slice(src.indexOf('function paintCoefficient()'));
+    const body = fn.slice(0, fn.indexOf('\n  }'));
+    expect(body).not.toMatch(/panel\.querySelector\('\.lc-coeff'\)/);
+    // It must fall back to the document, wherever the element currently lives.
+    expect(src).toMatch(/document\.querySelector\('\.lc-coeff'\)/);
+  });
+
+  it('returns the control to the dock rather than leaving a hole', async () => {
+    const src = await readFile(new URL('../src/presentation.js', import.meta.url), 'utf8');
+    // The original parent and sibling are remembered so it goes back exactly
+    // where it came from.
+    expect(src).toMatch(/borrowedHome/);
+    expect(src).toMatch(/insertBefore/);
+  });
+});

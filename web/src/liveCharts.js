@@ -790,8 +790,19 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
     update(frameIndex);
   }
 
+  /* The coefficient block, wherever it currently lives.
+   *
+   * Presentation mode MOVES this element onto a stage panel for the chapter
+   * built around dragging it, rather than copying it - two sliders for one
+   * number could disagree. That means it is not always a child of the dock, so
+   * a panel-scoped lookup here silently found nothing and the control stopped
+   * repainting: the slider moved and the readout never changed. */
+  function coeffBox() {
+    return panel.querySelector('.lc-coeff') || document.querySelector('.lc-coeff');
+  }
+
   function paintCoefficient() {
-    const box = panel.querySelector('.lc-coeff');
+    const box = coeffBox();
     if (!box) return;
     // Hidden entirely for replays generated before the cumulative dose was
     // exported: a control that silently does nothing is worse than no control.
