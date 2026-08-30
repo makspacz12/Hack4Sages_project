@@ -57,6 +57,7 @@ const STYLE = `
   .hl-read b { color: var(--ink-bright); font-weight: normal; }
   .hl-warn { color: var(--warn); }
   .hl-note { font-size: 0.65625rem; color: var(--ink-dim); margin-top: 4px; line-height: 1.45; }
+  .hl-caveat { font-size: 0.65625rem; color: var(--ink-dim); margin-top: 4px; line-height: 1.45; }
 
   /* The prose folds away.
    *
@@ -108,6 +109,7 @@ export function headlineBanner(container, simData, bands) {
       <div class="hl-read"></div>
       <div class="hl-note"></div>
     </div>
+    <div class="hl-caveat"></div>
     <button type="button" class="hl-more" aria-expanded="true"></button>
   `;
   container.appendChild(root);
@@ -162,10 +164,16 @@ export function headlineBanner(container, simData, bands) {
     root.querySelector('.hl-note').innerHTML =
       `Sterilised (N/N₀ = 10⁻⁶) after <b>${fmtYears(steril.fast)}</b> to`
       + ` <b>${fmtYears(steril.slow)}</b>, against transfer times of tens of Myr`
-      + ` (Belbruno et al. 2012). `
-      + `<span class="hl-warn">This is a range of answers consistent with the published`
-      + ` literature, not a confidence interval</span> — c_rad is a fixed number we do`
-      + ` not know, not a sampled one.`;
+      + ` (Belbruno et al. 2012).`;
+
+    // The caveat is deliberately NOT inside the collapsible prose. Folding the
+    // band away is a layout convenience; hiding the statement that this range
+    // is not a confidence interval would let the headline number be read as
+    // one, which is the single most damaging misreading available here.
+    root.querySelector('.hl-caveat').innerHTML =
+      `<span class="hl-warn">A range of answers consistent with the published`
+      + ` literature, not a confidence interval</span> — c_rad is a fixed number`
+      + ` we do not know, not a sampled one.`;
   }
 
   /* Fold the prose away.

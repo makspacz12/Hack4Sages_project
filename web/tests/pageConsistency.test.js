@@ -99,3 +99,34 @@ describe('panel offsets track their tokens', () => {
     }
   });
 });
+
+/**
+ * What may never be hidden.
+ *
+ * Folding the headline prose away is a layout convenience. The statement that
+ * the range is not a confidence interval is not prose - it is the guard
+ * against the single most damaging misreading available here, where a reader
+ * takes 43 orders of magnitude as an uncertainty band on a measured result
+ * rather than the span of answers the published literature permits.
+ */
+describe('the caveat is never folded away', () => {
+  it('lives outside the collapsible prose', async () => {
+    const src = await readFile(
+      new URL('../src/charts/headlineBanner.js', import.meta.url), 'utf8');
+    // It must be its own element, not a child of the block that collapses.
+    expect(src).toMatch(/class="hl-caveat"/);
+    const proseBlock = src.slice(
+      src.indexOf('<div class="hl-prose">'),
+      src.indexOf('</div>', src.indexOf('<div class="hl-note">')),
+    );
+    expect(proseBlock).not.toContain('hl-caveat');
+    expect(src).toMatch(/not a confidence interval/);
+  });
+
+  it('is not hidden by presentation mode either', async () => {
+    const src = await readFile(new URL('../src/presentation.js', import.meta.url), 'utf8');
+    // Presentation mode hides .hl-prose and .hl-more; it must not hide this.
+    const hidden = src.match(/body\.presenting[^{]*\{\s*display:\s*none[^}]*\}/g) ?? [];
+    for (const rule of hidden) expect(rule).not.toContain('hl-caveat');
+  });
+});

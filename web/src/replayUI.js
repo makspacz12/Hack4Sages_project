@@ -240,7 +240,18 @@ export function initReplayUI(ctrl, onFrameChange, opts = {}) {
   });
   smoothChk.addEventListener('keydown', e => e.stopPropagation());
   const smoothLbl = document.createElement('span');
-  smoothLbl.textContent = 'Smoothing';
+  // "Smoothing" said nothing about what is being done to the data. The control
+  // decides whether the scene shows only the sampled positions or advances
+  // each body along its own orbit between them, and a viewer is entitled to
+  // know which they are looking at - undisclosed interpolation is the thing
+  // that would actually be dishonest here.
+  smoothLbl.textContent = 'Orbital motion';
+  smoothWrap.title =
+    'Positions are sampled every 20 years. With this on, each body is advanced '
+    + 'along its own osculating orbit between samples - the same curve the '
+    + 'scene already draws. Measured against the integration, that is accurate '
+    + 'to about 0.03 AU over one gap, against the 2.5 AU the body would '
+    + 'otherwise appear to jump. Off, only the sampled positions are shown.';
   smoothWrap.append(smoothChk, smoothLbl);
 
   // UV radiation checkbox
