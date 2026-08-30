@@ -13,25 +13,36 @@ import * as THREE from 'three';
 export const PLANET_VERT = /* glsl */`
   varying vec3 vNormal;
   varying vec3 vWorldPos;
+  varying vec2 vUv;
 
   void main() {
     vec4 worldPos = modelMatrix * vec4(position, 1.0);
     vWorldPos     = worldPos.xyz;
     vNormal       = normalize(normalMatrix * normal);
+    vUv           = uv;
     gl_Position   = projectionMatrix * viewMatrix * worldPos;
   }
 `;
 
 export const PLANET_FRAG = /* glsl */`
-  uniform vec3  uColor;
+  uniform vec3      uColor;
+  uniform sampler2D uMap;
+  uniform float     uHasMap;
   uniform float uTime;
   uniform float uHeatIntensity;   // 0 = cool, 1 = burning
 
   varying vec3 vNormal;
   varying vec3 vWorldPos;
+  varying vec2 vUv;
 
   void main() {
-    // Sun always sits at world origin.
+    // Surface map where one is loaded, flat colour otherwise. The map is
+    // MULTIPLIED by uColor rather than replacing it, so a body keeps its
+    // identity tint and a failed texture load degrades to exactly what the
+    // scene looked like before textures existed.
+    vec3 base = uHasMap > 0.5
+      ? texture2D(uMap, vUv).rgb * uColor * 1.9
+      : uColor;
     vec3 toSun   = normalize(-vWorldPos);
     float diff   = max(dot(vNormal, toSun), 0.0);
 
@@ -59,7 +70,7 @@ export const PLANET_FRAG = /* glsl */`
     rim           = pow(rim, 2.8) * 0.50;
 
     // Sunlight now dominates rather than merely tipping the balance.
-    vec3 litColor = uColor * (ambient + diff * 1.15 + fill) + uColor * spec + vec3(rim * 0.30);
+    vec3 litColor = base * (ambient + diff * 1.15 + fill) + base * spec + vec3(rim * 0.30);
 
     // ── UV heat / burning effect ───────────────────────────
     if (uHeatIntensity > 0.001) {
@@ -90,21 +101,26 @@ export const PLANET_FRAG = /* glsl */`
 export const SUN_VERT = /* glsl */`
   varying vec3 vNormal;
   varying vec3 vWorldPos;
+  varying vec2 vUv;
 
   void main() {
     vec4 worldPos = modelMatrix * vec4(position, 1.0);
     vWorldPos     = worldPos.xyz;
     vNormal       = normalize(normalMatrix * normal);
+    vUv           = uv;
     gl_Position   = projectionMatrix * viewMatrix * worldPos;
   }
 `;
 
 export const SUN_FRAG = /* glsl */`
-  uniform vec3  uColor;
-  uniform float uTime;
+  uniform vec3      uColor;
+  uniform sampler2D uMap;
+  uniform float     uHasMap;
+  uniform float     uTime;
 
   varying vec3 vNormal;
   varying vec3 vWorldPos;
+  varying vec2 vUv;
 
   void main() {
     vec3 viewDir = normalize(cameraPosition - vWorldPos);
@@ -116,7 +132,8 @@ export const SUN_FRAG = /* glsl */`
     // Slow pulse for living-star feel.
     float pulse  = 0.93 + 0.07 * sin(uTime * 1.2);
 
-    vec3 col     = uColor * pulse + uColor * corona;
+    vec3 sunBase = uHasMap > 0.5 ? texture2D(uMap, vUv).rgb * uColor * 2.1 : uColor;
+    vec3 col     = sunBase * pulse + sunBase * corona;
     gl_FragColor = vec4(col, 1.0);
   }
 `;
@@ -129,12 +146,14 @@ export const SUN_FRAG = /* glsl */`
  * @param {string} colorHex  e.g. '#2E86AB'
  * @returns {THREE.ShaderMaterial}
  */
-export function createPlanetMaterial(colorHex) {
+export function createPlanetMaterial(colorHex, map = null) {
   return new THREE.ShaderMaterial({
     vertexShader:   PLANET_VERT,
     fragmentShader: PLANET_FRAG,
     uniforms: {
       uColor:         { value: new THREE.Color(colorHex) },
+      uMap:           { value: map },
+      uHasMap:        { value: map ? 1 : 0 },
       uTime:          { value: 0 },
       uHeatIntensity: { value: 0 },
     },
@@ -147,13 +166,15 @@ export function createPlanetMaterial(colorHex) {
  * @param {string} colorHex  e.g. '#FDB813'
  * @returns {THREE.ShaderMaterial}
  */
-export function createSunMaterial(colorHex) {
+export function createSunMaterial(colorHex, map = null) {
   return new THREE.ShaderMaterial({
     vertexShader:   SUN_VERT,
     fragmentShader: SUN_FRAG,
     uniforms: {
-      uColor: { value: new THREE.Color(colorHex) },
-      uTime:  { value: 0 },
+      uColor:  { value: new THREE.Color(colorHex) },
+      uMap:    { value: map },
+      uHasMap: { value: map ? 1 : 0 },
+      uTime:   { value: 0 },
     },
   });
 }

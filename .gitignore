@@ -65,3 +65,7 @@ popout.png
 /*.png
 /*.yml
 /snap-*.md
+
+# Full-resolution source textures. Only the prepared 512px set is served;
+# regenerate with `cd web && node tools/prepare_textures.mjs`.
+web/public/textures/src/

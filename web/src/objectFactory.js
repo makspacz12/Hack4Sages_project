@@ -5,6 +5,7 @@
 
 import * as THREE from 'three';
 import { createPlanetMaterial, createSunMaterial } from './shaderMaterial.js';
+import { loadTexture, textureFor } from './planetTextures.js';
 
 /**
  * Create a sphere geometry for a given radius and detail level.
@@ -27,8 +28,12 @@ export function createGeometry(radius, segments = 32) {
  * @param {boolean} emissive  true for the sun / stars
  * @returns {THREE.ShaderMaterial}
  */
-export function createMaterial(color, emissive) {
-  return emissive ? createSunMaterial(color) : createPlanetMaterial(color);
+export function createMaterial(color, emissive, id = null) {
+  // The map is looked up by body id, so only the Sun and the eight planets get
+  // one; the fifty Gaia stars and the fragments keep their flat colours, which
+  // is correct - there is no photograph of a rock this model invented.
+  const map = loadTexture(textureFor(id));
+  return emissive ? createSunMaterial(color, map) : createPlanetMaterial(color, map);
 }
 
 /**
@@ -38,11 +43,13 @@ export function createMaterial(color, emissive) {
  */
 export function createSphereMesh(body) {
   const geo = createGeometry(body.radius);
-  const mat = createMaterial(body.color, body.emissive);
+  const mat = createMaterial(body.color, body.emissive, body.id);
   const mesh = new THREE.Mesh(geo, mat);
   mesh.rotation.z = THREE.MathUtils.degToRad(body.tilt ?? 0);
-  mesh.castShadow = !body.emissive;
-  mesh.receiveShadow = !body.emissive;
+  // Shadow flags are left off: no light in this scene casts, and the planet
+  // material is a raw ShaderMaterial that never reads a shadow map.
+  mesh.castShadow = false;
+  mesh.receiveShadow = false;
   mesh.name = body.id;
   return mesh;
 }
