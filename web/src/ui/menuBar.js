@@ -32,6 +32,19 @@ const STYLE = `
     font-size: 0.71875rem; user-select: none;
   }
   .mb-menu { position: relative; }
+  /* Pushed to the right-hand end of the bar; the menus keep the left. */
+  .mb-docked {
+    margin-left: auto; display: flex; align-items: center;
+    gap: var(--sp-2); padding: 0 var(--sp-3);
+  }
+  /* The adopted buttons were positioned against the viewport. Inside the bar
+     they are ordinary flex children, so that has to be undone explicitly. */
+  .mb-docked > button {
+    position: static !important;
+    top: auto !important; right: auto !important;
+    left: auto !important; bottom: auto !important;
+    margin: 0 !important;
+  }
   .mb-top {
     background: none; border: none; color: var(--ink); font: inherit;
     padding: 7px 13px; cursor: pointer; border-right: 1px solid var(--line-hair);
@@ -329,6 +342,35 @@ export function menuBar(container, deps) {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeAll();
   });
+
+  /* Adopt the panel toggles into the bar.
+   *
+   * They were fixed-position buttons floating ON the 3D scene - "Run console"
+   * top left, "Objects" centre, "ANALYSIS" top right - so the three of them
+   * covered part of the one thing the page exists to show, and duplicated
+   * entries this bar already carries. Moving them here keeps every toggle in
+   * one row and hands the scene back its top edge.
+   *
+   * They are moved rather than deleted because each one owns the click handler
+   * that drives its panel; the menu items delegate to these buttons. Relocating
+   * preserves that wiring exactly, where removing them would strand the panels
+   * whose APIs expose no visibility toggle of their own.
+   */
+  const dockedToggles = document.createElement('div');
+  dockedToggles.className = 'mb-docked';
+  root.appendChild(dockedToggles);
+
+  const adopt = () => {
+    for (const id of ['btn-run-console', 'obj-search-toggle', 'btn-live-charts']) {
+      const btn = document.getElementById(id);
+      if (btn && btn.parentElement !== dockedToggles) dockedToggles.appendChild(btn);
+    }
+  };
+  // The buttons mount at different times, so adopt on the next frame as well as
+  // now; a button that arrives later is picked up rather than left on the scene.
+  adopt();
+  if (typeof requestAnimationFrame === 'function') requestAnimationFrame(adopt);
+  else setTimeout(adopt, 0);
 
   container.appendChild(root);
 

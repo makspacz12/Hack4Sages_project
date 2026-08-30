@@ -57,6 +57,24 @@ const STYLE = `
   .hl-read b { color: var(--ink-bright); font-weight: normal; }
   .hl-warn { color: var(--warn); }
   .hl-note { font-size: 0.65625rem; color: var(--ink-dim); margin-top: 4px; line-height: 1.45; }
+
+  /* The prose folds away.
+   *
+   * The band was 153px tall - 18% of a 1280x800 projector - and two of those
+   * rows are sentences. They are worth reading once and are dead weight for
+   * the rest of a talk, while the number and the bar above them are the point.
+   * Collapsed, the band is about half the height and the scene gets the
+   * difference. The state persists, so a presenter who folds it once is not
+   * fighting it at every reload. */
+  .hl-more {
+    display: block; margin-top: 5px; padding: 0;
+    background: none; border: 0; cursor: pointer;
+    font-family: inherit; font-size: 0.59375rem; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--ink-faint);
+  }
+  .hl-more:hover, .hl-more:focus-visible { color: var(--accent); }
+  .hl-more:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .hl-prose[hidden] { display: none; }
 `;
 
 /**
@@ -86,8 +104,11 @@ export function headlineBanner(container, simData, bands) {
       <div class="hl-end hl-end--lo"></div>
       <div class="hl-end hl-end--hi"></div>
     </div>
-    <div class="hl-read"></div>
-    <div class="hl-note"></div>
+    <div class="hl-prose">
+      <div class="hl-read"></div>
+      <div class="hl-note"></div>
+    </div>
+    <button type="button" class="hl-more" aria-expanded="true"></button>
   `;
   container.appendChild(root);
 
@@ -146,6 +167,36 @@ export function headlineBanner(container, simData, bands) {
       + ` literature, not a confidence interval</span> — c_rad is a fixed number we do`
       + ` not know, not a sampled one.`;
   }
+
+  /* Fold the prose away.
+   *
+   * Collapsed by default on a short screen, because that is where the band's
+   * 153px hurt most - a 1280x800 projector gave it 18% of the height for two
+   * sentences. On a tall display there is room, so it starts open. An explicit
+   * choice always wins over both, and persists. */
+  const PROSE_KEY = 'lp.headlineProse';
+  const prose = root.querySelector('.hl-prose');
+  const moreBtn = root.querySelector('.hl-more');
+
+  function readStoredProse() {
+    try {
+      const v = localStorage.getItem(PROSE_KEY);
+      return v === null ? null : v === 'open';
+    } catch { return null; }   // private windows throw on access
+  }
+
+  function setProse(open) {
+    prose.hidden = !open;
+    moreBtn.setAttribute('aria-expanded', String(open));
+    moreBtn.textContent = open ? 'Hide detail' : 'What does this mean?';
+    try { localStorage.setItem(PROSE_KEY, open ? 'open' : 'closed'); } catch { /* ignore */ }
+  }
+
+  const stored = readStoredProse();
+  setProse(stored === null
+    ? (typeof window !== 'undefined' && window.innerHeight >= 900)
+    : stored);
+  moreBtn.addEventListener('click', () => setProse(prose.hidden));
 
   paint();
   return { root, paint, setHorizon(years) {
