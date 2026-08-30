@@ -232,7 +232,7 @@ export const ANSWER_SURFACE_STYLE = `
   .as-axis-label {
     fill: var(--ink-dim); font-size: 9.5px; font-family: inherit; text-anchor: middle;
   }
-  .as-dot { stroke: rgba(18,16,14,0.9); stroke-width: 1; }
+  .as-dot { stroke: var(--bg-panel); stroke-width: 1; }
   .as-current { stroke: var(--accent-lit); stroke-width: 1.5; stroke-dasharray: 5 3; }
   /* Dim the rest only once something is actually selected. */
   .as-has-sel .as-dot { opacity: 0.32; }

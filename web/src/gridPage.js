@@ -25,7 +25,7 @@ function injectPlotStyles() {
     #grid-plot .hm-cell { cursor: crosshair; }
     #grid-plot .hm-tooltip {
       position: absolute; pointer-events: none; z-index: 5;
-      background: rgba(20,16,14,.94); border: 1px solid var(--line-edge);
+      background: var(--bg-panel); border: 1px solid var(--line-edge);
       border-radius: 5px; padding: 8px 10px; font-family: monospace;
       font-size: 11px; color: var(--ink); line-height: 1.5;
     }

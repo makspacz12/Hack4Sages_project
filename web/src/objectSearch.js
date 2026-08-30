@@ -17,7 +17,7 @@ function injectStyles() {
       top: calc(var(--headline-h, 0px) + var(--menubar-h, 0px) + 52px); right: 300px;
       width: 240px;
       max-height: calc(100vh - 120px);
-      background: rgba(20, 16, 14, 0.94);
+      background: var(--bg-panel);
       border: 1px solid var(--line-edge);
       border-radius: 8px;
       display: flex; flex-direction: column;
@@ -77,7 +77,7 @@ function injectStyles() {
       position: fixed;
       /* Below the headline band; see controlPanel.js for the same offset. */
       top: calc(var(--headline-h, 0px) + var(--menubar-h, 0px) + 14px); right: 300px;
-      background: rgba(20,16,14,0.92);
+      background: var(--bg-panel);
       border: 1px solid var(--line-edge);
       border-radius: 6px;
       color: var(--ink); font-family: monospace; font-size: 13px;

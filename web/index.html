@@ -7,21 +7,10 @@
     <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%2215%22%20fill%3D%22%233a2b24%22/%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%226%22%20fill%3D%22%232ba3ab%22/%3E%3C/svg%3E">
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { background: #000; overflow: hidden; }
-      canvas { display: block; }
-
-      #ui {
-        position: fixed;
-        top: 52px;
-        left: 16px;
-        color: #ccc;
-        font-family: monospace;
-        font-size: 13px;
-        pointer-events: none;
-        user-select: none;
-      }
-      #ui h1 { color: #FDB813; margin-bottom: 8px; font-size: 16px; }
-      #ui p  { margin: 2px 0; }
+      /* The page ground is now light; the 3D canvas is the one dark surface,
+         so anything floating ON it takes scene ink rather than page ink. */
+      body { background: var(--bg-void); overflow: hidden; }
+      canvas { display: block; background: var(--scene); }
 
       #focus-hud {
         position: fixed;
@@ -31,40 +20,40 @@
         display: none;
         align-items: center;
         gap: 8px;
-        font-family: monospace;
+        font-family: var(--font-mono);
         font-size: 14px;
       }
       #focus-hud.visible { display: flex; }
       #focus-label {
-        color: #cbbfb4;
-        background: rgba(8,6,5,0.68);
+        color: var(--scene-ink);
+        background: rgba(11, 10, 9, 0.72);
         padding: 4px 14px;
         border-radius: 4px;
-        border: 1px solid #334;
+        border: 1px solid var(--scene-line);
         pointer-events: none;
       }
       #follow-btn {
-        background: rgba(8,6,5,0.68);
-        border: 1px solid #334;
+        background: rgba(11, 10, 9, 0.72);
+        border: 1px solid var(--scene-line);
         border-radius: 4px;
-        color: #6b5e55;
+        color: var(--scene-ink);
         cursor: pointer;
         font-size: 15px;
         padding: 3px 8px;
         line-height: 1;
         transition: background .15s, color .15s, border-color .15s;
       }
-      #follow-btn:hover { background: #1e1917; color: #cbbfb4; }
-      #follow-btn.orbit  { background: #2a2320; border-color: #4fa; color: #6fd; }
-      #follow-btn.active { background: #2a2320; border-color: #5af; color: #7cf; }
+      #follow-btn:hover { border-color: var(--accent-lit); }
+      #follow-btn.orbit,
+      #follow-btn.active { border-color: var(--accent-lit); color: var(--accent-lit); }
 
       #speed-control {
         position: fixed;
         bottom: 80px;       /* sit above replay bar */
         left: 50%;
         transform: translateX(-50%);
-        color: #aaa;
-        font-family: monospace;
+        color: var(--scene-ink);
+        font-family: var(--font-mono);
         font-size: 13px;
         display: none;       /* hidden unless ?live mode activates it */
         align-items: center;
@@ -77,13 +66,10 @@
   </head>
   <body>
 
-    <div id="ui">
-      <h1>Cosmos 3D – Visualizer</h1>
-      <p>LMB drag – rotate &nbsp;|&nbsp; Scroll – zoom</p>
-      <p>RMB drag – pan &nbsp;|&nbsp; Click – focus</p>
-      <p>Esc – clear focus</p>
-      <p style="margin-top:6px;color:#667">?live – orbital mode</p>
-    </div>
+    <!-- The template's own header used to sit here: a product name this is no
+         longer called, plus four lines of mouse instructions. The workspace
+         menu carries navigation now and the run console carries the name, so
+         the only thing this added was a wrong title over the scene. -->
 
     <div id="focus-hud">
       <div id="focus-label"></div>

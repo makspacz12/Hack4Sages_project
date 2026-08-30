@@ -7,10 +7,10 @@
 export const TYPE_ORDER = ['star', 'planet', 'moon', 'asteroid'];
 
 export const TYPE_META = {
-  star:     { icon: '★', color: '#ffd97a' },
-  planet:   { icon: '●', color: '#7ac3ff' },
+  star:     { icon: '★', color: 'var(--warn)' },
+  planet:   { icon: '●', color: 'var(--data-selected)' },
   moon:     { icon: '◌', color: 'var(--ink-dim)' },
-  asteroid: { icon: '·', color: '#aabb88' },
+  asteroid: { icon: '·', color: 'var(--ink-dim)' },
 };
 
 /**

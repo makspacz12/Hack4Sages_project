@@ -27,42 +27,79 @@
  *     plus the one teal.
  */
 
+/* ── The light ground ──────────────────────────────────────────────────────
+ *
+ * The application reads on paper, not on a night sky.
+ *
+ * Three reasons it moved. The audience is scientific and everything they lift
+ * off this screen into a slide or a paper lands on white. The venue is a
+ * projector, whose real contrast in a lit room is a few hundred to one and
+ * which raises the black level — precisely destroying the low tones a dark
+ * scene of small dots depends on. And the visual language this was asked to
+ * resemble, Mathematica and Wolfram Alpha, is overwhelmingly light: you cannot
+ * look like it on #12100e.
+ *
+ * The 3D scene stays dark, and that is a decision rather than an exception.
+ * Space is not white, and a chart of it on paper would be a caricature. So the
+ * scene is an inset with its own ground and a hairline edge, exactly as
+ * Wolfram insets a graphic inside a Manipulate panel. The rule the reader
+ * learns in two seconds: the dark rectangle is the observation, everything
+ * around it is the instrument.
+ *
+ * Every contrast below is measured, not judged, against --bg #FBFAF8:
+ *   --ink-bright 17.92:1   --ink 11.35:1   --ink-dim 5.45:1
+ *   --ink-faint   3.28:1 (non-text only)  --accent 4.74:1
+ *   --warn        4.50:1   --bad 6.27:1
+ */
 :root {
-  /* Surfaces, darkest to lightest */
-  --bg-void:      #0a0807;   /* basalt - the 3D scene behind everything */
-  --bg-panel:     #14100e;   /* panel body */
-  --bg-raised:    #1e1917;   /* inputs, hovered rows */
-  --bg-sunken:    #0d0a09;   /* plot wells, code */
+  color-scheme: light;
 
-  /* Rules */
-  --line-hair:    #2a2320;   /* internal separators */
-  --line-edge:    #3a2f29;   /* panel borders */
-  --line-strong:  #57453b;   /* focused / active */
+  /* Surfaces. Warm white rather than #FFF: a pure mid-grey or pure white
+     reads as unconsidered, and the slight warmth keeps continuity with the
+     iron-oxide data hue. */
+  --bg-void:      #FBFAF8;   /* page ground */
+  --bg-panel:     #FFFFFF;   /* panel body */
+  --bg-raised:    #F5F4F1;   /* inputs, hovered rows, band headers */
+  --bg-sunken:    #F7F7F6;   /* code blocks, plot wells */
 
-  /* Ink */
-  --ink-bright:   #f2ebe4;   /* regolith, lit */
-  --ink:          #cbbfb4;
-  --ink-dim:      #98897d;
-  --ink-faint:    #6b5e55;
+  /* The one dark surface: the 3D scene, and anything drawn on top of it. */
+  --scene:        #0B0A09;
+  --scene-ink:    #E8E4DE;
+  --scene-line:   #2A2320;
 
-  /* Accent - one only. Cool, so the warm band stays free for data. */
-  --accent:       #2ba3ab;
-  --accent-lit:   #45c2ca;
-  --accent-dim:   #1d6f75;
-  --accent-glow:  rgba(43, 163, 171, 0.15);
+  /* Rules. Alpha rather than flat greys, so they sit correctly on both the
+     page ground and a white panel without a second set of values. */
+  --line-hair:    rgba(0, 0, 0, 0.08);
+  --line-edge:    rgba(0, 0, 0, 0.14);
+  --line-strong:  #8F8A83;
 
-  /* Attention. There is no separate "ok" colour: the accent already means the
-     instrument is nominal, which keeps green out of the way of the teal. */
-  --warn:         #bfa81a;
-  --bad:          #bf3a6e;
+  /* Ink, four levels. --ink-faint is below 4.5:1 and is therefore for ticks,
+     hairlines and rules only — never for text. */
+  --ink-bright:   #14120F;
+  --ink:          #3A3733;
+  --ink-dim:      #6B6660;
+  --ink-faint:    #8F8A83;
 
-  /* Data. Individual fragments and their mean are the same quantity, so they
-     share one hue at two emphases rather than reading as two categories. */
-  --data-trace:    #e2683c;   /* iron oxide, drawn faint */
-  --data-mean:     #f2ebe4;   /* the aggregate, drawn bright */
-  --data-selected: #45c2ca;   /* what you are pointing at */
+  /* Accent. Wolfram's section-heading orange, darkened until it clears 4.5:1
+     for body text; the published #D96500 measures 3.6:1 here and fails. The
+     lit variant is for filled buttons, where the contrast that matters is
+     white-on-accent, and for the dark scene inset where it reads 6.4:1. */
+  --accent:       #B85209;
+  --accent-lit:   #E8700F;
+  --accent-dim:   #C98A52;
+  --accent-glow:  rgba(232, 112, 15, 0.10);
 
-  /* Type */
+  /* Attention. */
+  --warn:         #9A6B00;
+  --bad:          #B3261E;
+
+  /* Data. Okabe & Ito, darkened where the published values are too light to
+     hold 3:1. Validated in both grounds; see liveCharts.js for the measured
+     separations and the one residual under tritanopia. */
+  --data-trace:    #D55E00;
+  --data-mean:     #14120F;
+  --data-selected: #0072B2;
+
   --font-ui: ui-sans-serif, system-ui, "Segoe UI", Inter, Roboto, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, "Cascadia Mono", Menlo, monospace;
 

@@ -26,7 +26,7 @@ const STYLE = `
     position: fixed; left: 0; right: 0; z-index: 930;
     top: var(--headline-h, 0px);
     display: flex; align-items: stretch; gap: 0;
-    background: rgba(14, 12, 10, 0.97);
+    background: var(--bg-panel);
     border-bottom: 1px solid var(--line-edge);
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 11.5px; user-select: none;
@@ -41,7 +41,7 @@ const STYLE = `
   .mb-drop {
     position: absolute; top: 100%; left: 0; min-width: 310px;
     background: var(--bg-panel); border: 1px solid var(--line-edge); border-top: none;
-    box-shadow: 0 10px 28px rgba(0,0,0,.6); padding: 4px 0; z-index: 931;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12); padding: 4px 0; z-index: 931;
   }
   .mb-drop[hidden] { display: none; }
   .mb-group {

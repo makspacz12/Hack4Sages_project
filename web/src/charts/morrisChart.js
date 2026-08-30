@@ -274,7 +274,7 @@ export const MORRIS_STYLE = `
   .mo-axis-label {
     fill: var(--ink-dim); font-size: 9.5px; font-family: inherit; text-anchor: middle;
   }
-  .mo-dot { stroke: rgba(18,16,14,0.9); stroke-width: 1; }
+  .mo-dot { stroke: var(--bg-panel); stroke-width: 1; }
   .mo-dot--sig { fill: var(--ink-bright); }
   /* Hollow when Morris's own wedge cannot call the mean effect non-zero. */
   .mo-dot--ns { fill: none; stroke: var(--ink-dim); stroke-width: 1.4; }

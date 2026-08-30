@@ -205,7 +205,7 @@ function injectStyles() {
   s.textContent = `
     .lc-coeff {
       padding: 8px 10px; border-bottom: 1px solid var(--line-edge);
-      background: rgba(12, 10, 9, 0.6);
+      background: var(--bg-raised);
     }
     .lc-coeff-label {
       display: block; font-size: 10px; letter-spacing: 0.04em;
@@ -226,7 +226,7 @@ function injectStyles() {
     .lc-preset:focus-visible { outline: 2px solid var(--accent-lit); outline-offset: 1px; }
     .lc-coeff-num {
       width: 100%; box-sizing: border-box; margin: 4px 0 5px;
-      background: rgba(0,0,0,.3); border: 1px solid var(--line-edge); color: var(--ink-bright);
+      background: var(--bg-sunken); border: 1px solid var(--line-edge); color: var(--ink-bright);
       font-family: inherit; font-size: 11px; padding: 3px 6px; border-radius: 2px;
     }
     .lc-coeff-num:focus { outline: none; border-color: var(--accent-lit); }
@@ -253,7 +253,7 @@ function injectStyles() {
     #live-charts {
       position: fixed; top: 0; right: 0; bottom: 72px;
       width: 330px; z-index: 860;
-      background: rgba(20, 16, 14, 0.95);
+      background: var(--bg-panel);
       border-left: 1px solid var(--line-edge);
       font-family: monospace; color: var(--ink);
       display: flex; flex-direction: column;
@@ -264,7 +264,7 @@ function injectStyles() {
     #live-charts .lc-head {
       display: flex; align-items: center; justify-content: space-between;
       padding: 10px 12px; border-bottom: 1px solid var(--line-edge);
-      background: rgba(30, 22, 18, .55); flex: 0 0 auto;
+      background: var(--bg-raised); flex: 0 0 auto;
     }
     #live-charts .lc-title {
       font-size: 12px; font-weight: bold; color: var(--accent); letter-spacing: .08em;
@@ -331,7 +331,7 @@ function injectStyles() {
       position: absolute; pointer-events: none; z-index: 5;
       background: var(--bg-raised); border: 1px solid var(--line-strong); border-radius: 3px;
       padding: 6px 9px; font-size: 11px; color: var(--ink-bright);
-      box-shadow: 0 6px 20px rgba(0,0,0,.6); white-space: nowrap;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12); white-space: nowrap;
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     }
     #live-charts .tt-head, .lc-modal .tt-head { color: var(--ink-dim); margin-bottom: 3px; }
@@ -344,13 +344,13 @@ function injectStyles() {
     /* ── Enlarged view ── */
     .lc-modal {
       position: fixed; inset: 0; z-index: 1000;
-      background: rgba(6, 5, 4, .84);
+      background: var(--bg-panel);
       display: flex; align-items: center; justify-content: center; padding: 40px;
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     }
     .lc-modal-card {
       background: var(--bg-panel); border: 1px solid var(--line-strong); border-radius: 4px;
-      width: min(1000px, 92vw); box-shadow: 0 24px 80px rgba(0,0,0,.7);
+      width: min(1000px, 92vw); box-shadow: 0 24px 80px rgba(0, 0, 0, 0.16);
     }
     .lc-modal-head {
       display: flex; align-items: flex-start; justify-content: space-between;
@@ -382,7 +382,7 @@ function injectStyles() {
 
     #btn-live-charts {
       position: fixed; top: 14px; right: 14px; z-index: 861;
-      background: rgba(20, 16, 14, 0.86); border: 1px solid var(--line-edge);
+      background: var(--bg-raised); border: 1px solid var(--line-edge);
       color: var(--accent); font-family: monospace; font-size: 13px; font-weight: bold;
       letter-spacing: .1em; padding: 6px 14px; border-radius: 6px; cursor: pointer;
     }

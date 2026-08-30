@@ -116,7 +116,7 @@ function injectStyles() {
     #run-console .rc-num:focus {
       outline: none;
       border-color: var(--accent);
-      background: rgba(0, 0, 0, 0.35);
+      background: var(--bg-sunken);
     }
     /* Not a number: keep what was typed so it can be corrected, and say so. */
     #run-console .rc-num.invalid {

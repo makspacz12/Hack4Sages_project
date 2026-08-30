@@ -33,7 +33,7 @@ function injectStyles() {
       position: fixed;
       bottom: 0; left: 0; right: 0;
       display: flex; flex-direction: column; gap: 5px;
-      background: rgba(20, 16, 14, 0.92);
+      background: var(--bg-panel);
       border-top: 1px solid var(--line-edge);
       padding: 7px 20px 10px;
       font-family: monospace; font-size: 13px; color: var(--ink);
@@ -50,12 +50,14 @@ function injectStyles() {
     }
     #replay-bar .rb-btns { display: flex; gap: 4px; align-items: center; }
     #replay-bar button {
-      background: var(--bg-raised); color: #dde; border: 1px solid var(--line-edge);
+      background: var(--bg-raised); color: var(--ink); border: 1px solid var(--line-edge);
       border-radius: 5px; padding: 4px 10px; cursor: pointer;
       font-size: 17px; line-height: 1; min-width: 36px;
     }
     #replay-bar button:hover { background: var(--line-hair); }
-    #replay-bar button.rb-active { background: var(--line-edge); border-color: var(--accent-lit); color: #7cf; }
+    #replay-bar button.rb-active {
+      background: var(--accent-glow); border-color: var(--accent); color: var(--accent);
+    }
     #replay-bar .rb-meta {
       display: flex; align-items: center; gap: 16px;
       font-size: 12px; color: var(--ink-dim);
@@ -65,7 +67,7 @@ function injectStyles() {
       display: flex; align-items: center; gap: 6px; white-space: nowrap;
     }
     #replay-bar .rb-sps input[type=number] {
-      width: 58px; background: var(--bg-sunken); color: var(--accent-lit);
+      width: 58px; background: var(--bg-sunken); color: var(--ink);
       border: 1px solid var(--line-edge); border-radius: 4px;
       padding: 2px 5px; font-family: monospace; font-size: 13px; text-align: right;
     }
@@ -240,7 +242,7 @@ export function initReplayUI(ctrl, onFrameChange, opts = {}) {
   // UV radiation checkbox
   const uvWrap = document.createElement('label');
   uvWrap.className = 'rb-smooth';
-  uvWrap.style.color = '#bb88ff';
+  uvWrap.style.color = 'var(--accent)';
   const uvChk  = document.createElement('input');
   uvChk.type    = 'checkbox';
   uvChk.checked = false;
@@ -253,7 +255,7 @@ export function initReplayUI(ctrl, onFrameChange, opts = {}) {
   // Comet trails checkbox
   const trailWrap = document.createElement('label');
   trailWrap.className = 'rb-smooth';
-  trailWrap.style.color = 'var(--accent-lit)';
+  trailWrap.style.color = 'var(--accent)';
   const trailChk = document.createElement('input');
   trailChk.type    = 'checkbox';
   trailChk.checked = false;

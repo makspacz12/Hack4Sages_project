@@ -101,7 +101,7 @@ const STYLE = `
   .pv-k { color: var(--ink-dim); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; }
   .pv-v { color: var(--ink-bright); font-variant-numeric: tabular-nums; word-break: break-all; }
   .pv-repro {
-    margin-top: 8px; background: rgba(0,0,0,0.35); border: 1px solid var(--line-edge);
+    margin-top: 8px; background: var(--bg-sunken); border: 1px solid var(--line-edge);
     padding: 6px 7px; color: var(--ink); font-size: 10.5px; line-height: 1.45;
     word-break: break-all; border-radius: 2px;
   }

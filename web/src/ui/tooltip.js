@@ -40,7 +40,7 @@ const STYLE = `
     padding: 9px 11px; color: var(--ink);
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 11px; line-height: 1.55;
-    box-shadow: 0 8px 26px rgba(0,0,0,.62);
+    box-shadow: 0 8px 26px rgba(0, 0, 0, 0.14);
   }
   .tt-bubble[hidden] { display: none; }
   .tt-bubble b { color: var(--ink-bright); font-weight: 600; }

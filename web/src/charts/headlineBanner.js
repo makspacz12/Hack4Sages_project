@@ -12,7 +12,7 @@ import {
 const STYLE = `
   #headline {
     position: fixed; top: 0; left: 0; right: 0; z-index: 940;
-    background: linear-gradient(180deg, rgba(18,14,12,0.97) 0%, rgba(18,14,12,0.90) 100%);
+    background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-panel) 100%);
     border-bottom: 1px solid var(--line-edge);
     padding: 10px 18px 11px;
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -28,7 +28,7 @@ const STYLE = `
     border-radius: 2px;
   }
   .hl-h:hover { color: var(--ink-bright); border-color: var(--ink-faint); }
-  .hl-h[aria-pressed="true"] { color: var(--accent-lit); border-color: var(--accent-lit); }
+  .hl-h[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
   .hl-h:focus-visible { outline: 2px solid var(--accent-lit); outline-offset: 2px; }
 
   .hl-box { margin: 9px 0 2px; position: relative; height: 46px; }

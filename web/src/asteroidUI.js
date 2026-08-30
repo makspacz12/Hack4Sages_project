@@ -14,7 +14,7 @@ const STYLES = `
   font-family: monospace; font-size: 13px; padding: 6px 14px;
   cursor: pointer; border-radius: 4px; z-index: 100;
 }
-#asteroid-toggle:hover { background: #22223b; }
+#asteroid-toggle:hover { background: var(--bg-raised); }
 
 #asteroid-panel {
   position: fixed; top: 52px; right: 16px;
@@ -26,7 +26,7 @@ const STYLES = `
 #asteroid-panel h2 { color: var(--ink); margin: 0 0 10px; font-size: 14px; }
 #asteroid-panel label { display: block; margin: 6px 0 2px; color: #999; }
 #asteroid-panel input[type=number], #asteroid-panel input[type=color] {
-  width: 100%; background: #111; color: #eee; border: 1px solid #335;
+  width: 100%; background: var(--bg-sunken); color: var(--ink); border: 1px solid var(--line-edge);
   padding: 3px 6px; font-family: monospace; font-size: 12px; border-radius: 3px;
 }
 #asteroid-panel input[type=checkbox] { width: auto; margin-right: 6px; cursor: pointer; }

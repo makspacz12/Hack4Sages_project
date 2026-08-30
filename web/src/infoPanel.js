@@ -21,14 +21,14 @@ function injectStyles() {
       width: 270px;
       max-height: calc(100vh - 100px);
       overflow-y: auto;
-      background: rgba(20, 16, 14, 0.94);
+      background: var(--bg-panel);
       border: 1px solid var(--line-edge);
       border-radius: 10px;
       padding: 14px 16px 16px;
       font-family: monospace; font-size: 12px; color: var(--ink);
       z-index: 800;
       display: none;
-      box-shadow: 0 4px 24px rgba(0,0,0,.6);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
       transition: opacity .15s;
     }
     #info-panel.visible { display: block; }
