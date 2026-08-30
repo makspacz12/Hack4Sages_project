@@ -105,3 +105,33 @@ describe('the long run', () => {
     expect(longRun.frames.length).not.toBe(151);
   });
 });
+
+describe('the long run is reproducible and self-describing', () => {
+  it('records the seed that produced it', () => {
+    const prov = longRun.provenance ?? longRun.meta?.provenance ?? {};
+    expect(prov.seed).toBe(42);
+  });
+
+  it('carries a parameter digest and the audited coefficients', () => {
+    const prov = longRun.provenance ?? longRun.meta?.provenance ?? {};
+    expect(prov.parameters_sha256).toMatch(/^[0-9a-f]{64}$/);
+    expect(prov.coefficients_under_audit).toBeTruthy();
+  });
+
+  it('predates the digest widening, which is why it is kept as evidence not as the shipped run', () => {
+    /*
+     * This file was produced before cosmic_ray_dose_calibration was folded
+     * into the audited coefficients, so its digest does not cover the GCR
+     * calibration. That is not a defect in the file - it is why the run is
+     * kept as a separate, dated piece of evidence rather than promoted to the
+     * replay the conference figures are built on. Regenerating it under the
+     * current code would produce the same physics with a fuller fingerprint.
+     *
+     * Recorded rather than silently tolerated: an assertion that fails the day
+     * someone regenerates this file is a useful prompt to update this note.
+     */
+    const prov = longRun.provenance ?? longRun.meta?.provenance ?? {};
+    const entries = prov.coefficients_under_audit?.entries ?? {};
+    expect(entries.hydrolysis_survival_coefficient).toBeTruthy();
+  });
+});
