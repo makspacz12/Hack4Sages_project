@@ -882,6 +882,25 @@ async function mainReplay(source) {
         set: () => document.getElementById('obj-search-toggle')?.click(),
       },
     ],
+    /* The runs a reader can switch between.
+     *
+     * Two questions rather than two lengths: 3000 years asks what a transfer
+     * costs while everything is still intact, and 100,000 years asks what is
+     * left, where erosion has destroyed half the swarm and the survival
+     * boundary becomes visible. */
+    runs: [
+      {
+        file: '',
+        label: 'Solar System transit, 3000 yr',
+        note: 'the bundled run every figure is calibrated against; nothing is lost',
+      },
+      {
+        file: 'data/run_100kyr.json',
+        label: 'Extended transit, 100 kyr',
+        note: 'dust erosion destroys seven of fourteen fragments; the phase '
+            + 'diagram gains a boundary',
+      },
+    ],
     links: [
       {
         label: 'Sensitivity screening',

@@ -314,6 +314,33 @@ export function menuBar(container, deps) {
         + '</span>';
       drop.appendChild(a);
     }
+
+    /* Which run is loaded.
+     *
+     * The bundled 3000 year replay is the one every figure is calibrated
+     * against, and it is the default. The 100,000 year run is a different
+     * question rather than a longer version of the same one: over that span
+     * dust erosion destroys half the swarm, and the survival phase diagram
+     * only has a boundary to draw there. Both are listed so the difference is
+     * discoverable rather than hidden behind a query parameter. */
+    if (deps.runs?.length) {
+      separator(drop);
+      groupLabel(drop, 'simulation run');
+      const current = new URLSearchParams(location.search).get('replay') ?? '';
+      for (const run of deps.runs) {
+        item(drop, {
+          checked: (run.file ?? '') === current,
+          label: run.label,
+          note: run.note,
+          onSelect: () => {
+            const url = new URL(location.href);
+            if (run.file) url.searchParams.set('replay', run.file);
+            else url.searchParams.delete('replay');
+            location.assign(url.toString());
+          },
+        });
+      }
+    }
   });
 
   // ── View ────────────────────────────────────────────────────────────────
