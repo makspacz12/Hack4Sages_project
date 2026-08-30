@@ -364,6 +364,28 @@ def _build_body_report(
 # (2000). Named and shared because it was previously applied to the surface
 # value and NOT to the shielded one, in one of the two writers - which made the
 # dose after shielding exceed the dose before it in 88% of exported records.
+#
+# CHECKED AGAINST MEASUREMENT. This constant produces 0.184-0.242 Gy/year across
+# the shipped swarm, and that is the right order for an essentially unshielded
+# body in interplanetary space:
+#
+#   free-space GCR absorbed dose, solar minimum   ~0.15-0.30 Gy/yr
+#   free-space GCR absorbed dose, solar maximum   ~0.05-0.10 Gy/yr
+#   NASA deep-space figure, solar minimum         ~20 cGy/yr = 0.20 Gy/yr
+#   MSL/RAD measured in cruise, in water           458 +/- 32 uGy/day
+#                                                  = 0.167 Gy/yr
+#
+# The RAD number is the one to be careful with: it was measured INSIDE the
+# spacecraft, behind an average 16 g/cm^2, so it is a shielded value and sits
+# below the free-space figure. The fragments here carry 0.4 to 17 g/cm^2, so
+# free space is the correct comparison and 0.194 belongs in that band.
+#
+# A review of this model claimed the value was ten times too high, having read
+# NASA's "19-20 cGy/yr" as 0.019-0.020 Gy/yr. It is 0.19-0.20 Gy/yr. The check
+# is kept here in cGy AND Gy precisely because that conversion is where the
+# mistake gets made.
+#
+#   Zeitlin et al. (2013), Science 340:1080; Guo et al. (2015), A&A 577, A58.
 GCR_MODEL_UNIT_TO_GY_PER_YEAR: float = 0.194
 
 
