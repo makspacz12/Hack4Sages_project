@@ -250,7 +250,47 @@ class TestProvenanceBlock(unittest.TestCase):
 
     def test_the_digest_matches_the_captured_parameters(self):
         self.assertEqual(
-            self.block["parameters_sha256"], parameters_digest(self.block["parameters"])
+            self.block["parameters_sha256"],
+            parameters_digest(
+                {
+                    "parameters": self.block["parameters"],
+                    "coefficients": self.block["coefficients_under_audit"],
+                }
+            ),
+        )
+
+    def test_the_digest_covers_the_coefficients_that_decide_the_answer(self):
+        """
+        The constants in the source - the hydrolysis coefficient, the GCR dose
+        calibration, the Arrhenius pair - change every number in the output.
+        A digest that did not cover them could not detect the edits most
+        likely to change a result, while still promising that equal digests
+        mean identical inputs.
+        """
+        import copy
+
+        altered = copy.deepcopy(self.block["coefficients_under_audit"])
+        # Perturb any leaf number in the audited coefficients.
+        def bump(node):
+            if isinstance(node, dict):
+                for key, value in node.items():
+                    if isinstance(value, (int, float)) and not isinstance(value, bool):
+                        node[key] = value + 1.0
+                        return True
+                    if bump(value):
+                        return True
+            elif isinstance(node, list):
+                for item in node:
+                    if bump(item):
+                        return True
+            return False
+
+        self.assertTrue(bump(altered), "expected a numeric coefficient to perturb")
+        self.assertNotEqual(
+            self.block["parameters_sha256"],
+            parameters_digest(
+                {"parameters": self.block["parameters"], "coefficients": altered}
+            ),
         )
 
     def test_carries_the_open_coefficient_warning(self):

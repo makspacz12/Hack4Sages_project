@@ -466,6 +466,20 @@ def build_provenance(
         )
 
     parameters = capture_parameters(material_config, run_config)
+    coefficients = audit_coefficients()
+    # The digest must cover the coefficients too.
+    #
+    # It hashed `parameters` alone, which is the material and run configuration.
+    # But the numbers that decide the answer are constants in the source -
+    # HYDROLYSIS_SURV_COEFF, GCR_MODEL_UNIT_TO_GY_PER_YEAR, the Arrhenius
+    # pair, the attenuation coefficient. Editing any of them changed every
+    # value in the output while parameters_sha256 stayed identical, so a digest
+    # advertised as "equal digests mean identical inputs" could not detect the
+    # edits most likely to change a result.
+    #
+    # They were already recorded verbatim in coefficients_under_audit, so
+    # nothing was hidden - but recorded is not the same as fingerprinted.
+    digest_input = {"parameters": parameters, "coefficients": coefficients}
     block: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "generated_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -474,12 +488,12 @@ def build_provenance(
         "source": collect_source_version(),
         "environment": collect_environment(),
         "parameters": parameters,
-        "parameters_sha256": parameters_digest(parameters),
+        "parameters_sha256": parameters_digest(digest_input),
         "reproduce": reproduce_command(material_config, run_config),
-        "coefficients_under_audit": audit_coefficients(),
+        "coefficients_under_audit": coefficients,
         "field_notes": {
             "seed": "Resolved before the run; there is no unseeded run.",
-            "parameters_sha256": "Equal digests mean identical inputs.",
+            "parameters_sha256": "Covers the parameters AND the audited coefficients; equal digests mean identical inputs.",
             "source.dirty": "True means the working tree had uncommitted changes.",
             "reproduce": "Run this to regenerate the file.",
         },

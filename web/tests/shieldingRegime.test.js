@@ -72,3 +72,36 @@ describe('the shielding regime of the bundled swarm', () => {
     expect(help).toMatch(/96 g\/cm2/);
   });
 });
+
+/**
+ * The shipped replay must be the one the figures were calibrated against.
+ *
+ * The model writes into its own data directory and a tool copies that into
+ * web/public/data. Those two can drift: a short exploratory run in the model
+ * directory will silently replace the 151-frame replay every chart, note and
+ * docstring in this project is written against, if anyone runs the export
+ * without looking. This test states what the shipped replay must be, so the
+ * substitution fails here rather than on stage.
+ */
+describe('the shipped replay is the one the project describes', () => {
+  it('is the full 3000-year run, not a short exploratory one', () => {
+    expect(sim.frames.length).toBe(151);
+    expect(sim.frames.at(-1).time).toBeCloseTo(3000, 0);
+  });
+
+  it('carries the fourteen fragments every figure counts', () => {
+    const ids = new Set();
+    for (const p of sim.frames.at(-1).properties ?? []) {
+      if (p.id?.startsWith('asteroid_')) ids.add(p.id);
+    }
+    expect(ids.size).toBe(14);
+  });
+
+  it('records enough dose for the survival story to exist', () => {
+    // A 300-year run reaches ~60 Gy; the run the text describes reaches ~600.
+    const doses = (sim.frames.at(-1).properties ?? [])
+      .filter(p => p.id?.startsWith('asteroid_'))
+      .map(p => p.dose_cumulative_gy);
+    expect(Math.max(...doses)).toBeGreaterThan(500);
+  });
+});
