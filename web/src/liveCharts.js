@@ -24,6 +24,7 @@ import { headlineBanner } from './charts/headlineBanner.js';
 import { withTooltip, renderContent } from './ui/tooltip.js';
 import { C_RAD_HELP, C_RAD_PRESETS } from './ui/paramHelp.js';
 import { answerSurfaceChart, ANSWER_SURFACE_STYLE } from './charts/answerSurfaceChart.js';
+import { uiScale } from './charts/plot.js';
 import {
   COEFF_BANDS, bandFor, cumulativeDoseSeries, sampledCoefficients,
   supportsRescaling, survivalAtCoefficient, doseBudget, doseBudgetRatio,
@@ -707,7 +708,7 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
         yScale: item.spec.yScale,
         xFormat: v => fmt(v),
         xUnit: timeUnit,
-        height: 126,
+        height: 126 * uiScale(),
         selected: selectedId,
         onPick: (s) => { if (s.pickId) select(s.pickId); },
       });
@@ -746,7 +747,7 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
         pinDomain: value !== null,
         xFormat: v => fmt(v),
         xUnit: timeUnit,
-        height: 126,
+        height: 126 * uiScale(),
         selected: selectedId,
         onPick: (s) => { if (s.pickId) select(s.pickId); },
       });
@@ -1059,7 +1060,7 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
       frames, bands: surfaceBands(), horizonYears: SURFACE_HORIZON_YEARS,
       colorForRockType, onPick: select, selected: selectedId,
       currentCoefficient: overrideCoeff,
-      width: Math.max(240, plotEl.clientWidth || 288), height: 236,
+      width: Math.max(240, plotEl.clientWidth || 288), height: 236 * uiScale(),
     });
     const pts = surfaceChart.points ?? [];
     if (pts.length) {
@@ -1115,7 +1116,12 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
       : '';
 
     depthProfileChart(depthFig.querySelector('.lc-depth-plot'), profile, {
-      width: 300, height: 190,
+      // Both grow with the interface scale. This figure carries the most
+      // labels of any in the dock - two series legends, decade labels, x ticks,
+      // the core boundary and an axis title - so it is the first to run out of
+      // room when the type is scaled up for a projector.
+      width: Math.max(300, (depthFig.querySelector('.lc-depth-plot').clientWidth || 300)),
+      height: 190 * uiScale(),
     });
   }
 
@@ -1129,6 +1135,16 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
     injectLayoutFixes(banner);
     renderAll();
     renderAnswerSurface();
+
+    // Redraw everything when the interface scale changes, for the reason given
+    // in menuBar.applyScale.
+    window.addEventListener('lp:uiscale', () => {
+      renderAll();
+      paintAnswerSurface();
+      paintDepthProfile();
+      update(frameIndex);
+      redrawChartWindows();
+    });
     renderDepthProfile();
     // Last, deliberately: it describes the run the charts above came from, so
     // it reads as a footer to them rather than as a control.

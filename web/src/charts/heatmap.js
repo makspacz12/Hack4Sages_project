@@ -5,10 +5,13 @@
 
 import { fmt, niceTicks } from './plot.js';
 import { formatRadius } from '../ui/rangeLog.js';
+import { scalePad } from './plot.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 
-const PAD = { top: 20, right: 72, bottom: 48, left: 72 };
+const BASE_PAD = { top: 20, right: 72, bottom: 48, left: 72 };
+// Read at draw time, so a presentation scale widens the gutters too.
+const PAD = () => scalePad(BASE_PAD);
 
 /** @typedef {{ velocity_kms: number[], radius_m: number[], heatmap_p50: (number|null)[][] }} GridPayload */
 
@@ -131,8 +134,8 @@ export function survivalHeatmap(container, payload, options = {}) {
   container.textContent = '';
 
   const width = Math.max(320, container.clientWidth || 480);
-  const plotW = width - PAD.left - PAD.right;
-  const plotH = height - PAD.top - PAD.bottom;
+  const plotW = width - PAD().left - PAD().right;
+  const plotH = height - PAD().top - PAD().bottom;
   const nCol = velocity_kms.length;
   const nRow = radius_m.length;
   const cellW = plotW / nCol;
@@ -153,15 +156,15 @@ export function survivalHeatmap(container, payload, options = {}) {
     'aria-label': title,
   });
 
-  const xPos = i => PAD.left + (i + 0.5) * cellW;
-  const yPos = j => PAD.top + plotH - (j + 0.5) * cellH;
+  const xPos = i => PAD().left + (i + 0.5) * cellW;
+  const yPos = j => PAD().top + plotH - (j + 0.5) * cellH;
 
   for (let j = 0; j < nRow; j++) {
     for (let i = 0; i < nCol; i++) {
       const value = heatmap_p50[j][i];
       const rect = el('rect', {
-        x: PAD.left + i * cellW,
-        y: PAD.top + plotH - (j + 1) * cellH,
+        x: PAD().left + i * cellW,
+        y: PAD().top + plotH - (j + 1) * cellH,
         width: cellW,
         height: cellH,
         fill: colorForSurvival(Number(value), pLo, pHi),
@@ -184,7 +187,7 @@ export function survivalHeatmap(container, payload, options = {}) {
       if (d < bestD) { bestD = d; best = i; }
     }
     const x = xPos(best);
-    const label = el('text', { x, y: height - PAD.bottom + 18, class: 'tick tick-x' });
+    const label = el('text', { x, y: height - PAD().bottom + 18, class: 'tick tick-x' });
     label.textContent = fmt(t, 3);
     svg.appendChild(label);
   }
@@ -197,24 +200,24 @@ export function survivalHeatmap(container, payload, options = {}) {
       if (d < bestD) { bestD = d; best = j; }
     }
     const y = yPos(best);
-    const label = el('text', { x: PAD.left - 8, y, class: 'tick tick-y' });
+    const label = el('text', { x: PAD().left - 8, y, class: 'tick tick-y' });
     label.textContent = formatRadius(t);
     svg.appendChild(label);
   }
 
   svg.appendChild(el('line', {
-    x1: PAD.left, x2: PAD.left + plotW,
-    y1: height - PAD.bottom, y2: height - PAD.bottom,
+    x1: PAD().left, x2: PAD().left + plotW,
+    y1: height - PAD().bottom, y2: height - PAD().bottom,
     class: 'axis',
   }));
   svg.appendChild(el('line', {
-    x1: PAD.left, x2: PAD.left,
-    y1: PAD.top, y2: PAD.top + plotH,
+    x1: PAD().left, x2: PAD().left,
+    y1: PAD().top, y2: PAD().top + plotH,
     class: 'axis',
   }));
 
   const xLab = el('text', {
-    x: PAD.left + plotW / 2,
+    x: PAD().left + plotW / 2,
     y: height - 8,
     class: 'axis-label',
   });
@@ -223,14 +226,14 @@ export function survivalHeatmap(container, payload, options = {}) {
 
   const yLab = el('text', {
     x: 14,
-    y: PAD.top + plotH / 2,
+    y: PAD().top + plotH / 2,
     class: 'axis-label',
-    transform: `rotate(-90 14 ${PAD.top + plotH / 2})`,
+    transform: `rotate(-90 14 ${PAD().top + plotH / 2})`,
   });
   yLab.textContent = yLabel;
   svg.appendChild(yLab);
 
-  const legendX = width - PAD.right + 10;
+  const legendX = width - PAD().right + 10;
   const legendH = plotH;
   const grad = el('defs');
   const linear = el('linearGradient', { id: 'hm-grad', x1: '0', y1: '1', x2: '0', y2: '0' });
@@ -245,27 +248,27 @@ export function survivalHeatmap(container, payload, options = {}) {
   svg.appendChild(grad);
   svg.appendChild(el('rect', {
     x: legendX,
-    y: PAD.top,
+    y: PAD().top,
     width: 12,
     height: legendH,
     fill: 'url(#hm-grad)',
     stroke: 'var(--line-edge)',
     'stroke-width': 1,
   }));
-  const loLab = el('text', { x: legendX + 18, y: PAD.top + legendH, class: 'tick tick-legend' });
+  const loLab = el('text', { x: legendX + 18, y: PAD().top + legendH, class: 'tick tick-legend' });
   loLab.textContent = formatBound(pLo, significant ? spread : 1);
   svg.appendChild(loLab);
-  const hiLab = el('text', { x: legendX + 18, y: PAD.top + 10, class: 'tick tick-legend' });
+  const hiLab = el('text', { x: legendX + 18, y: PAD().top + 10, class: 'tick tick-legend' });
   hiLab.textContent = formatBound(pHi, significant ? spread : 1);
   svg.appendChild(hiLab);
-  const legTitle = el('text', { x: legendX + 18, y: PAD.top - 6, class: 'tick tick-legend' });
+  const legTitle = el('text', { x: legendX + 18, y: PAD().top - 6, class: 'tick tick-legend' });
   legTitle.textContent = 'p50';
 
   // Say it in words as well as in the scale. A reader who does not check the
   // axis labels would otherwise take the flat colour for a finding.
   if (!significant) {
     const warn = el('text', {
-      x: PAD.left, y: height - 6,
+      x: PAD().left, y: height - 6,
       fill: 'var(--warn)', 'font-size': 11, 'font-family': 'monospace',
     });
     warn.textContent =

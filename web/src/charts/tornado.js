@@ -3,9 +3,12 @@
  */
 
 import { fmt } from './plot.js';
+import { scalePad } from './plot.js';
 
 const NS = 'http://www.w3.org/2000/svg';
-const PAD = { top: 24, right: 28, bottom: 36, left: 168 };
+const BASE_PAD = { top: 24, right: 28, bottom: 36, left: 168 };
+// Read at draw time, so a presentation scale widens the gutters too.
+const PAD = () => scalePad(BASE_PAD);
 const ROW_H = 28;
 const COLOR_LOW = 'var(--data-trace)';
 const COLOR_HIGH = 'var(--accent)';
@@ -91,9 +94,9 @@ export function tornadoChart(container, payload, options = {}) {
   xHi += bump;
 
   const width = Math.max(480, container.clientWidth || 640);
-  const height = PAD.top + PAD.bottom + rows.length * ROW_H;
-  const plotW = width - PAD.left - PAD.right;
-  const xPos = v => PAD.left + ((v - xLo) / (xHi - xLo || 1)) * plotW;
+  const height = PAD().top + PAD().bottom + rows.length * ROW_H;
+  const plotW = width - PAD().left - PAD().right;
+  const xPos = v => PAD().left + ((v - xLo) / (xHi - xLo || 1)) * plotW;
 
   const svg = el('svg', {
     viewBox: `0 0 ${width} ${height}`,
@@ -104,7 +107,7 @@ export function tornadoChart(container, payload, options = {}) {
   });
 
   const titleNode = el('text', {
-    x: PAD.left,
+    x: PAD().left,
     y: 16,
     class: 'tornado-title',
   });
@@ -114,16 +117,16 @@ export function tornadoChart(container, payload, options = {}) {
   const baseX = xPos(baseline);
   svg.appendChild(el('line', {
     x1: baseX, x2: baseX,
-    y1: PAD.top - 4, y2: PAD.top + rows.length * ROW_H,
+    y1: PAD().top - 4, y2: PAD().top + rows.length * ROW_H,
     class: 'baseline',
   }));
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
-    const y = PAD.top + i * ROW_H + ROW_H / 2;
+    const y = PAD().top + i * ROW_H + ROW_H / 2;
     const yTop = y - 9;
 
-    const label = el('text', { x: PAD.left - 10, y, class: 'row-label' });
+    const label = el('text', { x: PAD().left - 10, y, class: 'row-label' });
     label.textContent = row.label;
     svg.appendChild(label);
 
@@ -148,7 +151,7 @@ export function tornadoChart(container, payload, options = {}) {
 
     const tip = `${row.label}\n−${Math.round(data.fraction * 100)}%: ${formatKnobValue(row.lowValue)} → ${fmt(lo, 4)}\n+${Math.round(data.fraction * 100)}%: ${formatKnobValue(row.highValue)} → ${fmt(hi, 4)}`;
     const hit = el('rect', {
-      x: PAD.left, y: yTop - 2, width: plotW, height: 22,
+      x: PAD().left, y: yTop - 2, width: plotW, height: 22,
       fill: 'transparent', class: 'row-hit',
     });
     hit.dataset.tip = tip;
@@ -156,9 +159,9 @@ export function tornadoChart(container, payload, options = {}) {
   }
 
   svg.appendChild(el('line', {
-    x1: PAD.left, x2: PAD.left + plotW,
-    y1: PAD.top + rows.length * ROW_H,
-    y2: PAD.top + rows.length * ROW_H,
+    x1: PAD().left, x2: PAD().left + plotW,
+    y1: PAD().top + rows.length * ROW_H,
+    y2: PAD().top + rows.length * ROW_H,
     class: 'axis',
   }));
 

@@ -111,6 +111,12 @@ export function currentScale() {
 
 export function applyScale(value) {
   document.documentElement.style.setProperty('--ui-scale', String(value));
+  // Charts compute their gutters from the scale AT RENDER TIME, so a scale
+  // change has to redraw them. Without this the type grows while the geometry
+  // stays where it was, and the axis labels collide - which is worse than not
+  // scaling at all, because it only happens once someone switches to the
+  // presentation setting.
+  window.dispatchEvent(new CustomEvent('lp:uiscale', { detail: { scale: value } }));
   try {
     localStorage.setItem(SCALE_KEY, String(value));
   } catch {

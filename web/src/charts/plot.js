@@ -14,6 +14,33 @@
 const NS = 'http://www.w3.org/2000/svg';
 
 const PAD = { top: 14, right: 16, bottom: 40, left: 62 };
+
+/**
+ * The interface scale, as a multiplier.
+ *
+ * Chart gutters are geometry, not type, so they do not inherit the rem scale
+ * the rest of the interface uses. Without this the presentation modes are
+ * broken rather than merely imperfect: at 150% the tick labels grow while the
+ * 62px left gutter does not, so the y-axis numbers collide with the axis title
+ * and several charts become unreadable at exactly the setting meant to make
+ * them readable.
+ */
+export function uiScale() {
+  if (typeof getComputedStyle !== 'function' || typeof document === 'undefined') return 1;
+  const raw = Number(
+    getComputedStyle(document.documentElement).getPropertyValue('--ui-scale'),
+  );
+  return Number.isFinite(raw) && raw > 0 ? raw : 1;
+}
+
+/** Scale every side of a padding box by the interface scale. */
+export function scalePad(pad, k = uiScale()) {
+  return {
+    top: pad.top * k, right: pad.right * k, bottom: pad.bottom * k, left: pad.left * k,
+  };
+}
+
+
 const MIN_HEIGHT = 220;
 
 function el(name, attrs = {}) {
@@ -22,6 +49,30 @@ function el(name, attrs = {}) {
     if (v !== undefined && v !== null) node.setAttribute(k, String(v));
   }
   return node;
+}
+
+
+/**
+ * Left gutter wide enough for the numbers that will actually be printed in it.
+ *
+ * It used to be a constant, 62px, chosen for typical values. A survival axis
+ * prints "0.80000" and an erosion axis prints "-100000", and at seven or eight
+ * monospace characters those run straight through the rotated axis title -
+ * five text collisions on the default view, before any presentation scale is
+ * involved. Widening the constant would only move the problem to the next
+ * chart with a longer label.
+ *
+ * Measured from the formatted ticks instead. The chart's own font is monospace
+ * at a known size, so character count times an advance ratio is exact enough,
+ * and it needs no layout pass.
+ */
+const MONO_ADVANCE = 0.62;   // width per character, as a fraction of font size
+
+function gutterFor(labels, fontPx, base, k) {
+  const longest = labels.reduce((m, t) => Math.max(m, String(t).length), 0);
+  // Tick text, its 8px offset from the axis, and room for the rotated title.
+  const needed = longest * fontPx * MONO_ADVANCE + 8 * k + fontPx * 1.9;
+  return Math.max(base, needed);
 }
 
 /** Nice round tick values covering [lo, hi]. */
@@ -215,9 +266,10 @@ export function liveLinePlot(container, options) {
   // Bigger charts use bigger tick text, so the gutters have to grow with them
   // or the rotated y label lands on top of the numbers.
   const big = height >= 300;
-  const PAD = big
+  const k = uiScale();
+  const PAD = scalePad(big
     ? { top: 20, right: 28, bottom: 56, left: 104 }
-    : { top: 14, right: 16, bottom: 40, left: 62 };
+    : { top: 14, right: 16, bottom: 40, left: 62 }, k);
 
   container.textContent = '';
   // A detached window sizes its chart explicitly; a docked one measures its
@@ -250,6 +302,27 @@ export function liveLinePlot(container, options) {
     [yLo, yHi] = full || padRange(raw);
   }
 
+  // Widen the gutter to fit the numbers that will be printed in it, BEFORE
+  // anything derives a position from it. plotW and every scale below read
+  // PAD.left, so adjusting it afterwards would leave the axis drawn at one
+  // width and the data plotted at another.
+  // Tick COUNT has to fall as the type grows. The chart's height is fixed by
+  // the dock, so at 150% the same three labels no longer fit in it and start
+  // overlapping each other - which is how a presentation setting makes a chart
+  // less readable rather than more. Allow each label three times its own line
+  // height, and never fewer than two ticks, because one tick is not an axis.
+  const tickFont = (big ? 11 : 9) * k;
+  const roomForTicks = Math.max(2, Math.floor(
+    (height - PAD.top - PAD.bottom) / (tickFont * 3),
+  ));
+  const yTickValues = useLog
+    ? logTicks(yLo, yHi, Math.min(4, roomForTicks))
+    : niceTicks(yLo, yHi, Math.min(3, roomForTicks));
+  PAD.left = gutterFor(
+    yTickValues.map(v => (yFormat ?? (useLog ? (x => x.toExponential(0)) : fmt))(v)),
+    tickFont, PAD.left, k,
+  );
+
   const plotW = width - PAD.left - PAD.right;
   const plotH = height - PAD.top - PAD.bottom;
   const xPos = v => PAD.left + (x1 === x0 ? 0.5 : (v - x0) / (x1 - x0)) * plotW;
@@ -263,8 +336,8 @@ export function liveLinePlot(container, options) {
 
   drawAxes(svg, {
     width, height,
-    xTicks: niceTicks(x0, x1, 4),
-    yTicks: useLog ? logTicks(yLo, yHi, 4) : niceTicks(yLo, yHi, 3),
+    xTicks: niceTicks(x0, x1, Math.max(2, Math.round(4 / k))),
+    yTicks: yTickValues,
     xPos, yPos, xLabel, yLabel, xFormat,
     yFormat: yFormat ?? (useLog ? v => v.toExponential(0) : undefined),
     pad: PAD,

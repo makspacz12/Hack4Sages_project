@@ -9,6 +9,7 @@
 import {
   RATIO_LINES, classify, changesSign, significant, oatExploredFraction,
 } from './morris.js';
+import { scalePad } from './plot.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 
@@ -44,7 +45,7 @@ export function morrisChart(container, screening, opts = {}) {
   }
 
   const factors = screening.factors;
-  const PAD = { top: 14, right: 14, bottom: 38, left: 52 };
+  const PAD = scalePad({ top: 14, right: 14, bottom: 38, left: 52 });
   const size = Math.max(60, Math.min(width - PAD.left - PAD.right, height - PAD.top - PAD.bottom));
   const plotW = size;
   const plotH = size;

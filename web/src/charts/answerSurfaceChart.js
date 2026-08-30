@@ -9,6 +9,7 @@
 import {
   CONTOURS, contourCoefficient, swarmPoints, planeExtent, survivalAt,
 } from './answerSurface.js';
+import { scalePad, uiScale } from './plot.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 
@@ -33,10 +34,13 @@ function pow10Label(e) {
  * decades the 2/3/5 minors are added and labelled, which is the standard log
  * ruling; above that they would crowd, so only decades are drawn.
  */
-export function logTicksFor(lo, hi) {
+export function logTicksFor(lo, hi, dense = true) {
   const out = [];
   const wide = hi - lo > 2;
-  const minors = wide ? [1] : [1, 2, 3, 5];
+  // `dense` is false when the type has been scaled up for a projector: the
+  // minor ticks then no longer fit and collide with each other, which makes
+  // the presentation setting worse than the default rather than better.
+  const minors = (wide || !dense) ? [1] : [1, 2, 3, 5];
   for (let e = Math.floor(lo); e <= Math.ceil(hi); e += 1) {
     for (const m of minors) {
       const l = e + Math.log10(m);
@@ -69,7 +73,7 @@ export function answerSurfaceChart(container, opts) {
     return { update() {}, setSelected() {}, destroy() {} };
   }
 
-  const PAD = { top: 12, right: 58, bottom: 40, left: 54 };
+  const PAD = scalePad({ top: 12, right: 58, bottom: 40, left: 54 });
   const plotW = Math.max(40, width - PAD.left - PAD.right);
   const plotH = Math.max(40, height - PAD.top - PAD.bottom);
 
@@ -124,7 +128,8 @@ export function answerSurfaceChart(container, opts) {
   });
   svg.appendChild(frame);
 
-  for (const t of logTicksFor(extent.dLo, extent.dHi)) {
+  const denseTicks = uiScale() < 1.4;
+  for (const t of logTicksFor(extent.dLo, extent.dHi, denseTicks)) {
     const px = PAD.left + ((t.log - extent.dLo) / (extent.dHi - extent.dLo)) * plotW;
     svg.appendChild(el('line', {
       x1: px, y1: PAD.top + plotH, x2: px, y2: PAD.top + plotH + (t.major ? 4 : 2.5),
@@ -136,7 +141,7 @@ export function answerSurfaceChart(container, opts) {
       : String(Math.round(t.value / 10 ** Math.floor(Math.log10(t.value))));
     svg.appendChild(label);
   }
-  for (const t of logTicksFor(extent.cLo, extent.cHi)) {
+  for (const t of logTicksFor(extent.cLo, extent.cHi, denseTicks)) {
     const py = PAD.top + (1 - (t.log - extent.cLo) / (extent.cHi - extent.cLo)) * plotH;
     svg.appendChild(el('line', {
       x1: PAD.left - (t.major ? 4 : 2.5), y1: py, x2: PAD.left, y2: py, class: 'as-tick',

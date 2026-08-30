@@ -14,6 +14,8 @@
  * line at the surface and nothing else is visible.
  */
 
+import { scalePad, uiScale } from './plot.js';
+
 /** Pull the profile out of a replay, or null for a file that predates it. */
 export function parseDepthProfile(payload) {
   const p = payload?.dose_depth_profile;
@@ -100,7 +102,12 @@ export function depthProfileChart(container, profile, options = {}) {
     return null;
   }
 
-  const PAD = { top: 16, right: 132, bottom: 44, left: 62 };
+  const PAD = scalePad({ top: 16, right: 132, bottom: 44, left: 62 });
+  // Font sizes here are SVG ATTRIBUTES, not CSS, so they do not inherit the
+  // rem scale the rest of the interface uses. Without this the box grows for a
+  // projector while the text inside it stays the same size.
+  const k = uiScale();
+  const fs = (px) => px * k;
   const plotW = width - PAD.left - PAD.right;
   const plotH = height - PAD.top - PAD.bottom;
 
@@ -131,14 +138,25 @@ export function depthProfileChart(container, profile, options = {}) {
       x1: PAD.left, x2: PAD.left + plotW, y1: y, y2: y,
       stroke: 'var(--line-hair)', 'stroke-width': 1,
     }));
+    // The bottom decade sits exactly on the axis, where the x-axis tick row
+    // begins, so its baseline is lifted above the line instead of straddling
+    // it. Only the last one needs this; the rest have gridline to themselves.
+    // At the largest presentation scale even the lifted floor label runs into
+    // the x-axis ticks, so it is dropped there. The gridline still marks the
+    // decade, and 1e-8 is the axis floor rather than a reading anyone takes.
+    const atFloor = e <= -8;
+    if (atFloor && k >= 1.6) { continue; }
     const t = el('text', {
-      x: PAD.left - 8, y: y + 3, 'text-anchor': 'end',
-      fill: 'var(--ink-dim)', 'font-size': 10, 'font-family': 'monospace',
+      x: PAD.left - 8, y: y + (atFloor ? -3 : 3), 'text-anchor': 'end',
+      fill: 'var(--ink-dim)', 'font-size': fs(10), 'font-family': 'monospace',
     });
     t.textContent = e === 0 ? '1' : `1e${e}`;
     svg.appendChild(t);
   }
 
+  // Vertical positions already taken by a series label, so the second one
+  // can be pushed clear when both curves end at nearly the same height.
+  const legendYs = [];
   for (const { key, color, label } of CHANNELS) {
     const pts = profile.samples
       .filter(s => Number.isFinite(s[key]) && s[key] > 0)
@@ -158,11 +176,18 @@ export function depthProfileChart(container, profile, options = {}) {
       }));
     }
 
+    // Anchored to where its own curve ends, so the label needs no leader line -
+    // but pushed apart when both channels end at nearly the same height, which
+    // is exactly what happens for a fragment too small to attenuate either.
     const last = profile.samples.at(-1);
+    const wanted = yPos(Math.max(LO, last[key])) + 3;
+    const y = legendYs.length && Math.abs(wanted - legendYs.at(-1)) < 13
+      ? legendYs.at(-1) + 13
+      : wanted;
+    legendYs.push(y);
     const legend = el('text', {
-      x: PAD.left + plotW + 10,
-      y: yPos(Math.max(LO, last[key])) + 3,
-      fill: color, 'font-size': 11, 'font-family': 'monospace',
+      x: PAD.left + plotW + 10, y,
+      fill: color, 'font-size': fs(11), 'font-family': 'monospace',
     });
     legend.textContent = label;
     svg.appendChild(legend);
@@ -176,12 +201,25 @@ export function depthProfileChart(container, profile, options = {}) {
         x1: xPos(coreDepth), x2: xPos(coreDepth), y1: PAD.top, y2: PAD.top + plotH,
         stroke: 'var(--ink-faint)', 'stroke-width': 1, 'stroke-dasharray': '3 3',
       }));
-      const t = el('text', {
-        x: xPos(coreDepth) + 4, y: PAD.top + 11,
-        fill: 'var(--ink-dim)', 'font-size': 9.5, 'font-family': 'monospace',
-      });
-      t.textContent = 'biological core';
-      svg.appendChild(t);
+      // Flipped to the left of its own line when there is not room to the
+      // right. In a narrow dock this label ran past the plot and into the
+      // series legends beyond it.
+      // Dropped when the plot is too narrow to hold it clear of the curves'
+      // own labels. The dashed line still marks the boundary, and the readout
+      // under the figure states where the core sits.
+      const CORE_LABEL = 'biological core';
+      const enoughRoom = plotW > 210 * k;
+      const labelW = CORE_LABEL.length * 5.9;
+      const fitsRight = xPos(coreDepth) + 4 + labelW < PAD.left + plotW;
+      const t = enoughRoom
+        ? el('text', {
+          x: fitsRight ? xPos(coreDepth) + 4 : xPos(coreDepth) - 4,
+          y: PAD.top + 11,
+          'text-anchor': fitsRight ? 'start' : 'end',
+          fill: 'var(--ink-dim)', 'font-size': fs(9.5), 'font-family': 'monospace',
+        })
+        : null;
+      if (t) { t.textContent = CORE_LABEL; svg.appendChild(t); }
     }
   }
 
@@ -190,25 +228,26 @@ export function depthProfileChart(container, profile, options = {}) {
     x1: PAD.left, x2: PAD.left + plotW, y1: PAD.top + plotH, y2: PAD.top + plotH,
     stroke: '#4a3f38', 'stroke-width': 1,
   }));
-  for (let i = 0; i <= 4; i += 1) {
-    const d = (maxDepth * i) / 4;
+  const xTickCount = k >= 1.4 ? 2 : 4;
+  for (let i = 0; i <= xTickCount; i += 1) {
+    const d = (maxDepth * i) / xTickCount;
     const t = el('text', {
       x: xPos(d), y: PAD.top + plotH + 15, 'text-anchor': 'middle',
-      fill: 'var(--ink-dim)', 'font-size': 10, 'font-family': 'monospace',
+      fill: 'var(--ink-dim)', 'font-size': fs(10), 'font-family': 'monospace',
     });
     t.textContent = d.toFixed(2);
     svg.appendChild(t);
   }
   const xl = el('text', {
     x: PAD.left + plotW / 2, y: height - 8, 'text-anchor': 'middle',
-    fill: 'var(--ink-dim)', 'font-size': 10.5, 'font-family': 'monospace',
+    fill: 'var(--ink-dim)', 'font-size': fs(10.5), 'font-family': 'monospace',
   });
   xl.textContent = 'depth below surface [m]';
   svg.appendChild(xl);
 
   const yl = el('text', {
     x: 14, y: PAD.top + plotH / 2, fill: 'var(--ink-dim)',
-    'font-size': 10.5, 'font-family': 'monospace', 'text-anchor': 'middle',
+    'font-size': fs(10.5), 'font-family': 'monospace', 'text-anchor': 'middle',
     transform: `rotate(-90 14 ${PAD.top + plotH / 2})`,
   });
   yl.textContent = 'transmitted fraction';
