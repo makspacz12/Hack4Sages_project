@@ -47,7 +47,7 @@ describe('colorForSurvival', () => {
   });
 
   it('handles non-finite values', () => {
-    expect(colorForSurvival(NaN)).toBe('#2a2320');
+    expect(colorForSurvival(NaN)).toBe('var(--line-hair)');
   });
 });
 

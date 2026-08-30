@@ -57,6 +57,7 @@ let openFor = null;
 let hideTimer = null;
 
 function ensureBubble() {
+  bindEscape();
   if (!document.getElementById('tt-style')) {
     const s = document.createElement('style');
     s.id = 'tt-style';
@@ -122,10 +123,24 @@ function show(trigger, html, id) {
   openFor = trigger;
 }
 
-// Dismissable without moving the pointer.
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && openFor) { hide(); e.stopPropagation(); }
-});
+let escapeBound = false;
+
+/**
+ * Bind the Escape handler on first use, not at import.
+ *
+ * This used to run at module scope, which gave the module an import-time side
+ * effect on a global that need not exist: anything importing it in a non-DOM
+ * environment threw ReferenceError before a single line of its own code ran.
+ * A whole test file died that way, and it was not even a test of tooltips - it
+ * imported something that imported something that imported this.
+ */
+function bindEscape() {
+  if (escapeBound || typeof document === 'undefined') return;
+  escapeBound = true;
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && openFor) { hide(); e.stopPropagation(); }
+  });
+}
 
 let seq = 0;
 

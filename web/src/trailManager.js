@@ -150,10 +150,15 @@ export function buildTrailPositions(frames, currentFrame, trailLen, id) {
  * @param {Array<{x:number,y:number,z:number}>} positions  newest-first array
  */
 export function setTrailHistory(trail, positions, { closed = false } = {}) {
-  // Grow the buffers rather than silently truncating. An orbit is a couple of
-  // hundred points and the history buffers were sized for ten, so without this
-  // the ellipse arrived as a stub and looked like the bug it replaced.
-  if (positions.length > trail.maxLen) {
+  // Grow only for a closed curve. An orbit is a couple of hundred points and
+  // these buffers were sized for ten, so without this the ellipse arrived as a
+  // stub and looked like the bug it replaced.
+  //
+  // A HISTORY still truncates, and must: maxLen is how many past positions the
+  // trail is meant to remember, so silently keeping more would quietly change
+  // how long every comet tail is. Growing both was over-reach on my part, and
+  // the existing test for truncation caught it.
+  if (closed && positions.length > trail.maxLen) {
     growTrail(trail, positions.length);
   }
   trail.closed = closed;

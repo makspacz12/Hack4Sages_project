@@ -21,13 +21,13 @@ describe('getTypeMeta', () => {
   it('returns meta for star', () => {
     const m = getTypeMeta('star');
     expect(m.icon).toBe('★');
-    expect(m.color).toBe('#ffd97a');
+    expect(m.color).toBe('var(--warn)');
   });
 
   it('returns meta for planet', () => {
     const m = getTypeMeta('planet');
     expect(m.icon).toBe('●');
-    expect(m.color).toBe('#7ac3ff');
+    expect(m.color).toBe('var(--data-selected)');
   });
 
   it('is case-insensitive (PLANET)', () => {
