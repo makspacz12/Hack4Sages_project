@@ -334,6 +334,23 @@ async function mainReplay(source) {
     starNodes.push({ body: { id: obj.id, radius: obj.visual?.radius ?? 1 }, mesh });
   }
 
+  /* The fifty Gaia stars start hidden.
+   *
+   * They sit between 268,551 and 1,024,535 AU - the nearest is nearly nine
+   * thousand times Neptune's distance. Any framing that includes them makes
+   * the entire Solar System a point, and any framing that shows the swarm
+   * leaves them off screen, so in the default view they are fifty objects that
+   * can never usefully share a frame with the thing the talk is about.
+   *
+   * Hidden, not deleted: they carry the stellar UV shells, and the destination
+   * of an interstellar transfer is a legitimate thing to want to see. The
+   * Scene menu turns them back on. */
+  const gaiaMeshes = starNodes
+    .filter(n => n.body.id.startsWith('gaia_'))
+    .map(n => n.mesh);
+  let gaiaVisible = false;
+  for (const mesh of gaiaMeshes) mesh.visible = false;
+
   let uvEnabled          = false;
   let trailsEnabled       = false;
   let onlyFollowTrail     = false;
@@ -787,6 +804,16 @@ async function mainReplay(source) {
           (on) => { setReplayToggle('uv', on); },
         ),
         sceneLayer(
+          'Gaia stars',
+          'the fifty catalogued stars. The nearest is 268,551 AU away - nine '
+          + 'thousand times Neptune - so showing them makes everything else a point',
+          () => gaiaVisible,
+          (on) => {
+            gaiaVisible = on;
+            for (const mesh of gaiaMeshes) mesh.visible = on;
+          },
+        ),
+        sceneLayer(
           'Starfield',
           'background stars',
           () => starfieldMesh.visible,
@@ -1158,6 +1185,16 @@ async function main() {
           + 'rock, so this is not the channel that matters',
           () => uvEnabled,
           (on) => { setReplayToggle('uv', on); },
+        ),
+        sceneLayer(
+          'Gaia stars',
+          'the fifty catalogued stars. The nearest is 268,551 AU away - nine '
+          + 'thousand times Neptune - so showing them makes everything else a point',
+          () => gaiaVisible,
+          (on) => {
+            gaiaVisible = on;
+            for (const mesh of gaiaMeshes) mesh.visible = on;
+          },
         ),
         sceneLayer(
           'Starfield',

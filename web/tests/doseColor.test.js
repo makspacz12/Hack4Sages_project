@@ -71,3 +71,65 @@ describe('dose colouring', () => {
     expect(dosesAtFrame(null).size).toBe(0);
   });
 });
+
+/**
+ * Why the orbital paths are NOT coloured by local dose rate.
+ *
+ * The idea is appealing and was proposed as the single best figure the 3D view
+ * could offer: if dose rate went as 1/d^2, the perihelion arc of each orbit
+ * would light up and the trajectory and the biology would be coupled in one
+ * image.
+ *
+ * It does not, and this test is here so nobody builds it. Fitted over all 2100
+ * fragment-frames in the shipped replay:
+ *
+ *   uv_local_flux             ~ r^-1.90    sunlight, inverse square
+ *   gcr_local_flux            ~ r^+0.08    galactic, distance-independent
+ *   radiation_decay_gy_per_yr ~ r^+0.14
+ *
+ * Galactic cosmic rays arrive from outside the Solar System, so their flux
+ * does not fall off with distance from the Sun - and they are the channel that
+ * reaches the cargo, because UV photons stop within about 3 cm of rock. A hot
+ * perihelion arc would be drawing a gradient that is not there.
+ */
+describe('dose rate is not a function of distance from the Sun', () => {
+  function powerLawSlope(field) {
+    const xs = [];
+    const ys = [];
+    for (const f of sim.frames) {
+      const sun = f.positions.find(p => p.id === 'sun');
+      for (const pr of f.properties ?? []) {
+        if (!pr.id?.startsWith('asteroid_')) continue;
+        const pos = f.positions.find(p => p.id === pr.id);
+        if (!pos || !(pr[field] > 0)) continue;
+        const r = Math.hypot(pos.x - sun.x, pos.y - sun.y, pos.z - sun.z);
+        xs.push(Math.log(r));
+        ys.push(Math.log(pr[field]));
+      }
+    }
+    const n = xs.length;
+    const mx = xs.reduce((a, b) => a + b, 0) / n;
+    const my = ys.reduce((a, b) => a + b, 0) / n;
+    let num = 0;
+    let den = 0;
+    for (let i = 0; i < n; i += 1) {
+      num += (xs[i] - mx) * (ys[i] - my);
+      den += (xs[i] - mx) ** 2;
+    }
+    return num / den;
+  }
+
+  it('has UV falling off as sunlight does', () => {
+    expect(powerLawSlope('uv_local_flux')).toBeCloseTo(-1.9, 1);
+  });
+
+  it('has cosmic rays essentially independent of heliocentric distance', () => {
+    expect(Math.abs(powerLawSlope('gcr_local_flux'))).toBeLessThan(0.3);
+  });
+
+  it('therefore has a dose rate too flat to colour an orbit by', () => {
+    // Anything near zero means the perihelion arc is not hotter, so painting
+    // one would be inventing structure.
+    expect(Math.abs(powerLawSlope('radiation_decay_gy_per_year'))).toBeLessThan(0.3);
+  });
+});
