@@ -162,8 +162,25 @@ const STYLE = `
  * controller, a camera framing function, and the panel toggles. Everything
  * else it does through the body class, so the layout stays in CSS.
  */
+/**
+ * The live instance, so a second call replaces the first rather than stacking.
+ *
+ * Every call added another keydown listener on window and appended another set
+ * of panels. Called once in main.js that was harmless - but two instances mean
+ * one press of P toggles the mode twice, i.e. does nothing, which is a
+ * baffling failure to debug on stage and is exactly what happened the first
+ * time this module was exercised properly by tests.
+ */
+let live = null;
+
 export function initPresentation(deps = {}) {
   if (typeof document === 'undefined') return { toggle() {}, isActive: () => false };
+
+  // Tear down any previous instance first.
+  if (live) {
+    live.dispose();
+    live = null;
+  }
 
   if (!document.getElementById('presentation-style')) {
     const s = document.createElement('style');
@@ -197,7 +214,11 @@ export function initPresentation(deps = {}) {
   function borrowCoefficient(on) {
     if (on) {
       if (borrowed) return;
-      const el = document.querySelector('#live-charts .lc-coeff');
+      // Scoped to the dock first, because that is where it lives - but fall
+      // back to the document, so a control that was left on the stage panel by
+      // a failed restore is picked up again rather than lost.
+      const el = document.querySelector('#live-charts .lc-coeff')
+        ?? document.querySelector('.lc-coeff');
       if (!el) return;
       borrowed = el;
       borrowedHome = { parent: el.parentNode, next: el.nextSibling, hidden: el.hidden };
@@ -208,9 +229,34 @@ export function initPresentation(deps = {}) {
       stage.classList.add('live');
     } else {
       stage.classList.remove('live');
-      if (!borrowed) return;
+      if (!borrowed || !borrowedHome) { borrowed = null; borrowedHome = null; return; }
       borrowed.hidden = borrowedHome.hidden;
-      borrowedHome.parent.insertBefore(borrowed, borrowedHome.next);
+
+      /* Put it back where it came from, and if that place is gone, put it
+       * somewhere it can still be reached.
+       *
+       * The parent and next-sibling are captured once at borrow time. If the
+       * dock re-renders or is replaced while chapter 5 is on stage, that
+       * parent is no longer in the document and insertBefore throws
+       * NotFoundError - leaving the control detached, the dock permanently
+       * without it, and no recovery short of a page reload. Mid-talk that is
+       * the worst outcome available. */
+      const home = borrowedHome.parent?.isConnected
+        ? borrowedHome.parent
+        : document.getElementById('live-charts');
+      try {
+        if (home && borrowedHome.next?.parentNode === home) {
+          home.insertBefore(borrowed, borrowedHome.next);
+        } else if (home) {
+          home.appendChild(borrowed);
+        } else {
+          // Nothing to return it to. Leaving it on a hidden stage panel keeps
+          // it in the document, so a later chapter 5 can still find it.
+          stage.appendChild(borrowed);
+        }
+      } catch {
+        stage.appendChild(borrowed);
+      }
       borrowed = null;
       borrowedHome = null;
     }
@@ -265,7 +311,7 @@ export function initPresentation(deps = {}) {
     deps.onChange?.(on);
   }
 
-  window.addEventListener('keydown', (e) => {
+  const onKeyDown = (e) => {
     // Never steal a keystroke from a field someone is typing in.
     const el = document.activeElement;
     if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) {
@@ -288,11 +334,24 @@ export function initPresentation(deps = {}) {
       showChapter(current - 1); e.preventDefault();
     }
     if (e.key === 'Escape') { setActive(false); e.preventDefault(); }
-  });
+  };
+  window.addEventListener('keydown', onKeyDown);
 
-  return {
+  /** Remove this instance's listener and its panels. */
+  function dispose() {
+    window.removeEventListener('keydown', onKeyDown);
+    if (active) setActive(false);   // returns the borrowed control first
+    hud.remove();
+    hint.remove();
+    stage.remove();
+    document.body.classList.remove('presenting');
+  }
+
+  live = {
     toggle: () => setActive(!active),
     isActive: () => active,
     showChapter,
+    dispose,
   };
+  return live;
 }

@@ -233,7 +233,20 @@ describe('propagateElements', () => {
     const swarm = stateToElements({ x: 1.5, y: 0, z: 0 }, { x: 0, y: 5.2, z: 0 }, MU);
     expect(keplerSafe(swarm, 20)).toBe(true);
 
-    const outlier = stateToElements({ x: 17.7, y: 0, z: 0 }, { x: 0, y: 1.5, z: 0 }, MU);
+    // Distance is NOT the criterion. A near-circular orbit at 17.7 AU is a
+    // planet, and propagates perfectly well; an earlier version tested a > 6
+    // and so froze Saturn, Uranus and Neptune while the inner system moved.
+    const outerPlanet = stateToElements({ x: 19.3, y: 0, z: 0 }, { x: 0, y: 1.43, z: 0 }, MU);
+    expect(outerPlanet.e).toBeLessThan(0.2);
+    expect(keplerSafe(outerPlanet, 20)).toBe(true);
+
+    // What fails is a near-parabolic orbit: it turns hardest at periapsis and
+    // is the most easily reshaped within a gap.
+    const rp = 1.4;
+    const eTarget = 0.96;
+    const v = Math.sqrt(MU * (1 + eTarget) / rp);
+    const outlier = stateToElements({ x: rp, y: 0, z: 0 }, { x: 0, y: v, z: 0 }, MU);
+    expect(outlier.e).toBeGreaterThan(0.9);
     expect(keplerSafe(outlier, 20)).toBe(false);
 
     expect(keplerSafe(null, 20)).toBe(false);
@@ -327,6 +340,64 @@ describe('Kepler interpolation against the real integration', () => {
       const el = elementsAt(0, id);
       if (!el) continue;
       expect(keplerSafe(el, 20), `${id} must be interpolable`).toBe(true);
+    }
+  });
+});
+
+/**
+ * Every planet must be allowed to move.
+ *
+ * keplerSafe gates which bodies the orbital clock and the frame interpolator
+ * may advance. A version of it tested `a > 6`, which was aimed at one wildly
+ * perturbed fragment but also caught Saturn, Uranus and Neptune - so those
+ * three sat frozen at their sampled positions while the inner system orbited
+ * around them. Nothing threw, no test failed, and it is exactly the kind of
+ * thing an astronomer in a conference audience sees at a glance.
+ */
+describe('keplerSafe against the real bodies in the replay', () => {
+  const MU = 4 * Math.PI ** 2;
+  const frame = sim.frames[0];
+  const sun = frame.positions.find(p => p.id === 'sun');
+  const sunVel = frame.velocities.find(v => v.id === 'sun');
+  const velById = new Map(frame.velocities.map(v => [v.id, v]));
+
+  function elementsFor(id) {
+    const p = frame.positions.find(q => q.id === id);
+    const v = velById.get(id);
+    if (!p || !v) return null;
+    return stateToElements(
+      { x: p.x - sun.x, y: p.y - sun.y, z: p.z - sun.z },
+      {
+        x: v.vx - (sunVel?.vx ?? 0),
+        y: v.vy - (sunVel?.vy ?? 0),
+        z: v.vz - (sunVel?.vz ?? 0),
+      },
+      MU,
+    );
+  }
+
+  it('accepts all eight planets, including the outer ones', () => {
+    for (const name of ['mercury', 'venus', 'earth', 'mars',
+                        'jupiter', 'saturn', 'uranus', 'neptune']) {
+      const el = elementsFor(`planet_${name}`);
+      expect(el, `${name} must have elements`).toBeTruthy();
+      expect(keplerSafe(el, 20), `${name} must be allowed to move`).toBe(true);
+    }
+  });
+
+  it('still rejects the one fragment whose orbit changes within a gap', () => {
+    const el = elementsFor('asteroid_011');
+    expect(el.e).toBeGreaterThan(0.9);
+    expect(keplerSafe(el, 20)).toBe(false);
+  });
+
+  it('accepts every other fragment', () => {
+    const ids = frame.velocities
+      .filter(v => v.id.startsWith('asteroid_') && v.id !== 'asteroid_011')
+      .map(v => v.id);
+    expect(ids.length).toBe(13);
+    for (const id of ids) {
+      expect(keplerSafe(elementsFor(id), 20), `${id} must be allowed to move`).toBe(true);
     }
   });
 });

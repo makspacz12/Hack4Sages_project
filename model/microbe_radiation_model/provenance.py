@@ -332,6 +332,30 @@ def audit_coefficients() -> dict[str, Any]:
         DEFAULT_ROCK_ATTENUATION_K_M2_KG,
     )
 
+    # The single multiplier that turns every cosmic-ray number in this model
+    # into gray. It was named first in the commit that widened the digest to
+    # cover "the numbers that decide the answer" and was the one constant that
+    # widening missed - editing it changed every dose in the output while the
+    # digest stayed identical.
+    from .simulation.scenarios import GCR_MODEL_UNIT_TO_GY_PER_YEAR
+
+    entries["cosmic_ray_dose_calibration"] = {
+        "model_unit_to_gy_per_year": GCR_MODEL_UNIT_TO_GY_PER_YEAR,
+        "module": "simulation.scenarios",
+        "status": "resolved",
+        "source": (
+            "Mileikowsky et al. (2000), Icarus 145:391, Table IV: 19.4 cGy/year "
+            "of GCR at zero shielding, i.e. 0.194 Gy/year. Consistent with the "
+            "free-space interplanetary range of 0.15-0.30 Gy/year at solar "
+            "minimum, and correctly above MSL/RAD's 0.167 Gy/year, which was "
+            "measured inside about 16 g/cm^2 of spacecraft."
+        ),
+        "note": (
+            "A solar-minimum, unshielded value. The 11-year cycle is not "
+            "modelled, so a cycle average would be lower."
+        ),
+    }
+
     entries["cosmic_ray_attenuation"] = {
         "photon_coefficient_m2_kg": DEFAULT_ROCK_ATTENUATION_K_M2_KG,
         "cosmic_ray_coefficient_m2_kg": effective_gcr_attenuation_k_m2_kg(),

@@ -29,12 +29,19 @@ CI_CHONDRITE = Rock(
     density_kg_m3=1190.0,
     albedo=0.045,
     water_mass_fraction=0.18,
-    # Was 0.11. Macke, Consolmagno & Britt (2011), MAPS 46(12):1842-1862,
-    # measure CI (type 1) carbonaceous chondrite porosity near 35%, and the
-    # reference body Ryugu is above 50% (Watanabe et al. 2019: bulk density
-    # 1.19 g/cm3 against an Orgueil grain density of 2.42 gives 51%). 0.11
-    # matched neither the meteorite class nor the body it names.
-    porosity=0.35,
+    # Was 0.11, then briefly 0.35, and both were wrong for this entry.
+    #
+    # 0.35 is Macke, Consolmagno & Britt (2011), MAPS 46(12):1842-1862, for CI
+    # METEORITE material. But the density on this entry is Ryugu's bulk 1190
+    # kg/m3 - a BODY - and the two have to describe the same object or the
+    # entry implies a grain density that exists nowhere: 0.35 against 1190
+    # gives 1831 kg/m3, and no CI material is that light.
+    #
+    # Taking Ryugu's bulk density with Orgueil's measured grain density of
+    # 2420 kg/m3 (Macke 2011) gives 1 - 1190/2420 = 0.508, which is also what
+    # Watanabe et al. (2019) state directly: "a high-porosity (>50%) interior".
+    # That is the value consistent with the density beside it.
+    porosity=0.508,
     thermal_conductivity_w_mk=0.5,
     probability=0.15,
     uranium238_ppm=0.012,
@@ -136,7 +143,7 @@ IRON_NICKEL = Rock(
     uranium238_ppm=0.001,
     thorium232_ppm=0.003,
     potassium_percent=0.001,
-    notes="Material=iron_nickel. Reference asteroid=16 Psyche (M-type). radius_m from JPL diameter; note: this is the radius of the reference body, not an intrinsic material constant. density source: NASA/JPL SBDB: Farnocchia et al. (2024), AJ 168, 21 albedo source: NASA/JPL SBDB: IRAS-A-FPA-3-RDR-IMPS-V6.0 rotation period source: NASA/JPL SBDB: LCDB (Rev. 2023-October); Warner et al., 2009 porosity source: Very low porosity for metal-rich material (assumed). thermal conductivity source: High conductivity for Fe-Ni metal (assumed). water fraction source: Essentially dry metallic material. U-238 source: Trace U in metal-rich material (assumed). Th-232 source: Trace Th in metal-rich material (assumed). K source: Very low K in metallic material.",
+    notes="Material=iron_nickel. Reference asteroid=16 Psyche (M-type). radius_m from JPL diameter; note: this is the radius of the reference body, not an intrinsic material constant. density source: NASA/JPL SBDB: Farnocchia et al. (2024), AJ 168, 21 albedo source: NASA/JPL SBDB: IRAS-A-FPA-3-RDR-IMPS-V6.0 rotation period source: NASA/JPL SBDB: LCDB (Rev. 2023-October); Warner et al., 2009 porosity source: implied by Psyche's bulk density against an iron-meteorite grain density of ~7800 kg/m3 (Consolmagno & Britt 2013); Psyche is 30-60 vol% metal (Elkins-Tanton et al. 2020, JGR Planets), not solid core material. thermal conductivity source: Opeil, Consolmagno & Britt (2010), Icarus 208:449-454, measured on Campo del Cielo: 15 W/(m K) at 100 K rising to 27 at 300 K. water fraction source: Essentially dry metallic material. U-238 source: Trace U in metal-rich material (assumed). Th-232 source: Trace Th in metal-rich material (assumed). K source: Very low K in metallic material.",
 )
 
 

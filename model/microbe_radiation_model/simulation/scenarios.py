@@ -917,10 +917,18 @@ def run_mars_ejecta_pipeline_demo(
         if run_config.dust_erosion.enabled and _due(
             step_index, run_config.dust_erosion.refresh_interval_steps
         ):
+            # The interval skips steps, so the step that DOES run has to carry
+            # the time the skipped ones would have. Passing dt_s alone made
+            # erosion inversely proportional to a parameter documented as a
+            # performance knob: at an interval of 5 the swarm lost a quarter of
+            # the mass it should, and in a high-flux run that flipped the
+            # median survival from 0.0 to 0.999. The default interval is 1, so
+            # the shipped result is unaffected - but the knob was silently a
+            # physics control.
             apply_dust_erosion_step(
                 sim=sim,
                 asteroid_state_store=asteroid_state_store,
-                dt_s=dt_s,
+                dt_s=dt_s * max(1, int(run_config.dust_erosion.refresh_interval_steps)),
                 dust_mass_flux_kg_m2_s=run_config.dust_erosion.dust_mass_flux_kg_m2_s,
                 excavation_yield=run_config.dust_erosion.excavation_yield,
                 flux_definition=run_config.dust_erosion.flux_definition,
@@ -1074,7 +1082,14 @@ def run_mars_ejecta_pipeline_demo(
                 radiation_decay_gy_per_year = radiation_decay_gy_per_year_from_rock(
                     rock,
                     radius_m=asteroid_state.radius_m,
-                    density_kg_m3=material_config.rock_material.density,
+                    # And this fragment's own density, for the same reason.
+                    # Passing the configuration default here while passing the
+                    # fragment's real radius above was the same "one fragment,
+                    # two bodies" error in a second variable: the self-dose
+                    # depends on the product rho*R, so a CI chondrite fragment
+                    # (1190 kg/m3) was having its internal dose computed at
+                    # basalt's 3460 - 2.9x its true mass depth.
+                    density_kg_m3=rock.density_kg_m3,
                 )
                 # Cosmic ray dose after shielding.
                 # Calibration: 1.0 model GCR unit = 0.194 Gy/year (Mileikowsky et al. 2000).

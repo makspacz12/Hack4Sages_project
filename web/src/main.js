@@ -732,9 +732,18 @@ async function mainReplay(source) {
 
   const { refreshUI, setToggle: setReplayToggle } = initReplayUI(ctrl, (c) => {
     applyReplayFrame(c, meshById);
+    /* Every transport move lands here - the scrubber, the step buttons, Home
+     * and End, the arrow keys. The orbital clock has to be told, because its
+     * cached elements belong to the frame it was last reset at: without this
+     * a scrub left every body propagated along the PREVIOUS frame's orbits
+     * while the scrubber, the info panel, the charts and the dose colour all
+     * showed the new one. */
+    resetOrbitalClock(orbitalClock, c.currentFrame);
     rebuildReplayTrails();   // scrubbing: rebuild trail from data, not live positions
     const { positions, velocities, properties } = curFrame();
     infoPanel.updateFrame(positions, velocities, properties, posUnit);
+    // Dose changes with the frame, so the colours have to follow a scrub too.
+    paintDose(curFrame());
     liveCharts.update(ctrl.currentFrame);
   }, {
     onUVToggle: (enabled) => {
@@ -920,9 +929,25 @@ async function mainReplay(source) {
       }
 
       const posScale = (ctrl.meta?.positionScale ?? 1) * (ctrl.scaleMultiplier ?? 1);
-      orbitalClock.enabled = ctrl.smooth !== false;
+      /* The clock only owns the geometry while the replay is actually running.
+       *
+       * It was applied every animation tick regardless, so a paused scene kept
+       * whatever `years` the clock had reached and drew every body propagated
+       * forward from the sampled frame - up to a full orbit away from it.
+       * Pausing to point at a fragment then pointed at a position that the
+       * info panel, the charts and the dose colour all disagreed with.
+       *
+       * Paused, the sampled positions are the honest thing to show: they are
+       * the ones the integration actually produced. */
+      orbitalClock.enabled = ctrl.smooth !== false && ctrl.playing === true;
       const orbitalDrove = orbitalClock.enabled
         && applyOrbitalClock(orbitalClock, curFrame(), meshById, posScale);
+      // Coming out of playback, put the bodies back where the frame says they
+      // are rather than leaving the last propagated pose on screen.
+      if (!orbitalClock.enabled && orbitalClock.years !== 0) {
+        resetOrbitalClock(orbitalClock, ctrl.currentFrame);
+        applyReplayFrame(ctrl, meshById);
+      }
 
       if (ctrl.smooth && !orbitalDrove) {
         applyReplayFrameLerp(ctrl, meshById);

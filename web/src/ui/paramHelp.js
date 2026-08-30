@@ -29,15 +29,15 @@ export const PARAM_HELP = {
     what: 'The smallest and largest stones the impact throws off.',
     effect:
       'Size matters because rock stops cosmic rays, but only in bulk. The '
-      + 'attenuation length is about 96 g/cm2, which at meteoritic density is '
-      + 'roughly 0.33 m of rock, so a fragment has to approach a metre before '
-      + 'shielding does much.',
+      + 'attenuation length this model uses is 160 g/cm2 - about 0.53 m of '
+      + 'rock at meteoritic density - so a fragment has to approach a metre '
+      + 'before shielding does much.',
     unit: 'm',
     def: '0.001 to 5.0',
     warn:
       'The bundled swarm spans 1.3 to 57.5 mm, which is 0.4 to 17 g/cm2. Even '
-      + 'the largest fragment transmits 84% of the cosmic-ray flux to its core, '
-      + 'and the smallest 99.6%. This swarm is essentially unshielded: it shows '
+      + 'the largest fragment transmits 90% of the cosmic-ray flux to its core, '
+      + 'and the smallest 99.8%. This swarm is essentially unshielded: it shows '
       + 'what an unprotected fragment experiences, not what a metre-class '
       + 'boulder would. Mileikowsky et al. (2000) put 10^-6 spore survival at '
       + 'about 1 Myr behind 1 m of rock and 25 Myr behind 2-3 m.',

@@ -112,3 +112,107 @@ describe('presentation mode', () => {
     }
   });
 });
+
+/**
+ * The borrowed coefficient control.
+ *
+ * Chapter 5 MOVES the .lc-coeff block out of the analysis dock onto a stage
+ * panel and back. Every test above passed a bare `deps`, so the dock element
+ * never existed and this code returned early on every run - the riskiest part
+ * of the module had no coverage at all, and an audit found a stranding bug in
+ * it immediately.
+ */
+describe('borrowing the coefficient control', () => {
+  function mountDock() {
+    const dock = document.createElement('div');
+    dock.id = 'live-charts';
+    dock.innerHTML = `
+      <div class="lc-before"></div>
+      <div class="lc-coeff" hidden><input class="lc-coeff-slider"></div>
+      <div class="lc-after"></div>`;
+    document.body.appendChild(dock);
+    return dock;
+  }
+
+  const where = () => {
+    const el = document.querySelector('.lc-coeff');
+    if (!el) return 'missing';
+    if (el.closest('#stage-coeff')) return 'stage';
+    if (el.closest('#live-charts')) return 'dock';
+    return 'orphaned';
+  };
+
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    document.body.className = '';
+    document.head.innerHTML = '';
+  });
+
+  it('moves it to the stage for chapter 5 and back for any other', () => {
+    mountDock();
+    initPresentation({ controller: { frames: new Array(151) } });
+    press('p');
+    expect(where()).toBe('dock');
+    press('5');
+    expect(where()).toBe('stage');
+    press('2');
+    expect(where()).toBe('dock');
+  });
+
+  it('shows it on stage even though the dock keeps it hidden', () => {
+    mountDock();
+    initPresentation({ controller: { frames: new Array(151) } });
+    press('p');
+    press('5');
+    expect(document.querySelector('.lc-coeff').hidden).toBe(false);
+    press('p');
+    // and restores the dock's own hidden state on the way back
+    expect(document.querySelector('.lc-coeff').hidden).toBe(true);
+  });
+
+  it('returns it to the same place in the dock, not just anywhere', () => {
+    mountDock();
+    initPresentation({ controller: { frames: new Array(151) } });
+    press('p');
+    press('5');
+    press('p');
+    const dock = document.getElementById('live-charts');
+    const order = [...dock.children].map(e => e.className).filter(Boolean);
+    expect(order).toEqual(['lc-before', 'lc-coeff', 'lc-after']);
+  });
+
+  it('survives the dock being replaced while the control is on stage', () => {
+    // The parent is captured at borrow time. If the dock re-renders while
+    // chapter 5 is up, insertBefore throws and the control is lost for the
+    // rest of the session - unrecoverable without a reload, mid-talk.
+    mountDock();
+    initPresentation({ controller: { frames: new Array(151) } });
+    press('p');
+    press('5');
+    expect(where()).toBe('stage');
+
+    document.getElementById('live-charts').remove();
+    const fresh = document.createElement('div');
+    fresh.id = 'live-charts';
+    document.body.appendChild(fresh);
+
+    expect(() => press('p')).not.toThrow();
+    expect(where()).toBe('dock');
+  });
+
+  it('never leaves the control outside the document', () => {
+    mountDock();
+    initPresentation({ controller: { frames: new Array(151) } });
+    press('p');
+    press('5');
+    document.getElementById('live-charts').remove();
+    press('p');
+    expect(document.querySelector('.lc-coeff')?.isConnected).toBe(true);
+  });
+
+  it('does nothing when there is no control to borrow', () => {
+    document.body.innerHTML = '<div id="live-charts"></div>';
+    initPresentation({ controller: { frames: new Array(151) } });
+    expect(() => { press('p'); press('5'); press('p'); }).not.toThrow();
+  });
+});

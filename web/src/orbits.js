@@ -270,12 +270,28 @@ export function propagateElements(elements, dt) {
  * thirteen of the fourteen fragments while keeping the only one that genuinely
  * fails, which is the exact opposite of what is wanted.
  *
- * What actually breaks the approximation is the orbit CHANGING within the gap.
- * That is a question about how strongly the body is perturbed, and the honest
- * proxy available here is the semi-major axis: a fragment out at 17.7 AU is
- * being thrown around by Jupiter and its elements at the start of a gap do not
- * describe the end of it. asteroid_011 is that body, and its measured error
- * reaches 24 AU - larger than the inner Solar System.
+ * What actually breaks the approximation is the orbit CHANGING within the gap,
+ * and the discriminator for that is ECCENTRICITY, not distance.
+ *
+ * A second version of this function tested `a > 6`, on the reasoning that a
+ * body beyond the asteroid belt is being thrown around by Jupiter. That is
+ * true of the fragment it was aimed at - but semi-major axis does not
+ * distinguish a perturbed fragment from a planet, and Saturn, Uranus and
+ * Neptune all sit beyond 6 AU. They were frozen at their sampled positions
+ * while the inner system orbited around them, which is the kind of thing an
+ * astronomer in the audience notices immediately.
+ *
+ * Eccentricity separates them cleanly, measured on the shipped replay:
+ *
+ *   every planet          e = 0.007 to 0.205
+ *   thirteen fragments    e = 0.155 to 0.550
+ *   asteroid_011          e = 0.962   <- the one that fails
+ *
+ * A near-parabolic orbit sweeps most of its arc near periapsis, turns hardest
+ * there, and is the most easily reshaped by a close pass - so a sampled
+ * element set does not survive a 20-year gap. asteroid_011's measured error
+ * reaches 24 AU, larger than the inner Solar System. Nothing else comes close
+ * to that eccentricity, so nothing else is excluded.
  *
  * Bodies that fail this are drawn at their sampled position, which is the one
  * place their position is actually known.
@@ -285,12 +301,6 @@ export function keplerSafe(elements, dt) {
   const { a, e, period } = elements;
   if (!Number.isFinite(a) || !Number.isFinite(period) || period <= 0) return false;
   if (!Number.isFinite(dt)) return false;
-  // Beyond the asteroid belt the two-body step stops describing the motion,
-  // because the perturbations that reshape the orbit act on the same timescale
-  // as the sampling. 6 AU keeps every fragment in the main swarm (aphelia to
-  // 4.7 AU) and rejects the 17.7 AU outlier.
-  if (a > 6) return false;
-  // A nearly-parabolic orbit turns too sharply near periapsis for a sampled
-  // element set to survive a long gap.
-  return e < 0.95;
+  if (!Number.isFinite(e)) return false;
+  return e < 0.9;
 }

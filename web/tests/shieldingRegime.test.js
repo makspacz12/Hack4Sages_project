@@ -3,8 +3,8 @@
  *
  * This is the model's most important limitation, and it is arithmetic rather
  * than opinion. Galactic cosmic rays attenuate with a characteristic column
- * density of about 96 g/cm2, which at meteoritic density (~3 g/cm3) is roughly
- * 0.33 m of rock. The bundled fragments span 1.3 to 57.5 mm in radius, i.e.
+ * density of 160 g/cm2 - the value the model itself uses - which at meteoritic
+ * density (~3 g/cm3) is about 0.53 m of rock. The bundled fragments span 1.3 to 57.5 mm in radius, i.e.
  * 0.4 to 17 g/cm2 - a few percent of one attenuation length.
  *
  * So the run shows what an essentially UNSHIELDED fragment experiences. That
@@ -23,7 +23,7 @@ function columnDensity(radiusM, densityKgM3 = 3000) {
 }
 
 /** Fraction of the cosmic-ray flux reaching the core. */
-function transmitted(radiusM, attenuationGcm2 = 96) {
+function transmitted(radiusM, attenuationGcm2 = 160) {
   return Math.exp(-columnDensity(radiusM) / attenuationGcm2);
 }
 
@@ -47,9 +47,9 @@ describe('the shielding regime of the bundled swarm', () => {
   });
 
   it('leaves even the largest fragment essentially transparent', () => {
-    // 57.5 mm transmits about 84% of the flux to its core.
+    // 57.5 mm transmits about 90% of the flux to its core.
     const best = transmitted(radii.at(-1));
-    expect(best).toBeGreaterThan(0.8);
+    expect(best).toBeGreaterThan(0.85);
   });
 
   it('leaves the smallest fragment completely transparent', () => {
@@ -59,8 +59,8 @@ describe('the shielding regime of the bundled swarm', () => {
   it('would need roughly a metre before shielding matters', () => {
     // The comparison that makes the limitation concrete: a 1 m boulder stops
     // 95% of what reaches this swarm's largest stone.
-    expect(transmitted(1.0)).toBeLessThan(0.06);
-    expect(transmitted(0.5)).toBeLessThan(0.25);
+    expect(transmitted(1.0)).toBeLessThan(0.20);
+    expect(transmitted(0.5)).toBeLessThan(0.45);
   });
 
   it('states the limitation where a reader will meet it', async () => {
@@ -69,7 +69,7 @@ describe('the shielding regime of the bundled swarm', () => {
     // The parameter that controls size must say the swarm is unshielded, not
     // leave the reader to work it out.
     expect(help).toMatch(/essentially unshielded/i);
-    expect(help).toMatch(/96 g\/cm2/);
+    expect(help).toMatch(/160 g\/cm2/);
   });
 });
 
