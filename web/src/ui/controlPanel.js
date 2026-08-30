@@ -18,6 +18,7 @@ import {
   valueToPosLinear, posToValueLinear,
   clampMin, clampMax, formatRadius,
 } from './rangeLog.js';
+import { attachScrollHint } from './scrollHint.js';
 
 function injectStyles() {
   if (document.getElementById('control-panel-style')) return;
@@ -64,7 +65,32 @@ function injectStyles() {
     #run-console .rc-status-text { font-size: 0.65625rem; color: var(--ink-dim); }
     #run-console .rc-status-text b { color: var(--ink); font-weight: 600; }
 
-    #run-console .rc-body { flex: 1 1 auto; overflow-y: auto; }
+    /* The parameter list scrolls, and at a 1280x800 projector roughly 700px of
+       it sits below the fold - the EJECTA group is cut mid-heading. A scroll
+       region with no affordance reads as a rendering fault rather than as more
+       content, so the fade below marks the boundary: it appears only while
+       something is actually hidden, and is driven by scroll position rather
+       than being painted permanently. */
+    #run-console .rc-body {
+      flex: 1 1 auto; overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--line-strong) transparent;
+    }
+    /* min-height:0 lets the wrap actually shrink inside the flex column, and
+       overflow:hidden clips what the scroller paints past its own edge. Without
+       the clip a tooltip trigger from a scrolled-past row was drawn 29px below
+       the panel, on top of the replay bar's step buttons, where it stole their
+       clicks. */
+    #run-console .rc-body-wrap {
+      position: relative; flex: 1 1 auto; min-height: 0; display: flex;
+      overflow: hidden;
+    }
+    #run-console .rc-more {
+      position: absolute; left: 0; right: 0; bottom: 0; height: 34px;
+      pointer-events: none; opacity: 0; transition: opacity .15s ease;
+      background: linear-gradient(to bottom, transparent, var(--bg-panel));
+    }
+    #run-console .rc-body-wrap.has-more .rc-more { opacity: 1; }
 
     #run-console .rc-group { border-bottom: 1px solid var(--line-hair); padding: var(--sp-3) 0 var(--sp-2); }
     #run-console .rc-group-title {
@@ -284,7 +310,10 @@ export function createControlPanel({ onFinished }) {
       <span class="ui-dot" id="rc-dot"></span>
       <span class="rc-status-text" id="rc-status-text">checking solver…</span>
     </div>
-    <div class="rc-body ui-scroll" id="rc-body"></div>
+    <div class="rc-body-wrap" id="rc-body-wrap">
+      <div class="rc-body ui-scroll" id="rc-body"></div>
+      <div class="rc-more" aria-hidden="true"></div>
+    </div>
     <div class="rc-foot">
       <div class="rc-cost">
         <span id="rc-frames">— frames</span>
@@ -310,6 +339,8 @@ export function createControlPanel({ onFinished }) {
   toggle.textContent = 'Run console';
 
   const body = panel.querySelector('#rc-body');
+
+  attachScrollHint(body, panel.querySelector('#rc-body-wrap'));
   const dot = panel.querySelector('#rc-dot');
   const statusText = panel.querySelector('#rc-status-text');
   const runBtn = panel.querySelector('#rc-run');

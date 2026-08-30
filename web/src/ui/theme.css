@@ -148,8 +148,19 @@ html { font-size: calc(16px * var(--ui-scale, 1)); }
   --sp-6: 32px;
 
   --radius: 3px;
-  --panel-w: 21.25rem;   /* left run console */
-  --dock-w:  21rem;      /* right analysis dock */
+  /* Side panels.
+   *
+   * Capped as a share of the viewport as well as in rem, because they are
+   * fixed OVERLAYS: they do not shrink the 3D canvas, they cover it. At a
+   * 1280-wide projector the two together were hiding 53% of the scene, and at
+   * a presentation scale they hid more. Neither may take more than 26% of the
+   * window, which leaves at least half of it showing the thing the talk is
+   * about. */
+  --panel-w: min(21.25rem, 26vw);   /* left run console */
+  --dock-w:  min(21rem, 26vw);      /* right analysis dock */
+  /* Fallback only. The replay bar measures itself and overwrites this at
+     runtime (src/replayUI.js), because its true height depends on --ui-scale.
+     This value is what pages carrying no replay bar reserve. */
   --rail-h: 60px;
 }
 

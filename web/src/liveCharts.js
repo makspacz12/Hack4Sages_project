@@ -13,6 +13,7 @@
  */
 
 import { liveLinePlot, fmt } from './charts/plot.js';
+import { attachScrollHint } from './ui/scrollHint.js';
 import {
   depthProfileChart, parseDepthProfile, penetrationRatio, profileForFragment,
 } from './charts/depthProfile.js';
@@ -231,8 +232,7 @@ function injectLayoutFixes(banner) {
     // it was 138px where a guessed 104px had been assumed, so the dock header
     // and both toggle buttons sat underneath it.
     s.textContent = `
-      body.charts-docked #info-panel,
-      body.charts-docked #obj-search-panel { right: calc(var(--dock-w) + 1rem); }
+      body.charts-docked #info-panel { right: calc(var(--dock-w) + 1rem); }
       #info-panel, #obj-search-panel, #focus-hud, #ui {
         top: calc(var(--headline-h, 0px) + var(--menubar-h, 0px) + 16px);
       }
@@ -308,7 +308,7 @@ function injectStyles() {
     .lc-depth-plot svg { display: block; max-width: 100%; }
     .dp-empty { font-size: 0.65625rem; color: var(--ink-dim); padding: 6px 0; }
     #live-charts {
-      position: fixed; top: 0; right: 0; bottom: 72px;
+      position: fixed; top: 0; right: 0; bottom: var(--rail-h);
       width: var(--dock-w); z-index: 860;
       background: var(--bg-panel);
       border-left: 1px solid var(--line-edge);
@@ -334,7 +334,23 @@ function injectStyles() {
     }
     #live-charts .lc-close:hover { color: var(--ink-bright); border-color: var(--accent); }
 
-    #live-charts .lc-body { overflow-y: auto; padding: 4px 0 12px; flex: 1 1 auto; }
+    #live-charts .lc-body {
+      overflow-y: auto; padding: 4px 0 12px; flex: 1 1 auto;
+      scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent;
+    }
+    /* The dock hides about 1400px below the fold at a 1280x800 projector -
+       twice what the run console hides - so the boundary needs marking here
+       even more than there. See src/ui/scrollHint.js. */
+    #live-charts .lc-body-wrap {
+      position: relative; flex: 1 1 auto; min-height: 0; display: flex;
+      overflow: hidden;
+    }
+    #live-charts .lc-more {
+      position: absolute; left: 0; right: 0; bottom: 0; height: 34px;
+      pointer-events: none; opacity: 0; transition: opacity .15s ease;
+      background: linear-gradient(to bottom, transparent, var(--bg-panel));
+    }
+    #live-charts .lc-body-wrap.has-more .lc-more { opacity: 1; }
     #live-charts .lc-fig { padding: 8px 12px 5px; border-bottom: 1px solid var(--line-hair); }
     #live-charts .lc-fig:last-child { border-bottom: none; }
     #live-charts .lc-fig-title { font-size: 0.71875rem; color: var(--ink-bright); font-weight: bold; }
@@ -371,7 +387,7 @@ function injectStyles() {
 
     #live-charts .lc-selection {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 6px 12px; background: rgba(43,163,171,.11);
+      padding: 6px 12px; background: color-mix(in srgb, var(--accent) 9%, var(--bg-panel));
       border-bottom: 1px solid var(--line-edge); font-size: 0.65625rem; color: var(--ink);
       flex: 0 0 auto;
     }
@@ -443,11 +459,17 @@ function injectStyles() {
       color: var(--accent); font-family: monospace; font-size: 0.8125rem; font-weight: bold;
       letter-spacing: .1em; padding: 6px 14px; border-radius: 6px; cursor: pointer;
     }
-    #btn-live-charts:hover { border-color: var(--accent); background: rgba(43,163,171,.13); color: var(--accent); }
-    #btn-live-charts.docked { right: 344px; }
+    #btn-live-charts:hover { border-color: var(--accent); background: var(--bg-sunken); color: var(--accent); }
+    /* Tracks the dock rather than restating its width. 344px was the old fixed
+       21rem panel plus a gutter; the dock is now min(21rem, 26vw), so on a
+       narrow projector the hardcoded value left this button floating over the
+       dock's own heading. */
+    #btn-live-charts.docked { right: calc(var(--dock-w) + var(--sp-3)); }
 
-    /* The object search sits at right:300px; slide it clear of the dock so the
-       two never overlap. */
+    /* The object search sits at right: 19rem when undocked (src/objectSearch.js);
+       slide it clear of the dock by that same amount so the two never overlap.
+       Both the toggle and the panel move together, or the button detaches from
+       the thing it opens. */
     body.charts-docked #obj-search-toggle { right: calc(var(--dock-w) + 19rem); }
     body.charts-docked #obj-search-panel  { right: calc(var(--dock-w) + 19rem); }
 
@@ -496,9 +518,13 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
              aria-label="radiation inactivation coefficient in 1/Gy">
       <button class="lc-coeff-reset" type="button">use each fragment's own value</button>
     </div>
-    <div class="lc-body"></div>
+    <div class="lc-body-wrap">
+      <div class="lc-body"></div>
+      <div class="lc-more" aria-hidden="true"></div>
+    </div>
   `;
   const body = panel.querySelector('.lc-body');
+  const refreshScrollHint = attachScrollHint(body, panel.querySelector('.lc-body-wrap'));
 
   const toggle = document.createElement('button');
   toggle.id = 'btn-live-charts';
@@ -713,6 +739,9 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
         onPick: (s) => { if (s.pickId) select(s.pickId); },
       });
     }
+    // Charts change height with the UI scale and with what is selected, so the
+    // amount hidden below the fold changes without any scroll event.
+    refreshScrollHint();
   }
 
   /**

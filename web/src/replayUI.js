@@ -314,6 +314,21 @@ export function initReplayUI(ctrl, onFrameChange, opts = {}) {
   bar.append(scrubRow, ctrlRow);
   document.body.appendChild(bar);
 
+  /* Publish the bar's real height, the way the menu bar and headline publish
+     theirs. --rail-h was a hardcoded 60px guess, and the bar is not 60px: at a
+     1280x800 projector it stood taller than the reservation, so the step-back
+     button covered 9px of a tooltip trigger in the console footer above it and
+     that trigger could not be clicked. The guess also could not track
+     --ui-scale, so it drifted further at every presentation size. */
+  const measureRail = () => {
+    document.documentElement.style.setProperty(
+      '--rail-h', `${Math.ceil(bar.getBoundingClientRect().height)}px`,
+    );
+  };
+  measureRail();
+  if (typeof ResizeObserver === 'function') new ResizeObserver(measureRail).observe(bar);
+  else window.addEventListener('resize', measureRail);
+
   // ── keyboard shortcuts ────────────────────────────────────────────────
   window.addEventListener('keydown', (e) => {
     // Spacebar always pauses/plays – even when inputs are focused,

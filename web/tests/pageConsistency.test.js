@@ -62,3 +62,40 @@ describe('no page ships a script for markup it does not have', () => {
     }
   });
 });
+
+/**
+ * A panel offset must never be restated as a pixel literal.
+ *
+ * `#btn-live-charts.docked { right: 344px; }` was the old 21rem dock plus a
+ * gutter, written out by hand. When the dock became min(21rem, 26vw) so it
+ * would stop eating a narrow projector, the button kept pointing at 344px and
+ * floated over the dock's own heading. The offset has to be derived from the
+ * token, so that changing the token moves everything that depends on it.
+ */
+describe('panel offsets track their tokens', () => {
+  const SOURCES = ['src/liveCharts.js', 'src/ui/controlPanel.js', 'src/ui/theme.css'];
+
+  it('never hardcodes a pixel offset in the panel-width range', async () => {
+    const offenders = [];
+    for (const rel of SOURCES) {
+      const text = await readFile(new URL(`../${rel}`, import.meta.url), 'utf8');
+      const re = /(left|right)\s*:\s*(\d{3,})px/g;
+      let m;
+      while ((m = re.exec(text)) !== null) {
+        // Anything this wide is a panel edge, not a small nudge.
+        if (Number(m[2]) >= 200) offenders.push(`${rel}: ${m[0]}`);
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+
+  it('caps each side panel so it cannot swallow a narrow screen', async () => {
+    const css = await readFile(new URL('../src/ui/theme.css', import.meta.url), 'utf8');
+    for (const token of ['--panel-w', '--dock-w']) {
+      const m = css.match(new RegExp(`${token}\s*:\s*([^;]+);`));
+      expect(m, `${token} must be defined`).toBeTruthy();
+      // A viewport-relative cap is what keeps the 3D scene visible at 1280px.
+      expect(m[1]).toMatch(/vw/);
+    }
+  });
+});
