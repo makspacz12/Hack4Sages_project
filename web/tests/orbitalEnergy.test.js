@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import {
   orbitalEnergySeries, fateCounts, SUN_MU_AU3_YR2,
 } from '../src/charts/series.js';
-import { doseBudget, doseBudgetRatio } from '../src/charts/doseModel.js';
+import { doseBudget, doseBudgetRatio, GCR_UNIT_TO_GY_PER_YEAR } from '../src/charts/doseModel.js';
 import sim from '../public/data/cosmos_visualizer_simulation.json';
 
 /** A replay frame with one fragment at radius r moving at speed v. */
@@ -67,8 +67,13 @@ describe('doseBudget', () => {
   ];
 
   it('integrates rate over the interval between frames', () => {
+    // gcr_local_flux is in the cosmic-ray model's normalised unit, so it has
+    // to be converted before it can be summed against a Gy/yr series: one
+    // flux unit for ten years is 1 * 0.194 * 10 = 1.94 Gy, not 10. These
+    // expectations previously encoded the missing conversion.
     const b = doseBudget(frames);
-    expect(b.gcr.at(-1)).toEqual([10, 10]);
+    expect(b.gcr.at(-1)[0]).toBe(10);
+    expect(b.gcr.at(-1)[1]).toBeCloseTo(10 * GCR_UNIT_TO_GY_PER_YEAR, 12);
     expect(b.decay.at(-1)[1]).toBeCloseTo(1e-3, 12);
   });
 
@@ -80,11 +85,11 @@ describe('doseBudget', () => {
 
   it('reports the ratio the readout claims', () => {
     const r = doseBudgetRatio(doseBudget(frames));
-    expect(r.ratio).toBeCloseTo(1e4, 6);
-    // Share of the total, not the ratio to the other channel: the exact value
-    // is 1e-3 / (10 + 1e-3) = 9.99900e-5, so 0.01% is a rounding of it, not
-    // the number itself.
-    expect(r.decayPercent).toBeCloseTo(0.0099990001, 9);
+    // 1.94 Gy of cosmic rays against 1e-3 Gy of decay.
+    const gcrGy = 10 * GCR_UNIT_TO_GY_PER_YEAR;
+    expect(r.ratio).toBeCloseTo(gcrGy / 1e-3, 6);
+    // Share of the total, not the ratio to the other channel.
+    expect(r.decayPercent).toBeCloseTo((1e-3 / (gcrGy + 1e-3)) * 100, 9);
   });
 
   it('returns null rather than dividing by a dead channel', () => {

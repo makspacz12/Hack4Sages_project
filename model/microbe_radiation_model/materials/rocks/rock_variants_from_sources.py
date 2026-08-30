@@ -29,13 +29,18 @@ CI_CHONDRITE = Rock(
     density_kg_m3=1190.0,
     albedo=0.045,
     water_mass_fraction=0.18,
-    porosity=0.11,
+    # Was 0.11. Macke, Consolmagno & Britt (2011), MAPS 46(12):1842-1862,
+    # measure CI (type 1) carbonaceous chondrite porosity near 35%, and the
+    # reference body Ryugu is above 50% (Watanabe et al. 2019: bulk density
+    # 1.19 g/cm3 against an Orgueil grain density of 2.42 gives 51%). 0.11
+    # matched neither the meteorite class nor the body it names.
+    porosity=0.35,
     thermal_conductivity_w_mk=0.5,
     probability=0.15,
     uranium238_ppm=0.012,
     thorium232_ppm=0.045,
     potassium_percent=0.055,
-    notes="Material=ci_chondrite. Reference asteroid=162173 Ryugu (C-type / CI-like analog). radius_m from JPL diameter; note: this is the radius of the reference body, not an intrinsic material constant. density source: NASA/JPL SBDB: Watanabe, S.; Hirabayashi, M.; Hirata, N.; Hirata, Na.; et al. (2019) Science 364, 267-272. albedo source: NASA/JPL SBDB: Sugita, S.; Honda, R.; Morota, T.; et al. (2019) Science 364, 6437. rotation period source: NASA/JPL SBDB: Watanabe, S.; Hirabayashi, M.; Hirata, N.; Hirata, Na; et al. (2019) Science 364, 267-272. porosity source: Macke et al. 2011b, MAPS 46(10):1378-1396. thermal conductivity source: Low-conductivity primitive estimate. water fraction source: CI ~18 wt% H2O eq. (Zolensky et al. 1993). U-238 source: Chondritic U scale (Lovering 1964). Th-232 source: Chondritic Th scale (Lovering 1964). K source: Representative CI K abundance (literature).",
+    notes="Material=ci_chondrite. Reference asteroid=162173 Ryugu (C-type / CI-like analog). radius_m from JPL diameter; note: this is the radius of the reference body, not an intrinsic material constant. density source: NASA/JPL SBDB: Watanabe, S.; Hirabayashi, M.; Hirata, N.; Hirata, Na.; et al. (2019) Science 364, 267-272. albedo source: NASA/JPL SBDB: Sugita, S.; Honda, R.; Morota, T.; et al. (2019) Science 364, 6437. rotation period source: NASA/JPL SBDB: Watanabe, S.; Hirabayashi, M.; Hirata, N.; Hirata, Na; et al. (2019) Science 364, 267-272. porosity source: Macke et al. 2011b, MAPS MAPS 46(12):1842-1862. thermal conductivity source: Low-conductivity primitive estimate. water fraction source: CI ~18 wt% H2O eq. (Zolensky et al. 1993). U-238 source: Chondritic U scale (Lovering 1964). Th-232 source: Chondritic Th scale (Lovering 1964). K source: Representative CI K abundance (literature).",
 )
 
 
@@ -51,7 +56,7 @@ CM_CHONDRITE = Rock(
     uranium238_ppm=0.01,
     thorium232_ppm=0.038,
     potassium_percent=0.04,
-    notes="Material=cm_chondrite. Reference asteroid=101955 Bennu (B/C-type / CM-like analog). radius_m from JPL diameter; note: this is the radius of the reference body, not an intrinsic material constant. density source: NASA/JPL SBDB: Daly, M.G., et al., Sci. Adv. 6, eabd3649 (2020) albedo source: NASA/JPL SBDB: Hergenrother, M.C., et al., Nat. Commun. 10, 1291 (2019) rotation period source: NASA/JPL SBDB: Hergenrother, M.C., et al., Nat. Commun. 10, 1291 (2019) porosity source: Macke et al. 2011b, MAPS 46(10):1378-1396. thermal conductivity source: Low-conductivity primitive estimate. water fraction source: CM ~10 wt% H2O eq. (Zolensky et al. 1993). U-238 source: Chondritic U abundance (Lovering 1964). Th-232 source: Chondritic Th abundance (Lovering 1964). K source: Representative CM K abundance (literature).",
+    notes="Material=cm_chondrite. Reference asteroid=101955 Bennu (B/C-type / CM-like analog). radius_m from JPL diameter; note: this is the radius of the reference body, not an intrinsic material constant. density source: NASA/JPL SBDB: Daly, M.G., et al., Sci. Adv. 6, eabd3649 (2020) albedo source: NASA/JPL SBDB: Hergenrother, M.C., et al., Nat. Commun. 10, 1291 (2019) rotation period source: NASA/JPL SBDB: Hergenrother, M.C., et al., Nat. Commun. 10, 1291 (2019) porosity source: Macke et al. 2011b, MAPS MAPS 46(12):1842-1862. thermal conductivity source: Low-conductivity primitive estimate. water fraction source: CM ~10 wt% H2O eq. (Zolensky et al. 1993). U-238 source: Chondritic U abundance (Lovering 1964). Th-232 source: Chondritic Th abundance (Lovering 1964). K source: Representative CM K abundance (literature).",
 )
 
 
@@ -109,8 +114,24 @@ IRON_NICKEL = Rock(
     density_kg_m3=4172.0,
     albedo=0.1203,
     water_mass_fraction=0.0001,
-    porosity=0.01,
-    thermal_conductivity_w_mk=50.0,
+    # Was 0.01, which contradicted the density beside it. 4172 kg/m3 is 16
+    # Psyche's BULK density (Farnocchia et al. 2024), and Psyche is not solid
+    # metal: Elkins-Tanton et al. (2020), JGR Planets, put it at 30-60 vol%
+    # metal, so its low bulk density implies large macroporosity. An iron
+    # meteorite is ~7800 kg/m3 at ~1% porosity (Consolmagno & Britt 2013,
+    # measured 7.47-7.96 g/cm3). Carrying a rubbly body's density with solid
+    # metal's porosity implied a grain density of 4214 kg/m3, which is no
+    # material at all.
+    #
+    # The entry is kept as PSYCHE - a real, measured, metal-rich body - rather
+    # than switched to an iron meteorite, because the density is the quantity
+    # that drives shielding depth and beta, and 4172 is the one that is
+    # actually cited. The porosity now agrees with it.
+    porosity=0.45,
+    # Was 50, roughly wrought iron. Opeil, Consolmagno & Britt (2010), Icarus
+    # 208:449, measured Campo del Cielo directly: 15 W/(m K) at 100 K rising
+    # to 27 at 300 K. 27 is the value at the warm end of what this model sees.
+    thermal_conductivity_w_mk=27.0,
     probability=0.05,
     uranium238_ppm=0.001,
     thorium232_ppm=0.003,

@@ -228,9 +228,24 @@ export function createInfoPanel() {
       // Radiation section
       if (prop.uv_local_flux != null || prop.gcr_local_flux != null || prop.gamma_local_flux != null) {
         frag.appendChild(section('Radiation (current frame)'));
-        if (prop.uv_local_flux != null)    frag.appendChild(bar('UV flux', prop.uv_local_flux, 200, 'W/m²', '#fc4'));
-        if (prop.gcr_local_flux != null)   frag.appendChild(row('GCR flux', prop.gcr_local_flux, '', true));
-        if (prop.gamma_local_flux != null) frag.appendChild(bar('Gamma flux', prop.gamma_local_flux, 100, 'Gy/yr', '#a6f'));
+        // Bar maxima are set from the ranges the run actually produces,
+        // measured across every fragment-frame in the shipped replay:
+        //   uv_local_flux     1.16 to 1190 W/m2   (was capped at 200, so a
+        //                                          close-in fragment pinned
+        //                                          the bar at 595% and the
+        //                                          top of the range was
+        //                                          unreadable)
+        //   gamma_local_flux  6.1e-6 to 1.2e-4 Gy/yr  (was scaled to 100, so
+        //                                          the bar filled 0.0001% and
+        //                                          read as "no internal
+        //                                          radiation at all")
+        if (prop.uv_local_flux != null)    frag.appendChild(bar('UV flux', prop.uv_local_flux, 1200, 'W/m²', '#fc4'));
+        // Not a dose rate: this is the cosmic-ray model's normalised unit,
+        // where 1.0 is roughly the flux inside the heliosphere. Shown as a
+        // bare number with its unit named, so it is not read as the Gy/yr
+        // sitting beside it.
+        if (prop.gcr_local_flux != null)   frag.appendChild(row('GCR flux', prop.gcr_local_flux, 'model units', true));
+        if (prop.gamma_local_flux != null) frag.appendChild(bar('Gamma flux', prop.gamma_local_flux, 1.5e-4, 'Gy/yr', '#a6f'));
         if (prop.radiation_decay_gy_per_year != null) frag.appendChild(row('Decay dose', prop.radiation_decay_gy_per_year, 'Gy/yr', true));
       }
       // Temperature section

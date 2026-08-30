@@ -133,17 +133,36 @@ export function formatMultiplicative(value, factor, digits = 2) {
  * The model carries a full radionuclide chain - uranium-238, thorium-232 and
  * potassium-40 in the rock itself, with published dose conversion factors from
  * Cresswell, Carter & Sanderson (2018). It is a real subsystem with real
- * citations, and in this configuration it contributes almost nothing: about one
- * part in nine thousand of the total dose.
+ * citations, and in this configuration it contributes almost nothing: about
+ * four parts in ten thousand of the total dose.
  *
  * That is a result, not a failure, and it is worth drawing. A tool that marks
  * its own negligible channels is making a different statement than one that
  * presents every subsystem with equal weight.
  *
- * Both channels are integrated the same way the simulation integrates them -
- * rate times the interval between frames - so the sum reproduces the exported
- * `dose_cumulative_gy` rather than approximating it.
+ * UNITS. `gcr_local_flux` is exported in the cosmic-ray model's own normalised
+ * unit, where 1.0 is roughly the flux inside the heliosphere - it is NOT a
+ * dose rate, despite sitting beside `radiation_decay_gy_per_year`, which is.
+ * The Python multiplies it by GCR_MODEL_UNIT_TO_GY_PER_YEAR = 0.194 before
+ * treating it as dose (simulation/scenarios.py), and this must do the same.
+ *
+ * Without that factor the two channels were summed in different units on an
+ * axis labelled "cumulative dose [Gy]": the cosmic-ray curve reached 3076 Gy,
+ * which is 5.1x more dose than the model produced for any fragment and above
+ * the colour scale's own 1000 Gy ceiling. With it the total is 596.8 Gy
+ * against a mean exported dose of 601.1 Gy, so the sum now genuinely
+ * reproduces `dose_cumulative_gy` rather than merely claiming to.
  */
+
+/**
+ * Model GCR unit to Gy/year.
+ *
+ * Mirrors GCR_MODEL_UNIT_TO_GY_PER_YEAR in the Python. Duplicated rather than
+ * exported through the replay because the replay does not carry it; if that
+ * constant changes, this one has to change with it, and the test comparing
+ * this sum against the exported dose is what will catch it.
+ */
+export const GCR_UNIT_TO_GY_PER_YEAR = 0.194;
 export function doseBudget(frames) {
   const gcr = [];
   const decay = [];
@@ -158,7 +177,7 @@ export function doseBudget(frames) {
     const dt = prevT === null ? 0 : t - prevT;
     prevT = t;
     const mean = (f) => props.reduce((a, p) => a + (p[f] ?? 0), 0) / props.length;
-    sumG += mean('gcr_local_flux') * dt;
+    sumG += mean('gcr_local_flux') * GCR_UNIT_TO_GY_PER_YEAR * dt;
     sumD += mean('radiation_decay_gy_per_year') * dt;
     gcr.push([t, sumG]);
     decay.push([t, sumD]);

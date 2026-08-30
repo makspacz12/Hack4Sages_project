@@ -36,6 +36,40 @@ def attenuation_factor(
 ) -> float:
     """
     Compute the attenuation factor according to the Beer-Lambert law.
+
+    KNOWN LIMITATION - CASCADE BUILD-UP IS NOT MODELLED.
+
+    Beer-Lambert is monotonic: it says dose falls with every gram of shielding.
+    That is not what happens to galactic cosmic rays in the first hundred grams
+    per square centimetre. A primary nucleus generates secondaries faster than
+    it is absorbed, so dose RISES with depth to a maximum before it declines -
+    the same physics that produces the Pfotzer maximum in the atmosphere.
+
+    Mileikowsky et al. (2000) Table IV, the source this model calibrates its
+    dose rate against, tabulates exactly that:
+
+        shield g/cm2    GCR cGy/yr    vs surface    exp(-x/160) predicts
+                  0         19.40         1.00x                   19.40
+                 10         23.80         1.23x                   18.22
+                100         18.30         0.94x                   10.38
+                200          8.70         0.45x                    5.56
+                800          0.06         0.00x                    0.13
+
+    Dose is 23% HIGHER at 10 g/cm2 than at the surface, and this function
+    predicts a 6% fall. Dartnell et al. (2007), Biogeosciences 4:545, find the
+    same peak at 30-40 g/cm2 in Mars regolith, and note that adding 16 g/cm2
+    of atmosphere RAISES the surface dose by 10%.
+
+    WHAT THIS MEANS HERE. The bundled swarm spans 0.4 to 17 g/cm2, so it sits
+    entirely inside the build-up region, where this function is wrong in sign.
+    It under-doses those fragments and therefore over-predicts their survival.
+    The error is bounded by the table above - at most about 25% in dose rate
+    over this range, not an order of magnitude - but it is in the optimistic
+    direction and it must be stated rather than discovered.
+
+    Beyond a few hundred g/cm2 the exponential is a fair description, so this
+    remains correct for the metre-class bodies the panspermia literature is
+    actually about. It is the small end it gets wrong.
     """
     if path_length < 0:
         raise ValueError("path_length cannot be negative")

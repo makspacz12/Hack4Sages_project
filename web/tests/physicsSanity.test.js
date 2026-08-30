@@ -110,3 +110,35 @@ describe('radiation pressure beta', () => {
     }
   });
 });
+
+describe('the dose budget chart is in the same units as the model', () => {
+  /*
+   * gcr_local_flux is exported in the cosmic-ray model's normalised unit, not
+   * in Gy/yr, while radiation_decay_gy_per_year beside it genuinely is Gy/yr.
+   * Summing them without the 0.194 conversion put two different units on one
+   * axis labelled "cumulative dose [Gy]", and drove the cosmic-ray curve to
+   * 3076 Gy - five times more dose than the model produced for any fragment,
+   * and above the colour scale's own 1000 Gy ceiling.
+   *
+   * The check that catches it is the only one that can: the integrated budget
+   * must reproduce the dose the model itself exported.
+   */
+  it('reproduces the exported cumulative dose', async () => {
+    const { doseBudget } = await import('../src/charts/doseModel.js');
+    const budget = doseBudget(sim.frames);
+    const total = budget.gcr.at(-1)[1] + budget.decay.at(-1)[1];
+
+    const exported = FRAGMENTS.map(p => p.dose_cumulative_gy).filter(Number.isFinite);
+    const meanExported = exported.reduce((a, b) => a + b, 0) / exported.length;
+
+    // Within a percent; the residual is the zero-width first interval.
+    expect(Math.abs(total - meanExported) / meanExported).toBeLessThan(0.02);
+  });
+
+  it('never claims more dose than the colour scale can show', async () => {
+    const { doseBudget } = await import('../src/charts/doseModel.js');
+    const { DOSE_MAX_GY } = await import('../src/doseColor.js');
+    const budget = doseBudget(sim.frames);
+    expect(budget.gcr.at(-1)[1]).toBeLessThan(DOSE_MAX_GY);
+  });
+});
