@@ -108,3 +108,41 @@ describe('orbital clock', () => {
     expect(c.years).toBe(0);
   });
 });
+
+/**
+ * The transport's "Orbital motion" checkbox must actually turn this off.
+ *
+ * The clock and the frame interpolator both write mesh positions, and main.js
+ * chooses between them. The clock's `enabled` flag was never tied to the
+ * control, so unticking the box left the clock still advancing bodies along
+ * their orbits: the viewer asked for the raw sampled positions and got
+ * interpolated ones anyway, with no error and nothing on screen to say so.
+ *
+ * That is worse than a crash, because it makes a control lie about what is
+ * being shown - in a tool whose whole argument is that it marks what it does
+ * and does not know.
+ */
+describe('the orbital clock answers to the smoothing control', () => {
+  it('is wired to ctrl.smooth in the animation loop', async () => {
+    const { readFile } = await import('node:fs/promises');
+    const main = await readFile(new URL('../src/main.js', import.meta.url), 'utf8');
+    expect(main).toMatch(/orbitalClock\.enabled\s*=\s*ctrl\.smooth/);
+  });
+
+  it('draws nothing when disabled, so the caller falls back', () => {
+    const c = createOrbitalClock();
+    c.enabled = false;
+    resetOrbitalClock(c, 0);
+    const frame = sim.frames[0];
+    const m = meshes(frame);
+    // Returns false so main.js knows to use the sampled positions instead.
+    expect(applyOrbitalClock(c, frame, m, 1)).toBe(false);
+  });
+
+  it('does not advance its own time while disabled', () => {
+    const c = createOrbitalClock();
+    c.enabled = false;
+    tickOrbitalClock(c, 5, true);
+    expect(c.years).toBe(0);
+  });
+});

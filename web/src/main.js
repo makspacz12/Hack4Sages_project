@@ -920,6 +920,7 @@ async function mainReplay(source) {
       }
 
       const posScale = (ctrl.meta?.positionScale ?? 1) * (ctrl.scaleMultiplier ?? 1);
+      orbitalClock.enabled = ctrl.smooth !== false;
       const orbitalDrove = orbitalClock.enabled
         && applyOrbitalClock(orbitalClock, curFrame(), meshById, posScale);
 
