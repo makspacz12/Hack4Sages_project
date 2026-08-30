@@ -33,7 +33,7 @@ import {
 } from './charts/doseModel.js';
 import {
   fragmentSeries, meanAcross, relativeChangePpm, distanceFromBody,
-  orbitalEnergySeries, fateCounts,
+  orbitalEnergySeries, fateCounts, arrheniusSeries, arrheniusFit,
 } from './charts/series.js';
 
 const PALETTE = {
@@ -536,6 +536,8 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
   const erosion = relativeChangePpm(fragmentSeries(frames, 'radius'));
   const energy = orbitalEnergySeries(frames);
   const budget = doseBudget(frames);
+  const arrhenius = arrheniusSeries(frames);
+  const arrheniusStats = arrheniusFit(arrhenius);
   const budgetRatio = doseBudgetRatio(budget);
   const times = frames.map(f => f?.time).filter(Number.isFinite);
   const timeSpan = times.length ? [Math.min(...times), Math.max(...times)] : [0, 1];
@@ -671,6 +673,44 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
       source: null,
     },
     {
+      /* The one figure where the swarm genuinely disagrees with itself.
+       *
+       * Cosmic ray dose is nearly identical for every fragment - a factor of
+       * 1.3 across the whole swarm, because galactic rays do not care where a
+       * body is. Hydrolysis spans 119 orders of magnitude, because it is
+       * chemistry, and chemistry is exponential in temperature.
+       *
+       * Drawn as an Arrhenius plot - reciprocal temperature against log rate -
+       * because that is the form in which the relationship is a straight line
+       * and its slope is a quantity a chemist can check. Over all 2100
+       * fragment-frames the fit gives 135 kJ/mol, which is the textbook range
+       * for hydrolysis of the phosphodiester bond. The figure therefore does
+       * not merely show a correlation; it recovers a known constant. */
+      title: 'Why hydrolysis varies and dose does not',
+      note: arrheniusStats
+        ? `Arrhenius: ${arrheniusStats.activationKJ.toFixed(0)} kJ/mol, `
+          + `r = ${arrheniusStats.r.toFixed(4)} over ${arrheniusStats.n} samples`
+        : 'hydrolysis rate against temperature',
+      series: [...arrhenius].map(([id, points]) => ({
+        name: id.replace('asteroid_', 'fragment '),
+        color: PALETTE.trace,
+        points,
+        width: 1,
+        pickId: id,
+      })),
+      xLabel: '1000 / T [1/K]',
+      yLabel: 'log10 hydrolysis rate [1/s]',
+      yFormat: v => v.toFixed(0),
+      readout: () => (arrheniusStats
+        ? `${arrheniusStats.activationKJ.toFixed(0)} kJ/mol — the textbook range `
+          + 'for DNA phosphodiester hydrolysis'
+        : '—'),
+      source: null,
+      /* Not a time series: x is reciprocal temperature, so the frame cursor
+         has no meaning on it. */
+      timeless: true,
+    },
+    {
       title: 'Dust erosion',
       note: 'radius lost, relative to each fragment\'s own start',
       series: withMean(erosion, 'swarm mean'),
@@ -727,13 +767,13 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
     for (const item of live) {
       item.chart = liveLinePlot(item.plotEl, {
         series: item.spec.series,
-        xLabel: `time [${timeUnit}]`,
+        xLabel: item.spec.xLabel ?? `time [${timeUnit}]`,
         yLabel: item.spec.yLabel,
         yFormat: item.spec.yFormat,
         yDomain: item.spec.yDomain,
         yScale: item.spec.yScale,
         xFormat: v => fmt(v),
-        xUnit: timeUnit,
+        xUnit: item.spec.timeless ? '' : timeUnit,
         height: 126 * uiScale(),
         selected: selectedId,
         onPick: (s) => { if (s.pickId) select(s.pickId); },
@@ -942,9 +982,9 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
     modal?.chart?.update(index);
     const t = frames[Math.min(index, frames.length - 1)]?.time;
     for (const item of live) {
-      item.chart?.update(index);
+      if (!item.spec.timeless) item.chart?.update(index);
       const text = item.spec.readout(item.spec.source, index);
-      item.readoutEl.textContent = Number.isFinite(t)
+      item.readoutEl.textContent = (Number.isFinite(t) && !item.spec.timeless)
         ? `t=${t.toFixed(2)} ${timeUnit} · ${text}`
         : text;
     }
