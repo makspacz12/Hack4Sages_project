@@ -152,13 +152,49 @@ async function mainReplay(source) {
   const controls = createControls(camera, renderer.domElement);
   const rollState = createRollState();
 
+  /**
+   * Draw the planets at sizes that reflect the planets.
+   *
+   * Every planet shipped with visual.radius = 0.9, so Mercury was rendered
+   * exactly as large as Jupiter. That is not a cosmetic problem: this is a
+   * scientific presentation, and the scene was asserting something false about
+   * the bodies in it. The true radii were in the file all along, under
+   * info.Radius, and simply were not read.
+   *
+   * Mapped by CUBE ROOT rather than linearly. The real span is 29:1, so a
+   * linear map would put Mercury below a pixel at any zoom where Jupiter is
+   * comfortable; the cube root - the ratio of their linear dimensions if you
+   * think in volumes - keeps the ordering unmistakable while keeping the
+   * smallest body visible. The whole scene is already exaggerated by a factor
+   * of several hundred against the orbital distances, so this makes no claim
+   * to true scale; it only stops the sizes being actively wrong.
+   */
+  function planetRadii(objects) {
+    const planets = objects.filter(o => (o.type ?? '').toLowerCase() === 'planet');
+    const radii = planets
+      .map(o => o.info?.Radius?.value)
+      .filter(r => Number.isFinite(r) && r > 0);
+    if (radii.length < 2) return null;
+    const lo = Math.cbrt(Math.min(...radii));
+    const hi = Math.cbrt(Math.max(...radii));
+    if (!(hi > lo)) return null;
+    return (obj) => {
+      const r = obj.info?.Radius?.value;
+      if (!Number.isFinite(r) || r <= 0) return null;
+      const t = (Math.cbrt(r) - lo) / (hi - lo);
+      return 0.55 + t * 1.15;   // Mercury 0.55 -> Jupiter 1.70
+    };
+  }
+  const planetRadius = planetRadii(simData.objects ?? []);
+
   addLighting(scene);
   const starfieldMesh = addStarfield(scene);
   const nodes = (simData.objects ?? []).map(obj => {
     const body = {
       id:        obj.id,
       name:      obj.name ?? obj.id,
-      radius:    obj.visual?.radius  ?? 1,
+      radius: ((obj.type ?? '').toLowerCase() === 'planet' && planetRadius
+        ? planetRadius(obj) : null) ?? obj.visual?.radius ?? 1,
       color:     obj.visual?.color   ?? '#ffffff',
       distance:  0,
       parentId:  null,

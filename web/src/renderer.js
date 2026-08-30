@@ -13,8 +13,11 @@ export function createRenderer() {
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  // Shadow mapping is off deliberately. It was enabled, and every mesh set
+  // castShadow/receiveShadow, but NO light in this scene has castShadow = true
+  // and the planets use a raw ShaderMaterial that never reads a shadow map.
+  // The scene was paying for a feature that could not render.
+  renderer.shadowMap.enabled = false;
   document.body.appendChild(renderer.domElement);
   return renderer;
 }

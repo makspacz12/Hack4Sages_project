@@ -35,12 +35,20 @@ export const PLANET_FRAG = /* glsl */`
     vec3 toSun   = normalize(-vWorldPos);
     float diff   = max(dot(vNormal, toSun), 0.0);
 
-    // High ambient floor so objects are always clearly visible.
-    float ambient = 0.55;
+    // Ambient floor, kept low.
+    //
+    // This was 0.55, so more than half of every planet's brightness was a
+    // constant independent of direction and the terminator - the day/night
+    // boundary that makes a sphere read as a sphere - was almost invisible.
+    // That was the whole reason the planets looked like flat discs. At 0.12
+    // the unlit side is still legible on a projector, which is what the floor
+    // is for, without drowning the shading that carries the shape.
+    float ambient = 0.12;
 
-    // Soft fill light from camera direction (prevents pure-black dark sides).
+    // Soft fill from the camera direction, so the night side is dark rather
+    // than black. Also reduced: it was competing with the sunlight.
     vec3 viewDir  = normalize(cameraPosition - vWorldPos);
-    float fill    = max(dot(vNormal, viewDir), 0.0) * 0.25;
+    float fill    = max(dot(vNormal, viewDir), 0.0) * 0.10;
 
     // Specular highlight from sun.
     vec3 halfDir  = normalize(toSun + viewDir);
@@ -50,7 +58,8 @@ export const PLANET_FRAG = /* glsl */`
     float rim     = 1.0 - max(dot(viewDir, vNormal), 0.0);
     rim           = pow(rim, 2.8) * 0.50;
 
-    vec3 litColor = uColor * (ambient + diff * 0.75 + fill) + uColor * spec + vec3(rim * 0.30);
+    // Sunlight now dominates rather than merely tipping the balance.
+    vec3 litColor = uColor * (ambient + diff * 1.15 + fill) + uColor * spec + vec3(rim * 0.30);
 
     // ── UV heat / burning effect ───────────────────────────
     if (uHeatIntensity > 0.001) {
