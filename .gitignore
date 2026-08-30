@@ -57,3 +57,11 @@ app-*.png
 *-live.png
 gate.png
 popout.png
+
+# Browser-automation artefacts. Research agents drive a real browser and leave
+# screenshots and accessibility snapshots in the working directory; `git add -A`
+# swept twenty-four of them in, including reference shots of other people's
+# websites. Project figures live in analysis/figures/ and are not matched here.
+/*.png
+/*.yml
+/snap-*.md
