@@ -121,9 +121,18 @@ export const PARAM_HELP = {
   erosion: {
     what: 'Whether fragments shrink as they sweep up dust.',
     effect:
-      'Over this run it removes 0.058% of the swarm mass, so it changes nothing '
-      + 'here. It is the millimetre fragments, over megayears, that it decides.',
+      'Over this 3000-year run it removes 0.058% of the swarm mass, so it '
+      + 'changes nothing you can see here. Run it longer and it becomes the '
+      + 'thing that decides the answer.',
     def: 'on',
+    warn:
+      'A 100,000-year run of the same swarm destroys seven of the fourteen '
+      + 'fragments - not by radiation, whose own numbers still predict 3% to '
+      + '86% survival for them, but by grinding them down to nothing. Erosion '
+      + 'removes surface at 17 to 90 micrometres per thousand years regardless '
+      + 'of how big the body is, so lifetime scales with radius: 19 kyr for a '
+      + '1.5 mm stone, about a megayear for a 34 mm one. Against transfer '
+      + 'times of tens of megayears, neither lasts.',
   },
 
   planets: {
