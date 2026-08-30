@@ -125,3 +125,33 @@ describe('backscattering is applied only where it is physical', () => {
     expect(factory).toMatch(/Boolean\(rockType\)/);
   });
 });
+
+/**
+ * Fragment size encodes fragment radius.
+ *
+ * Every fragment used to be drawn at the same 0.18 world units, so a 57.5 mm
+ * boulder and a 1.3 mm grain were the same dot - throwing away the variable
+ * the shielding argument turns on. GCR attenuation depth is about half a
+ * metre, so size decides whether rock protects the cargo at all.
+ */
+describe('fragment sizing', () => {
+  it('draws fragments logarithmically, over a span that is actually visible', async () => {
+    const main = await readFile(new URL('../src/main.js', import.meta.url), 'utf8');
+    const lo = Number(main.match(/const\s+FRAG_R_MIN\s*=\s*([0-9.]+)/)?.[1]);
+    const hi = Number(main.match(/const\s+FRAG_R_MAX\s*=\s*([0-9.]+)/)?.[1]);
+    expect(Number.isFinite(lo) && Number.isFinite(hi)).toBe(true);
+    expect(hi / lo).toBeGreaterThan(2);
+    // Radii span a factor of 45, so a linear map would put the smallest at a
+    // fiftieth of the largest and off the screen.
+    expect(main).toMatch(/Math\.log10\(r\)/);
+  });
+
+  it('never draws a fragment larger than the smallest planet', async () => {
+    // A 57 mm stone rendered bigger than Mercury reads as a world. An earlier
+    // pass had the ceiling at 6.5 against Mercury's 5.0.
+    const main = await readFile(new URL('../src/main.js', import.meta.url), 'utf8');
+    const fragMax = Number(main.match(/const\s+FRAG_R_MAX\s*=\s*([0-9.]+)/)?.[1]);
+    const planetMin = Number(main.match(/const\s+PLANET_R_MIN\s*=\s*([0-9.]+)/)?.[1]);
+    expect(fragMax).toBeLessThan(planetMin);
+  });
+});

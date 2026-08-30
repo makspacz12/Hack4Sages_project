@@ -229,7 +229,59 @@ async function mainReplay(source) {
       return PLANET_R_MIN + t * (PLANET_R_MAX - PLANET_R_MIN);
     };
   }
+  /**
+   * How large each fragment is drawn.
+   *
+   * Every fragment was drawn at the same 0.18 world units, so a 57.5 mm
+   * boulder and a 1.3 mm grain were the same dot. That threw away the variable
+   * the shielding argument turns on: GCR attenuation depth is about half a
+   * metre, so size decides whether rock protects the cargo at all, and in this
+   * swarm the two largest fragments have the two highest survivals.
+   *
+   * LOGARITHMIC, because the radii span a factor of 45 - 1.3 mm to 57.5 mm.
+   * Drawn linearly the smallest would be a fiftieth of the largest and
+   * invisible; the log keeps every fragment on screen while preserving the
+   * ordering.
+   *
+   * The band is chosen from measurement, not taste: at the default framing the
+   * scene renders 0.817 pixels per world unit, so 1.6 to 4.2 puts the smallest
+   * fragment at 2.6 px and the largest at 6.9 - a spread of more than two that
+   * can actually be seen. The upper bound is set by Mercury, drawn at 5.0: a
+   * fragment must never be rendered larger than the smallest planet, or a
+   * 57 mm stone reads as a world.
+   *
+   * Exaggerated like everything else in the scene, and covered by the same
+   * on-screen note. A 57 mm stone at true scale against an AU of 60 world
+   * units would be 2e-13 units across.
+   */
+  const FRAG_R_MIN = 1.6;
+  const FRAG_R_MAX = 4.2;
+
+  function fragmentRadii(frames) {
+    const radii = new Map();
+    for (const frame of frames ?? []) {
+      for (const prop of frame?.properties ?? []) {
+        if (prop?.id?.startsWith('asteroid_') && Number.isFinite(prop.radius)
+            && prop.radius > 0 && !radii.has(prop.id)) {
+          radii.set(prop.id, prop.radius);
+        }
+      }
+    }
+    if (radii.size < 2) return null;
+    const values = [...radii.values()];
+    const lo = Math.log10(Math.min(...values));
+    const hi = Math.log10(Math.max(...values));
+    if (!(hi > lo)) return null;
+    return (id) => {
+      const r = radii.get(id);
+      if (!Number.isFinite(r) || r <= 0) return null;
+      const t = (Math.log10(r) - lo) / (hi - lo);
+      return FRAG_R_MIN + t * (FRAG_R_MAX - FRAG_R_MIN);
+    };
+  }
+
   const planetRadius = planetRadii(simData.objects ?? []);
+  const fragmentRadius = fragmentRadii(simData.frames ?? []);
 
   addLighting(scene);
   const starfieldMesh = addStarfield(scene);
@@ -252,6 +304,7 @@ async function mainReplay(source) {
       name:      obj.name ?? obj.id,
       radius: ((obj.type ?? '').toLowerCase() === 'planet' && planetRadius
         ? planetRadius(obj) : null)
+        ?? (fragmentRadius ? fragmentRadius(obj.id) : null)
         ?? (obj.id === 'sun' ? SUN_R : obj.visual?.radius) ?? 1,
       color:     obj.visual?.color   ?? '#ffffff',
       distance:  0,
