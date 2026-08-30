@@ -6,17 +6,27 @@
   <title>Research – Could life travel between solar systems?</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%2215%22%20fill%3D%22%233a2b24%22/%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%226%22%20fill%3D%22%232ba3ab%22/%3E%3C/svg%3E">
   <style>
+    @import url("./src/ui/theme.css");
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    /* Aliases onto the one token set in ui/theme.css, imported above.
+     *
+     * This page kept an independent palette through the whole light-theme
+     * migration, so it was still rendering on var(--bg-void) - a blue-black ground -
+     * with blue-white headings, while every other page had moved to paper. Two
+     * pages of one project were literally different colours. The names are
+     * kept so the rest of this stylesheet is untouched; only their sources
+     * change. --accent2 was --warn, which meant a warning colour carried the
+     * page title and every link. */
     :root {
-      --bg:        #04060f;
-      --surface:   #0a0807;
-      --border:    #1e1917;
-      --accent:    #2ba3ab;
-      --accent2:   #fdb813;
-      --text:      #cbbfb4;
-      --muted:     #6b5e55;
-      --heading:   #e8f0ff;
+      --bg:      var(--bg-void);
+      --surface: var(--bg-panel);
+      --border:  var(--line-edge);
+      --accent:  var(--accent);
+      --accent2: var(--accent);
+      --text:    var(--ink);
+      --muted:   var(--ink-dim);
+      --heading: var(--ink-bright);
     }
 
     body {
@@ -35,7 +45,7 @@
       inset: 0;
       background-image:
         radial-gradient(1px 1px at 10% 20%, #fff 0%, transparent 100%),
-        radial-gradient(1px 1px at 30% 60%, #cbbfb4 0%, transparent 100%),
+        radial-gradient(1px 1px at 30% 60%, var(--ink) 0%, transparent 100%),
         radial-gradient(1px 1px at 55% 15%, #fff 0%, transparent 100%),
         radial-gradient(1px 1px at 75% 80%, #ccf 0%, transparent 100%),
         radial-gradient(1px 1px at 90% 40%, #fff 0%, transparent 100%),
@@ -51,7 +61,7 @@
       position: sticky;
       top: 0;
       z-index: 10;
-      background: rgba(8, 6, 5, 0.90);
+      background: rgba(255, 255, 255, 0.92);
       backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--border);
       padding: 14px 40px;
@@ -82,7 +92,7 @@
     }
     .btn-back:hover {
       border-color: var(--accent);
-      background: rgba(43, 163, 171, 0.09);
+      background: var(--accent-glow);
     }
 
     main {
@@ -113,7 +123,7 @@
 
     .lead {
       font-size: 1.15rem;
-      color: #98897d;
+      color: var(--ink-dim);
       margin-bottom: 48px;
       max-width: 640px;
     }
@@ -149,8 +159,8 @@
     code {
       font-family: monospace;
       font-size: 0.88em;
-      background: rgba(43, 163, 171, 0.11);
-      color: #45c2ca;
+      background: var(--accent-glow);
+      color: var(--accent);
       padding: 2px 6px;
       border-radius: 3px;
     }
@@ -194,9 +204,9 @@
       border-left: 3px solid var(--accent);
       margin: 24px 0;
       padding: 12px 20px;
-      background: rgba(43, 163, 171, 0.06);
+      background: var(--accent-glow);
       border-radius: 0 6px 6px 0;
-      color: #98897d;
+      color: var(--ink-dim);
       font-style: italic;
     }
 
@@ -207,7 +217,7 @@
       padding: 16px 24px;
       font-family: monospace;
       font-size: 14px;
-      color: #45c2ca;
+      color: var(--accent);
       margin: 20px 0;
       overflow-x: auto;
     }
@@ -224,135 +234,12 @@
     }
     .ref-list li:last-child { border-bottom: none; }
     /* ── inline R console ── */
-    .r-console {
-      background: rgba(20, 16, 14, 0.94);
-      border: 1px solid #3a2f29;
-      border-radius: 10px;
-      overflow: hidden;
-      margin: 28px 0;
-      font-family: monospace;
-      font-size: 12px;
-    }
-
-    .r-console-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 7px 14px;
-      background: rgba(30, 22, 18, .55);
-      border-bottom: 1px solid #3a2f29;
-    }
-
-    .r-console-header .r-title {
-      font-weight: bold;
-      color: #2ba3ab;
-      letter-spacing: .05em;
-    }
-
-    .r-console-header .r-hint {
-      font-size: 11px;
-      color: #6b5e55;
-    }
-
-    .r-canvas-wrap {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #fff;
-      cursor: pointer;
-      width: 100%;
-    }
-
-    .r-canvas-wrap canvas {
-      display: block;
-      width: 100%;
-      height: auto;
-    }
-
-    .r-overlay {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: rgba(10, 8, 7, 0.87);
-      color: #6af;
-      font-size: 13px;
-      gap: 10px;
-      text-align: center;
-      padding: 16px;
-    }
-
-    .r-spinner {
-      width: 26px;
-      height: 26px;
-      border: 3px solid #3a2f29;
-      border-top-color: #5af;
-      border-radius: 50%;
-      animation: rspin .8s linear infinite;
-    }
-    @keyframes rspin { to { transform: rotate(360deg); } }
-
-    .r-editor {
-      display: none;
-      flex-direction: column;
-      background: rgba(10, 8, 7, 0.97);
-      padding: 10px;
-      border-top: 1px solid #3a2f29;
-    }
-    .r-editor.open { display: flex; }
-
-    .r-editor textarea {
-      width: 100%;
-      height: 140px;
-      resize: vertical;
-      background: #14100e;
-      color: #cbbfb4;
-      border: 1px solid #3a2f29;
-      border-radius: 5px;
-      padding: 8px;
-      font-family: monospace;
-      font-size: 13px;
-      line-height: 1.5;
-      outline: none;
-      box-sizing: border-box;
-    }
-    .r-editor textarea:focus { border-color: #2ba3ab; }
-
-    .r-btn-row {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-      justify-content: flex-end;
-    }
-
-    .r-btn-row button {
-      padding: 4px 16px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-family: monospace;
-      font-size: 13px;
-      border: 1px solid #3a2f29;
-    }
-    .r-btn-run    { background: #2a2320; color: #7cf; }
-    .r-btn-run:hover { background: #57453b; }
-    .r-btn-cancel { background: #111; color: #778; }
-    .r-btn-cancel:hover { background: #1a1a2a; }
-
-    .r-status {
-      padding: 4px 14px;
-      font-size: 11px;
-      color: #6b5e55;
-      border-top: 1px solid #1e1917;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .r-status.ok   { color: #4a8; }
-    .r-status.err  { color: #e66; }
-    .r-status.busy { color: #6af; }
+    /* The inline WebR console that lived here has been removed. Its markup was
+       never in this page - no #r-canvas, no #r-editor, nothing - so the script
+       threw TypeError on every single load, and roughly 130 lines of CSS
+       styled elements that do not exist. It also carried colours from the
+       deleted dark theme and a chart title in Polish in an otherwise English
+       document. */
 
     .ref-list .ref-num {
       color: var(--accent);
@@ -374,9 +261,8 @@
 <body>
 
   <header>
-    <span class="header-title">COSMOS 3D &mdash; RESEARCH</span>
+    <span class="header-title">LITHOPANSPERMIA &middot; RESEARCH</span>
     <div style="display:flex;gap:10px;align-items:center;">
-      <a href="./further_details.html" class="btn-back" style="border-color:#fdb813;color:#fdb813;">Further Details →</a>
       <a href="./index.html" class="btn-back">← Back to simulator</a>
     </div>
   </header>
@@ -641,146 +527,9 @@
   </main>
 
   <footer>
-    Cosmos 3D &mdash; Interstellar Lithopanspermia &mdash; Hack4Sages &mdash; 2026
+    Lithopanspermia Digital Twin &mdash; Hack4Sages &mdash; 2026
   </footer>
 
-  <script type="module">
-    // ── WebR inline R console for research.html ──────────────────────────
-    const DEFAULT_CODE = `# Kepler's third law: T^2 ~ a^3
-# Solar System planets (a in AU, T in years)
-planets <- c("Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune")
-a <- c(0.387, 0.723, 1.000, 1.524, 5.203, 9.537, 19.19, 30.07)   # AU
-T <- c(0.241, 0.615, 1.000, 1.881, 11.86, 29.46, 84.01, 164.8)   # years
-
-par(bg="#0a0807", col.axis="#98897d", col.lab="#cbbfb4",
-    col.main="#e8f0ff", fg="#3a2f29")
-
-plot(log10(a), log10(T),
-     pch=21, bg="#2ba3ab", col="white", cex=1.6,
-     main="Prawo Keplera III: log(T) vs log(a)",
-     xlab="log\u2081\u2080(a)  [AU]",
-     ylab="log\u2081\u2080(T)  [lata]",
-     xlim=c(-0.5, 1.6))
-
-# linia regresji
-fit <- lm(log10(T) ~ log10(a))
-abline(fit, col="#fdb813", lwd=2)
-
-# etykiety
-text(log10(a), log10(T), planets, pos=4, cex=0.75, col="#98897d")
-
-legend("topleft",
-       legend=sprintf("nachylenie = %.3f", coef(fit)[2]),
-       col="#fdb813", lwd=2, bty="n", text.col="#cbbfb4")`;
-
-    const canvasEl  = document.getElementById('r-canvas');
-    const wrap      = document.getElementById('r-canvas-wrap');
-    const overlay   = document.getElementById('r-overlay');
-    const editorEl  = document.getElementById('r-editor');
-    const textarea  = document.getElementById('r-code');
-    const runBtn    = document.getElementById('r-run');
-    const cancelBtn = document.getElementById('r-cancel');
-    const statusEl  = document.getElementById('r-status');
-
-    const CW = canvasEl.width;
-    const CH = canvasEl.height;
-    textarea.value = DEFAULT_CODE;
-
-    let _webr    = null;
-    let _shelter = null;
-    let currentCode = DEFAULT_CODE;
-
-    function setStatus(msg, cls = '') {
-      statusEl.className   = 'r-status ' + cls;
-      statusEl.textContent = msg;
-    }
-
-    function openEditor() {
-      textarea.value = currentCode;
-      editorEl.classList.add('open');
-      setTimeout(() => textarea.focus(), 30);
-    }
-
-    function closeEditor() {
-      editorEl.classList.remove('open');
-    }
-
-    async function getWebR() {
-      if (_webr) return _webr;
-      const { WebR } = await import('https://webr.r-wasm.org/v0.4.2/webr.mjs');
-      _webr = new WebR({ baseUrl: 'https://webr.r-wasm.org/v0.4.2/' });
-      await _webr.init();
-      _shelter = await new _webr.Shelter();
-      return _webr;
-    }
-
-    async function runCode(code) {
-      await getWebR();
-      const capture = await _shelter.captureR(code, {
-        captureGraphics: { width: CW, height: CH, bg: '#0a0807' },
-      });
-      const text = (capture.output ?? [])
-        .filter(m => ['stdout','stderr','message'].includes(m.type))
-        .map(m => String(m.data))
-        .join('\n').trim();
-      return { images: capture.images ?? [], text };
-    }
-
-    function escHtml(s) {
-      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    }
-
-    async function execute(code) {
-      closeEditor();
-      currentCode = code;
-      overlay.style.display = 'flex';
-      overlay.innerHTML = '<div class="r-spinner"></div><span>Obliczanie…</span>';
-      setStatus('Uruchamianie…', 'busy');
-      try {
-        const result = await runCode(code);
-        if (result.images.length > 0) {
-          const ctx = canvasEl.getContext('2d');
-          ctx.clearRect(0, 0, CW, CH);
-          ctx.drawImage(result.images.at(-1), 0, 0, CW, CH);
-          overlay.style.display = 'none';
-          setStatus('✓ OK', 'ok');
-        } else {
-          overlay.style.display = 'flex';
-          const msg = result.text || '(no plot)';
-          overlay.innerHTML = `<pre style="color:#cbbfb4;font-size:12px;white-space:pre-wrap;text-align:left;max-height:${CH-24}px;overflow:auto;width:100%;padding:0 16px">${escHtml(msg)}</pre>`;
-          setStatus(result.text ? 'Text output' : 'No plot', result.text ? '' : 'err');
-        }
-      } catch (err) {
-        overlay.style.display = 'flex';
-        overlay.innerHTML = `<span style="color:#e66">${escHtml(String(err.message ?? err))}</span>`;
-        setStatus(String(err.message ?? err).slice(0, 120), 'err');
-      }
-    }
-
-    // ── events ──
-    wrap.addEventListener('dblclick', openEditor);
-    runBtn.addEventListener('click', () => execute(textarea.value));
-    cancelBtn.addEventListener('click', closeEditor);
-    textarea.addEventListener('keydown', e => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); execute(textarea.value); }
-      if (e.key === 'Escape') { e.preventDefault(); closeEditor(); }
-      e.stopPropagation();
-    });
-
-    // ── boot ──
-    (async () => {
-      try {
-        setStatus('Loading WebR (R/WASM)…', 'busy');
-        await getWebR();
-        setStatus('Running the default code…', 'busy');
-        await execute(DEFAULT_CODE);
-      } catch (err) {
-        overlay.style.display = 'flex';
-        overlay.innerHTML = `<span style="color:#e66">WebR error:<br>${escHtml(String(err.message ?? err))}</span>`;
-        setStatus('WebR init error', 'err');
-      }
-    })();
-  </script>
 
 </body>
 </html>

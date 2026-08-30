@@ -6,17 +6,27 @@
   <title>Further details – Lithopanspermia</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%2215%22%20fill%3D%22%233a2b24%22/%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%226%22%20fill%3D%22%232ba3ab%22/%3E%3C/svg%3E">
   <style>
+    @import url("./src/ui/theme.css");
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    /* Aliases onto the one token set in ui/theme.css, imported above.
+     *
+     * This page kept an independent palette through the whole light-theme
+     * migration, so it was still rendering on var(--bg-void) - a blue-black ground -
+     * with blue-white headings, while every other page had moved to paper. Two
+     * pages of one project were literally different colours. The names are
+     * kept so the rest of this stylesheet is untouched; only their sources
+     * change. --accent2 was --warn, which meant a warning colour carried the
+     * page title and every link. */
     :root {
-      --bg:        #04060f;
-      --surface:   #0a0807;
-      --border:    #1e1917;
-      --accent:    #2ba3ab;
-      --accent2:   #fdb813;
-      --text:      #cbbfb4;
-      --muted:     #6b5e55;
-      --heading:   #e8f0ff;
+      --bg:      var(--bg-void);
+      --surface: var(--bg-panel);
+      --border:  var(--line-edge);
+      --accent:  var(--accent);
+      --accent2: var(--accent);
+      --text:    var(--ink);
+      --muted:   var(--ink-dim);
+      --heading: var(--ink-bright);
     }
 
     body {
@@ -34,7 +44,7 @@
       inset: 0;
       background-image:
         radial-gradient(1px 1px at 10% 20%, #fff 0%, transparent 100%),
-        radial-gradient(1px 1px at 30% 60%, #cbbfb4 0%, transparent 100%),
+        radial-gradient(1px 1px at 30% 60%, var(--ink) 0%, transparent 100%),
         radial-gradient(1px 1px at 55% 15%, #fff 0%, transparent 100%),
         radial-gradient(1px 1px at 75% 80%, #ccf 0%, transparent 100%),
         radial-gradient(1px 1px at 90% 40%, #fff 0%, transparent 100%),
@@ -49,7 +59,7 @@
       position: sticky;
       top: 0;
       z-index: 10;
-      background: rgba(8, 6, 5, 0.90);
+      background: rgba(255, 255, 255, 0.92);
       backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--border);
       padding: 14px 40px;
@@ -80,7 +90,7 @@
     }
     .btn-back:hover {
       border-color: var(--accent);
-      background: rgba(43, 163, 171, 0.09);
+      background: var(--accent-glow);
     }
 
     main {
@@ -110,7 +120,7 @@
 
     .lead {
       font-size: 1.15rem;
-      color: #98897d;
+      color: var(--ink-dim);
       margin-bottom: 48px;
       max-width: 640px;
     }
@@ -146,8 +156,8 @@
     code {
       font-family: monospace;
       font-size: 0.88em;
-      background: rgba(43, 163, 171, 0.11);
-      color: #45c2ca;
+      background: var(--accent-glow);
+      color: var(--accent);
       padding: 2px 6px;
       border-radius: 3px;
     }
@@ -156,9 +166,9 @@
       border-left: 3px solid var(--accent);
       margin: 24px 0;
       padding: 12px 20px;
-      background: rgba(43, 163, 171, 0.06);
+      background: var(--accent-glow);
       border-radius: 0 6px 6px 0;
-      color: #98897d;
+      color: var(--ink-dim);
       font-style: italic;
     }
 
@@ -169,7 +179,7 @@
       padding: 16px 24px;
       font-family: monospace;
       font-size: 14px;
-      color: #45c2ca;
+      color: var(--accent);
       margin: 20px 0;
       overflow-x: auto;
     }
@@ -188,7 +198,7 @@
 <body>
 
   <header>
-    <span class="header-title">COSMOS 3D &mdash; FURTHER DETAILS</span>
+    <span class="header-title">LITHOPANSPERMIA &middot; FURTHER DETAILS</span>
     <a href="./research.html" class="btn-back">← Back to research</a>
   </header>
 
@@ -201,7 +211,7 @@
   </main>
 
   <footer>
-    Cosmos 3D &mdash; Interstellar Lithopanspermia &mdash; Hack4Sages &mdash; 2026
+    Lithopanspermia Digital Twin &mdash; Hack4Sages &mdash; 2026
   </footer>
 
 </body>
