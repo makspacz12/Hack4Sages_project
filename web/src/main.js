@@ -30,6 +30,7 @@ import {
 } from './trailManager.js';
 import {
   createReplayController, tickReplay, applyReplayFrame, applyReplayFrameLerp,
+  setReplayFrame,
 } from './replayController.js';
 import {
   createOrbitalClock, tickOrbitalClock, resetOrbitalClock, applyOrbitalClock,
@@ -44,6 +45,7 @@ import { createObjectSearch } from './objectSearch.js';
 import { createLiveCharts } from './liveCharts.js';
 import { menuBar, applyScale, currentScale } from './ui/menuBar.js';
 import { createControlPanel } from './ui/controlPanel.js';
+import { initPresentation } from './presentation.js';
 import { runReplay } from './api.js';
 import './ui/theme.css';
 import { createRollState, tickCameraRoll } from './cameraRoll.js';
@@ -473,7 +475,7 @@ async function mainReplay(source) {
    * outlier run past the edge, which is the honest way round - the outlier is
    * visibly an outlier.
    */
-  function frameCameraOnSwarm() {
+  function frameCameraOnSwarm(zoom = 1) {
     const frame = simData.frames?.[0];
     const origin = frame?.positions?.find(p => p.id === 'sun');
     const originV = frame?.velocities?.find(v => v.id === 'sun');
@@ -500,7 +502,9 @@ async function mainReplay(source) {
     // 60 degree vertical field of view, so half-height = distance * tan(30).
     // The 1.9 leaves the swarm comfortably inside the frame rather than
     // touching its edges.
-    const distance = Math.max(60, (radius * 1.9) / Math.tan((Math.PI / 180) * 30));
+    const want = (radius * 1.9 * zoom) / Math.tan((Math.PI / 180) * 30);
+    // Never closer than the Sun's own radius plus a margin, whatever is asked.
+    const distance = Math.max(SUN_R * 2.2, want);
     camera.position.set(0, distance * 0.42, distance * 0.92);
     camera.lookAt(0, 0, 0);
     controls?.target?.set?.(0, 0, 0);
@@ -560,6 +564,7 @@ async function mainReplay(source) {
     if (last) last.textContent = `${DOSE_MAX_GY} Gy`;
   })();
   frameCameraOnSwarm();
+
 
   // Lookup: id → full simData object (for info panel)
   const objById  = new Map((simData.objects ?? []).map(o => [o.id, o]));
@@ -758,6 +763,33 @@ async function mainReplay(source) {
     },
     onStarfieldToggle: (enabled) => {
       starfieldMesh.visible = enabled;
+    },
+  });
+
+  /* Presentation mode: P toggles it, 1-5 jump to a chapter.
+   *
+   * The research layout is untouched and one keystroke away. Chapters exist
+   * so a talk moves in known steps rather than by dragging a camera live in
+   * front of a room. */
+  initPresentation({
+    controller: ctrl,
+    setFrame: (index) => {
+      setReplayFrame(ctrl, index);
+      applyReplayFrame(ctrl, meshById);
+      resetOrbitalClock(orbitalClock, ctrl.currentFrame);
+      paintDose(curFrame());
+      refreshUI(ctrl);
+      rebuildReplayTrails();
+      liveCharts.update(ctrl.currentFrame);
+    },
+    frameCamera: (zoom) => frameCameraOnSwarm(zoom),
+    setConsoleVisible: (on) => {
+      const panel = document.getElementById('run-console');
+      const collapsed = panel?.classList.contains('collapsed');
+      if (panel && collapsed === on) document.getElementById('btn-run-console')?.click();
+    },
+    setDockVisible: (on) => {
+      if (liveCharts.isVisible?.() !== on) liveCharts.setVisible?.(on);
     },
   });
 
