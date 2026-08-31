@@ -65,17 +65,35 @@ Powinno przejść **638 testów**.
 
 ## 2. Symulacja (model Pythonowy)
 
-### WAŻNE: musisz być w katalogu `model/`
+### WAŻNE: najpierw pełna ścieżka do katalogu `model/`
 
-REBOUND jest zainstalowany w lokalnym środowisku `model/.venv`, więc:
+Terminal startuje zwykle w `C:\Windows\system32` albo w Twoim katalogu
+domowym. `cd model` szuka podkatalogu **względem miejsca, w którym stoisz**,
+więc zadziała dopiero wtedy, gdy już jesteś w repozytorium. Najpewniej jest
+podać pełną ścieżkę:
 
-```bash
-cd model                                    # <-- to jest konieczne
+```powershell
+cd C:\Users\Maksg\Desktop\hack4_sages_nowy\model
+```
+
+Sprawdzenie, czy jesteś we właściwym miejscu:
+
+```powershell
 python -c "import rebound; print(rebound.__version__)"
 ```
 
-Powinno wypisać `5.1.1`. Jeśli wypisze błąd „No module named 'rebound'",
-to znaczy, że jesteś w złym katalogu.
+Powinno wypisać `5.1.1`.
+
+**Dlaczego katalog ma znaczenie.** Nie chodzi o REBOUND, ten jest zainstalowany
+globalnie i widać go zewsząd. Chodzi o pakiet `microbe_radiation_model`, który
+leży wewnątrz `model/`. Python szuka pakietów w bieżącym katalogu, więc
+uruchomiony gdzie indziej powie:
+
+```
+No module named microbe_radiation_model
+```
+
+To nie jest zepsuta instalacja, tylko zły katalog.
 
 ### Sprawdzenie bez uruchamiania
 
@@ -167,9 +185,18 @@ Nic nie zapisuje, tylko raportuje.
 
 ## 4. Typowe problemy
 
-### „No module named 'rebound'"
+### „No module named microbe_radiation_model"
 
-Jesteś poza katalogiem `model/`. Wykonaj `cd model` i spróbuj ponownie.
+Jesteś poza katalogiem `model/`. Podaj pełną ścieżkę:
+
+```powershell
+cd C:\Users\Maksg\Desktop\hack4_sages_nowy\model
+```
+
+### „cd : Cannot find path ... because it does not exist"
+
+To samo: `cd model` działa tylko wtedy, gdy stoisz już w katalogu
+`hack4_sages_nowy`. Z `C:\Windows\system32` trzeba pełnej ścieżki.
 
 ### Port zajęty
 
@@ -211,7 +238,6 @@ npx vitest run tests/nazwa.test.js
 ```
 hack4_sages_nowy/
 ├── model/          symulacja Pythonowa  (uruchamiaj STĄD)
-│   ├── .venv/          środowisko z REBOUND
 │   └── microbe_radiation_model/   90 modułów
 ├── web/            wizualizacja 3D      (uruchamiaj STĄD)
 │   ├── src/            57 modułów JavaScript
