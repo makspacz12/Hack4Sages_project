@@ -194,12 +194,12 @@ html {
                Consolas, Menlo, monospace;
   /* Display face for the headline number, which is the one piece of type on
      screen that is meant to be read from the back of a room. */
-  /* The result is the one piece of type meant to be read from the back of a
-     room, and a serif carries that better than another weight of the UI face.
-     Cambria was drawn for screens and ships with Windows; Georgia and the
-     system serif cover everything else. No network fetch, so a projector with
-     no connection cannot reflow the layout mid-talk. */
-  --font-display: Cambria, Georgia, "Times New Roman", ui-serif, serif;
+  /* The result number. A serif was tried here and read as decorative rather
+     than as an instrument reading, which is the wrong register for a figure
+     the audience is meant to trust. It is the UI face at a larger size and a
+     heavier weight instead: same family as everything around it, so the
+     emphasis comes from scale rather than from a change of voice. */
+  --font-display: var(--font-ui);
 
   /* Spacing scale */
   --sp-1: 4px;

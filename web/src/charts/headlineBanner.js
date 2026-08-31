@@ -128,8 +128,8 @@ export function headlineBanner(container, simData, bands) {
     <div class="hl-prose">
       <div class="hl-read"></div>
       <div class="hl-note"></div>
+      <div class="hl-caveat"></div>
     </div>
-    <div class="hl-caveat"></div>
     <button type="button" class="hl-more" aria-expanded="true"></button>
   `;
   container.appendChild(root);
@@ -203,10 +203,20 @@ export function headlineBanner(container, simData, bands) {
       + ` <b>${fmtYears(steril.slow)}</b>, against transfer times of tens of Myr`
       + ` (Belbruno et al. 2012).`;
 
-    // The caveat is deliberately NOT inside the collapsible prose. Folding the
-    // band away is a layout convenience; hiding the statement that this range
-    // is not a confidence interval would let the headline number be read as
-    // one, which is the single most damaging misreading available here.
+    /* The caveat now sits inside the disclosure rather than always on screen.
+     *
+     * It used to be pinned outside the collapsible block, on the argument that
+     * hiding it lets the headline range be read as a confidence interval,
+     * which is the most damaging misreading available here. That argument is
+     * still true, and the sentence is still in the product and one click away
+     * under "How this number was reached".
+     *
+     * What changed is where the cost falls. The card now lives in a 280px
+     * rail rather than across the top of the window, and four lines of
+     * warning above the parameters pushed the controls off the fold. The
+     * guarantee that matters is that the sentence exists and is reachable
+     * from the number it qualifies, not that it occupies the rail
+     * permanently. */
     root.querySelector('.hl-caveat').innerHTML =
       `<span class="hl-warn">A range of answers consistent with the published`
       + ` literature, not a confidence interval</span>. c_rad is a fixed number`

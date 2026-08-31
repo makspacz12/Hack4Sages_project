@@ -44,6 +44,16 @@
       /* Follow the run console when it is docked, or the note reads as half a
          sentence emerging from behind the panel. */
       body.console-docked #scale-note { left: var(--panel-w); }
+      /* Stop before the dose legend.
+       *
+       * With only a `left` the note was as wide as its text, 1082px at 1280px
+       * wide, so it ran underneath the dose colour bar and on past the edge of
+       * the window. Two captions overlapping is worse than either alone: the
+       * sentence that exists to be honest about the size exaggeration was the
+       * one rendered unreadable. The reserve is the legend's own width plus a
+       * gap, and it grows by the dock when the dock is open. */
+      #scale-note { right: 13rem; }
+      body.charts-docked #scale-note { right: calc(var(--dock-w) + 13rem); }
 
       /* The dose colour bar.
        *

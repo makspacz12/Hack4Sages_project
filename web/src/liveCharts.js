@@ -663,6 +663,10 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
         {
           name: 'escape threshold', color: PALETTE.guide, width: 1, dash: '4 3',
           points: [[timeSpan[0], 0], [timeSpan[1], 0]],
+          /* A reference line, not a measurement. It sits at zero while the
+             traces sit near -10, so counting it would report a range the data
+             does not have and would keep a flat chart on screen. */
+          guide: true,
         },
       ],
       yLabel: `ε [${posUnit}²/yr²]`,
@@ -746,6 +750,30 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
   // rounding error and starts spanning tens of orders of magnitude.
   const SURFACE_HORIZON_YEARS = 1e6;
 
+  /**
+   * Whether a spec's series barely moves across the whole run.
+   *
+   * Relative rather than absolute, so it works for a survival fraction near 1
+   * and for a dose in the hundreds of gray alike. Anything with no finite
+   * points is treated as flat: an empty chart is the emptiest chart there is.
+   */
+  function isFlat(spec, threshold = 0.15) {
+    let lo = Infinity;
+    let hi = -Infinity;
+    for (const series of spec.series ?? []) {
+      if (series.guide) continue;
+      for (const [, y] of series.points ?? []) {
+        if (!Number.isFinite(y)) continue;
+        if (y < lo) lo = y;
+        if (y > hi) hi = y;
+      }
+    }
+    if (!Number.isFinite(lo) || !Number.isFinite(hi)) return true;
+    const scale = Math.abs(hi) + Math.abs(lo);
+    if (scale === 0) return true;
+    return (hi - lo) / scale < threshold;
+  }
+
   const live = [];
 
   // A stable key per figure, derived once, so the menu bar can address them by
@@ -775,6 +803,21 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
     const readoutEl = fig.querySelector('.lc-readout');
     fig.querySelector('.lc-expand').addEventListener('click', () => openModal(spec));
     fig.querySelector('.lc-popout').addEventListener('click', () => detach(spec));
+
+    /* A figure earns its place by having something to show.
+     *
+     * Over the bundled 3000 year run several of these are flat lines. Survival
+     * moves from 1.000 to 0.775, a span of 1.29x, because nothing dies in
+     * three thousand years; that is a real result and it is stated in the
+     * headline, but as a chart it is a horizontal line and it crowded out the
+     * figures that do have structure.
+     *
+     * So the default set is chosen by measurement rather than by hand: a
+     * series whose relative span is under 15% starts collapsed and is one
+     * click away in the Figures menu. The same rule shows those charts
+     * automatically on the longer runs, where survival spans a factor of
+     * several hundred and the line is worth looking at. */
+    if (isFlat(spec)) fig.hidden = true;
 
     live.push({ spec, fig, plotEl, readoutEl, chart: null });
   }

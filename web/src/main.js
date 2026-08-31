@@ -1058,9 +1058,26 @@ async function main() {
                    + 'Falling back to the bundled replay.');
       }
     }
+    /* The 100,000 year run is the default, not the 3000 year one.
+     *
+     * Both are real output from the same model and the same seed; they differ
+     * only in how long they were integrated. But almost nothing happens in
+     * three thousand years. No fragment is lost, so the phase diagram has no
+     * boundary to draw and does not render at all; surviving fraction moves
+     * from 1.000 to 0.775, a span of 1.29x, which is a horizontal line; and
+     * "same dose, different fate" is suppressed because survival has not yet
+     * separated enough for the comparison to mean anything.
+     *
+     * Over 100,000 years seven of the fourteen fragments are destroyed, the
+     * lifetime law has fourteen fates to predict, and the two strongest
+     * figures in the project appear. Ten figures render with structure
+     * instead of eight with one flat.
+     *
+     * The shorter run is still one menu click away under Analysis, and every
+     * test still reads it directly by path. */
     const replayUrl = customFile
       ? (/^https?:\/\//i.test(customFile) ? customFile : withBase(customFile))
-      : withBase('data/cosmos_visualizer_simulation.json');
+      : withBase('data/run_100kyr.json');
     await mainReplay(replayUrl);
     return;
   }

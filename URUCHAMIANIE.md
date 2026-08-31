@@ -43,10 +43,15 @@ npx vite --port 4321 --strictPort
 
 ### Wybór przebiegu symulacji
 
-Domyślnie ładuje się przebieg 3000-letni. Pozostałe dwa:
+Domyślnie ładuje się przebieg **100 000-letni**. To on pokazuje wszystkie
+dziesięć wykresów. Na biegu 3000-letnim praktycznie nic się nie dzieje: żaden
+odłamek nie ginie, więc diagram fazowy nie ma czego narysować, a przeżywalność
+zmienia się tylko 1,29 raza, czyli wychodzi płaska linia.
+
+Pozostałe dwa:
 
 ```
-http://localhost:5173/?replay=data/run_100kyr.json
+http://localhost:5173/?replay=data/cosmos_visualizer_simulation.json
 http://localhost:5173/?replay=data/run_1myr.json
 ```
 
@@ -59,7 +64,7 @@ cd web
 npm test
 ```
 
-Powinno przejść **638 testów**.
+Powinno przejść **643 testy**.
 
 ---
 
@@ -241,7 +246,7 @@ hack4_sages_nowy/
 │   └── microbe_radiation_model/   90 modułów
 ├── web/            wizualizacja 3D      (uruchamiaj STĄD)
 │   ├── src/            57 modułów JavaScript
-│   ├── tests/          638 testów
+│   ├── tests/          643 testy
 │   └── public/data/    pliki replay
 ├── analysis/       analiza w R i Pythonie
 ├── tools/          skrypt eksportu      (uruchamiaj z KORZENIA)
