@@ -900,6 +900,12 @@ async function mainReplay(source) {
         note: 'dust erosion destroys seven of fourteen fragments; the phase '
             + 'diagram gains a boundary',
       },
+      {
+        file: 'data/run_1myr.json',
+        label: 'Full transit, 1 Myr',
+        note: 'thirteen of fourteen are ground away, and the survivor is '
+            + 'biologically finished at 1e-10',
+      },
     ],
     links: [
       {
