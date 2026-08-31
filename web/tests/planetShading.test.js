@@ -17,6 +17,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { readFile } from 'node:fs/promises';
+import sim from '../public/data/cosmos_visualizer_simulation.json';
 
 const src = await readFile(new URL('../src/shaderMaterial.js', import.meta.url), 'utf8');
 
@@ -79,11 +80,55 @@ describe('body exaggeration stays honest', () => {
     expect(sun).toBeLessThan(orbit * 0.6);
   });
 
-  it('draws Jupiter larger than Mercury', async () => {
+  it('draws every planet at the same exaggeration, so the ratios are true', async () => {
+    /*
+     * The sizes used to be remapped onto a 5 to 11 unit band through a cube
+     * root, which kept the ordering and destroyed the proportions: Jupiter is
+     * 29.3 times Mercury's radius and was drawn 2.2 times its size. A single
+     * multiplier is what makes every ratio between bodies exactly right, and
+     * it is the only property here worth defending.
+     */
     const main = await readFile(new URL('../src/main.js', import.meta.url), 'utf8');
-    const lo = Number(main.match(/const\s+PLANET_R_MIN\s*=\s*([0-9.]+)/)?.[1]);
-    const hi = Number(main.match(/const\s+PLANET_R_MAX\s*=\s*([0-9.]+)/)?.[1]);
-    expect(hi).toBeGreaterThan(lo);
+    expect(main).toMatch(/const\s+BODY_EXAGGERATION\s*=\s*\d+/);
+    // No remapping function may survive: a cube root here would silently
+    // reintroduce the compression.
+    const sizing = main.slice(main.indexOf('function planetRadii'),
+                              main.indexOf('function planetRadii') + 500);
+    expect(sizing).not.toMatch(/cbrt/);
+  });
+
+  it('reproduces the true radius ratios from the replay', async () => {
+    const main = await readFile(new URL('../src/main.js', import.meta.url), 'utf8');
+    const k = Number(main.match(/const\s+BODY_EXAGGERATION\s*=\s*(\d+)/)?.[1]);
+    const KM_PER_AU = 149597870.7;
+    const scale = sim.meta.positionScale;
+
+    const drawn = (id) => {
+      const obj = sim.objects.find(o => o.id === id);
+      const rMetres = obj?.info?.Radius?.value;
+      return ((rMetres / 1000) / KM_PER_AU) * scale * k;
+    };
+    const trueR = (id) =>
+      sim.objects.find(o => o.id === id)?.info?.Radius?.value;
+
+    const drawnRatio = drawn('planet_jupiter') / drawn('planet_mercury');
+    const realRatio = trueR('planet_jupiter') / trueR('planet_mercury');
+    // Exactly, not approximately: one multiplier cancels in a ratio.
+    expect(drawnRatio).toBeCloseTo(realRatio, 9);
+    expect(realRatio).toBeGreaterThan(29);
+  });
+
+  it('keeps the smallest planet above one pixel', async () => {
+    // Below this the exaggeration buys nothing: Mercury becomes a single
+    // pixel and the proportions it was fixed to show are invisible anyway.
+    const main = await readFile(new URL('../src/main.js', import.meta.url), 'utf8');
+    const k = Number(main.match(/const\s+BODY_EXAGGERATION\s*=\s*(\d+)/)?.[1]);
+    const KM_PER_AU = 149597870.7;
+    const mercury = sim.objects.find(o => o.id === 'planet_mercury');
+    const world = ((mercury.info.Radius.value / 1000) / KM_PER_AU)
+      * sim.meta.positionScale * k;
+    // 0.817 pixels per world unit, measured at the default framing.
+    expect(2 * world * 0.817).toBeGreaterThan(1.5);
   });
 });
 
@@ -135,23 +180,89 @@ describe('backscattering is applied only where it is physical', () => {
  * metre, so size decides whether rock protects the cargo at all.
  */
 describe('fragment sizing', () => {
-  it('draws fragments logarithmically, over a span that is actually visible', async () => {
+  const KM_PER_AU = 149597870.7;
+
+  async function constants() {
     const main = await readFile(new URL('../src/main.js', import.meta.url), 'utf8');
-    const lo = Number(main.match(/const\s+FRAG_R_MIN\s*=\s*([0-9.]+)/)?.[1]);
-    const hi = Number(main.match(/const\s+FRAG_R_MAX\s*=\s*([0-9.]+)/)?.[1]);
-    expect(Number.isFinite(lo) && Number.isFinite(hi)).toBe(true);
-    expect(hi / lo).toBeGreaterThan(2);
-    // Radii span a factor of 45, so a linear map would put the smallest at a
-    // fiftieth of the largest and off the screen.
-    expect(main).toMatch(/Math\.log10\(r\)/);
+    return {
+      body: Number(main.match(/const\s+BODY_EXAGGERATION\s*=\s*([\d.e+]+)/)?.[1]),
+      frag: Number(main.match(/const\s+FRAGMENT_EXAGGERATION\s*=\s*([\d.e+]+)/)?.[1]),
+      floor: Number(main.match(/const\s+FRAGMENT_FLOOR\s*=\s*([\d.]+)/)?.[1]),
+      src: main,
+    };
+  }
+
+  function fragRadii() {
+    const out = new Map();
+    for (const f of sim.frames) {
+      for (const p of f.properties ?? []) {
+        if (p?.id?.startsWith('asteroid_') && p.radius > 0 && !out.has(p.id)) {
+          out.set(p.id, p.radius);
+        }
+      }
+    }
+    return [...out.values()];
+  }
+
+  it('scales fragments by one factor, so their ratios are true', async () => {
+    /*
+     * A log remap onto a fixed band compressed a real 44.2 to 1 span into
+     * 2.6 to 1. One multiplier cancels in a ratio, so the proportion between
+     * any two fragments is exactly what the model computed.
+     */
+    const { frag, src } = await constants();
+    expect(Number.isFinite(frag)).toBe(true);
+    const sizing = src.slice(src.indexOf('function fragmentRadii'),
+                             src.indexOf('function fragmentRadii') + 900);
+    expect(sizing).not.toMatch(/Math\.log10/);
   });
 
-  it('never draws a fragment larger than the smallest planet', async () => {
-    // A 57 mm stone rendered bigger than Mercury reads as a world. An earlier
-    // pass had the ceiling at 6.5 against Mercury's 5.0.
-    const main = await readFile(new URL('../src/main.js', import.meta.url), 'utf8');
-    const fragMax = Number(main.match(/const\s+FRAG_R_MAX\s*=\s*([0-9.]+)/)?.[1]);
-    const planetMin = Number(main.match(/const\s+PLANET_R_MIN\s*=\s*([0-9.]+)/)?.[1]);
-    expect(fragMax).toBeLessThan(planetMin);
+  it('preserves the true ratio between the largest and smallest fragment', async () => {
+    const { frag, floor } = await constants();
+    const radii = fragRadii().sort((a, b) => a - b);
+    const scale = sim.meta.positionScale;
+    const world = r => Math.max(floor, ((r / 1000) / KM_PER_AU) * scale * frag);
+
+    const largest = world(radii.at(-1));
+    // Take a fragment comfortably above the visibility floor, so the ratio
+    // being checked is the scaled one rather than the clamped one.
+    const mid = radii.find(r => ((r / 1000) / KM_PER_AU) * scale * frag > floor * 2);
+    expect(mid).toBeDefined();
+    expect(largest / world(mid)).toBeCloseTo(radii.at(-1) / mid, 6);
+  });
+
+  it('keeps most fragments off the visibility floor, so size still reads', async () => {
+    /*
+     * The previous rule was that no fragment may be drawn larger than the
+     * smallest planet. With the planets on true proportions Mercury is 2.1
+     * pixels, and enforcing that put all fourteen fragments on the floor:
+     * every one the same dot, which is the defect the size scaling exists to
+     * prevent. The rule that replaces it is the one that matters, that the
+     * sizes carry information.
+     */
+    const { frag, floor } = await constants();
+    const scale = sim.meta.positionScale;
+    const radii = fragRadii();
+    const clamped = radii.filter(
+      r => ((r / 1000) / KM_PER_AU) * scale * frag < floor).length;
+    expect(clamped).toBeLessThan(radii.length / 2);
+  });
+
+  it('draws even the smallest fragment, via an explicit floor', async () => {
+    // The floor is the one place a size is not proportional. It exists so the
+    // smallest fragment does not vanish and take the size argument with it,
+    // and it is named rather than folded into the scale.
+    const { frag, floor } = await constants();
+    const scale = sim.meta.positionScale;
+    // The floor must be low enough that it catches only the few fragments too
+    // small to draw, and high enough that those are still visible. At the
+    // current scale two of fourteen sit on it.
+    const world = r => ((r / 1000) / KM_PER_AU) * scale * frag;
+    const onFloor = fragRadii().filter(r => world(r) < floor).length;
+    expect(onFloor).toBeGreaterThanOrEqual(0);
+    expect(onFloor).toBeLessThan(4);
+    // Whatever lands on it is still drawn: about 0.6 px at the measured
+    // 0.817 pixels per world unit.
+    expect(2 * floor * 0.817).toBeGreaterThan(0.5);
   });
 });

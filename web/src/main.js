@@ -180,84 +180,121 @@ async function mainReplay(source) {
   /**
    * How large the planets are drawn.
    *
-   * These were 0.55 to 1.70 world units, and measuring the rendered frame
-   * showed what that actually produced: the Sun 11 pixels across, the largest
-   * planet 5, and the rest 3 by 4 - twelve pixels for a whole planet, beside
-   * 302 two-pixel stars. A 512x256 surface map on a body four pixels wide
-   * contributes about three thousandths of one percent of its texels, so no
-   * texture, at any resolution, from any source, could have made those planets
-   * look like anything. They were too small to see, not badly painted.
+   * ONE FACTOR, APPLIED TO EVERY BODY. This used to remap the true radii onto
+   * a 5 to 11 unit band through a cube root, which kept the ordering but threw
+   * away the proportions: Jupiter is 29.3 times Mercury's radius and was being
+   * drawn 2.2 times its size, flattening the real ratio by a factor of
+   * thirteen. A viewer reading those spheres was reading a lie about the
+   * Solar System, and it was a lie the true radii were sitting right there to
+   * contradict.
    *
-   * The scene is already exaggerated by a factor of several hundred: 1 AU is
-   * 60 world units, so Earth at true scale would be 0.0000426 units against
-   * that 60 and would never occupy a single pixel. There is no version of this
-   * view that is simultaneously to scale and legible, which is why every
-   * planetarium visualisation - NASA's Eyes on the Solar System included -
-   * exaggerates body size and says so. The scene says so: see the note the
-   * scale caption puts on screen.
+   * Multiplying every radius by the same constant keeps every ratio between
+   * bodies EXACTLY right. Nothing is remapped and nothing is compressed. The
+   * scene overstates all the planets equally, which is a statement a reader
+   * can correct for, rather than overstating each one differently, which is a
+   * statement nobody can undo.
    *
-   * What is NOT exaggerated is the thing the model is actually about. Orbital
+   * WHY IT CANNOT BE TRUE SCALE. At 60 world units per AU, Earth's true radius
+   * is 0.0000426 units and would render at 4.2e-3 of a pixel. Every planet is
+   * four to five orders of magnitude below one pixel, so a true-scale view is
+   * an empty black rectangle. There is no version of this that is both to
+   * scale and visible, which is why every planetarium visualisation
+   * exaggerates body size, and why the honest ones say so on screen.
+   *
+   * THE FACTOR. 1300 puts Mercury at 2.1 pixels across at the default framing
+   * and Jupiter at 61, which is the smallest exaggeration where the smallest
+   * planet still resolves as more than a single pixel. Larger would be easier
+   * to see and further from the truth; this is the point where it stops being
+   * a dot.
+   *
+   * What is NOT exaggerated is the thing the model is about. Orbital
    * distances, transfer times, doses and survival are untouched. Only the
-   * spheres marking where the planets are got bigger.
+   * spheres marking where the planets are got bigger, and they all got bigger
+   * by the same amount.
    */
-  /* The ceiling on all of this: Mercury's orbit is 0.46 AU, which at 60 units
-     per AU is 28 world units from the centre. A Sun drawn larger than about
-     half of that starts to swallow the orbit it sits inside, and the scene
-     would then be asserting something false about the system's structure -
-     the one kind of exaggeration this project cannot make. An earlier pass
-     had SUN_R at 44, i.e. 1.6x Mercury's orbital radius. These values are the
-     largest that stay clearly inside that limit. */
-  const PLANET_R_MIN = 5.0;    // Mercury
-  const PLANET_R_MAX = 11.0;   // Jupiter
-  /* The Sun kept the replay's 5 units, which after the change above would have
-     left it smaller than Jupiter. It is really about 10x Jupiter's radius; at
-     that ratio it would swallow the inner system, so it is drawn just clearly
-     largest instead. Same exaggeration, same caption. */
+  const BODY_EXAGGERATION = 1300;
+
+  /** Kilometres per astronomical unit, for turning a true radius into units. */
+  const KM_PER_AU = 149597870.7;
+
+  /**
+   * The Sun is scaled separately, and the scene says so.
+   *
+   * At the same factor the Sun would be 363 world units across against
+   * Mercury's orbital radius of 28: it would swallow the orbit it sits inside
+   * and assert something false about the structure of the system, which is the
+   * one exaggeration this project cannot make. It is drawn at 14 units, a
+   * quarter of that orbit, so it reads as the central body without eating the
+   * inner system.
+   *
+   * That means the Sun is NOT on the planets' scale, and the on-screen note
+   * says which bodies share a scale and which does not. An unlabelled
+   * inconsistency would be worse than the compression this change removes.
+   */
   const SUN_R = 14.0;
 
-  function planetRadii(objects) {
-    const planets = objects.filter(o => (o.type ?? '').toLowerCase() === 'planet');
-    const radii = planets
-      .map(o => o.info?.Radius?.value)
-      .filter(r => Number.isFinite(r) && r > 0);
-    if (radii.length < 2) return null;
-    const lo = Math.cbrt(Math.min(...radii));
-    const hi = Math.cbrt(Math.max(...radii));
-    if (!(hi > lo)) return null;
+  function planetRadii() {
     return (obj) => {
-      const r = obj.info?.Radius?.value;
-      if (!Number.isFinite(r) || r <= 0) return null;
-      const t = (Math.cbrt(r) - lo) / (hi - lo);
-      return PLANET_R_MIN + t * (PLANET_R_MAX - PLANET_R_MIN);
+      const rMetres = obj.info?.Radius?.value;
+      if (!Number.isFinite(rMetres) || rMetres <= 0) return null;
+      // Radius arrives in metres; positionScale is world units per AU.
+      const rAU = (rMetres / 1000) / KM_PER_AU;
+      return rAU * (simData.meta?.positionScale ?? 60) * BODY_EXAGGERATION;
     };
   }
   /**
    * How large each fragment is drawn.
    *
-   * Every fragment was drawn at the same 0.18 world units, so a 57.5 mm
-   * boulder and a 1.3 mm grain were the same dot. That threw away the variable
-   * the shielding argument turns on: GCR attenuation depth is about half a
-   * metre, so size decides whether rock protects the cargo at all, and in this
-   * swarm the two largest fragments have the two highest survivals.
+   * ONE FACTOR, LIKE THE PLANETS. Every fragment used to be drawn at the same
+   * 0.18 world units, and then on a log remap from 1.6 to 4.2, which
+   * compressed a real 44.2 to 1 span into 2.6 to 1. Multiplying every true
+   * radius by a single constant keeps the ratio between any two fragments
+   * exactly right, for the same reason it does for the planets: a shared
+   * multiplier cancels in a ratio.
    *
-   * LOGARITHMIC, because the radii span a factor of 45 - 1.3 mm to 57.5 mm.
-   * Drawn linearly the smallest would be a fiftieth of the largest and
-   * invisible; the log keeps every fragment on screen while preserving the
-   * ordering.
+   * WHY THE FACTOR IS NOT THE PLANETS' FACTOR. At the planets' 1300 a 57.5 mm
+   * stone is 4.9e-8 of a pixel, eight orders of magnitude below visibility.
+   * The bodies in this scene span eleven orders of magnitude in radius, from a
+   * millimetre of rock to the Sun, and no single exaggeration makes that range
+   * visible at once. Three factors are therefore used, and the scene names all
+   * three on screen rather than letting a viewer assume one.
    *
-   * The band is chosen from measurement, not taste: at the default framing the
-   * scene renders 0.817 pixels per world unit, so 1.6 to 4.2 puts the smallest
-   * fragment at 2.6 px and the largest at 6.9 - a spread of more than two that
-   * can actually be seen. The upper bound is set by Mercury, drawn at 5.0: a
-   * fragment must never be rendered larger than the smallest planet, or a
-   * 57 mm stone reads as a world.
+   * Within each family the proportions are exact. Across families they are
+   * not, and the caption says so, which is the honest form of a compromise
+   * that cannot be avoided.
    *
-   * Exaggerated like everything else in the scene, and covered by the same
-   * on-screen note. A 57 mm stone at true scale against an AU of 60 world
-   * units would be 2e-13 units across.
+   * WHY A FRAGMENT MAY NOW BE DRAWN LARGER THAN MERCURY. It used to be a rule
+   * here that it must not, on the grounds that a 57 mm stone drawn bigger than
+   * a planet reads as a world. Giving the planets their true proportions makes
+   * that rule unworkable: Mercury comes out at 2.1 pixels, because Mercury
+   * really is small next to Jupiter, and holding the fragments under it forced
+   * every one of the fourteen onto the visibility floor. They became the same
+   * dot again, which is the exact defect the size scaling was added to fix.
+   *
+   * The rule is dropped, and the caption carries the reason: the families are
+   * on three different scales and a reader is told so, which makes comparing
+   * a fragment to a planet by eye a category error rather than a wrong answer.
+   * Within each family the proportions are exact, and that is the property
+   * worth protecting.
+   *
+   * For scale, Jupiter at 1300 is already 37 world units across against
+   * Mercury's 28 unit orbital radius, so the largest planet is wider than the
+   * innermost orbit. That is the ceiling for the planets, and it is why the
+   * two families cannot share one number.
+   *
+   * THE NUMBERS. At 8e11 the swarm runs from 0.55 pixels for the 1.05 mm
+   * grain to 17.8 for the 33.9 mm stone, against Jupiter at 61: large enough
+   * that the 32 to 1 span between the smallest and largest fragment is
+   * visible, small enough that no fragment is mistakable for a planet.
+   *
+   * THE FLOOR. Anything below it is drawn AT it, and is therefore the one
+   * place in this scene where a size is not proportional. That is a deliberate
+   * visibility floor rather than a scale, and a fragment sitting on it is
+   * telling you it is too small to draw, not how big it is.
    */
-  const FRAG_R_MIN = 1.6;
-  const FRAG_R_MAX = 4.2;
+  const FRAGMENT_EXAGGERATION = 8e11;
+  /** Smallest radius drawn, in world units: about 0.6 px at default framing. */
+  const FRAGMENT_FLOOR = 0.36;
 
   function fragmentRadii(frames) {
     const radii = new Map();
@@ -269,16 +306,13 @@ async function mainReplay(source) {
         }
       }
     }
-    if (radii.size < 2) return null;
-    const values = [...radii.values()];
-    const lo = Math.log10(Math.min(...values));
-    const hi = Math.log10(Math.max(...values));
-    if (!(hi > lo)) return null;
+    if (radii.size < 1) return null;
+    const scale = simData.meta?.positionScale ?? 60;
     return (id) => {
-      const r = radii.get(id);
-      if (!Number.isFinite(r) || r <= 0) return null;
-      const t = (Math.log10(r) - lo) / (hi - lo);
-      return FRAG_R_MIN + t * (FRAG_R_MAX - FRAG_R_MIN);
+      const rMetres = radii.get(id);
+      if (!Number.isFinite(rMetres) || rMetres <= 0) return null;
+      const rAU = (rMetres / 1000) / KM_PER_AU;
+      return Math.max(FRAGMENT_FLOOR, rAU * scale * FRAGMENT_EXAGGERATION);
     };
   }
 
