@@ -26,6 +26,9 @@ import {
   erosionPhaseData, lifetimeLawAccuracy, survivalPhaseChart,
 } from './charts/survivalPhase.js';
 import { sameDoseData, spreadSummary, sameDoseChart } from './charts/sameDose.js';
+import {
+  sizeDecidesData, sizeDecidesSummary, sizeDecidesChart, TRAVELLED_AU,
+} from './charts/sizeDecides.js';
 import { withTooltip, renderContent } from './ui/tooltip.js';
 import { C_RAD_HELP, C_RAD_PRESETS } from './ui/paramHelp.js';
 import { answerSurfaceChart, ANSWER_SURFACE_STYLE } from './charts/answerSurfaceChart.js';
@@ -377,6 +380,7 @@ function injectStyles() {
       font-family: var(--font-mono);
     }
     #live-charts .lc-plot { margin-top: 4px; position: relative; }
+
 
     /* Scoped to the SVG, not to #live-charts. These same charts are rendered
        into detached windows, which are separate documents with no ancestor of
@@ -1166,6 +1170,14 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
       <div class="lc-plot"></div>
       <div class="lc-readout"></div>
     `;
+    /* Collapsed by default.
+     *
+     * It is the figure that justifies the headline's 43 orders of magnitude,
+     * so it stays in the product and stays one click away in the Figures menu.
+     * But it is a statement about how little the literature pins down c_rad,
+     * not a result of this run, and as the opening figure it put the model's
+     * biggest uncertainty in front of the model's findings. */
+    fig.hidden = true;
     body.insertBefore(fig, body.firstChild);
     surfaceFig = fig;
     const spec = surfaceSpec();
@@ -1255,6 +1267,46 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
       `dose varies by ${spread.dosePercent.toFixed(1)}%, survival by a factor `
       + `of ${spread.survivalFactor.toFixed(0)}. The difference is the organism, `
       + 'not the journey.';
+  }
+
+  /* The conflict between travelling and surviving.
+   *
+   * First in the dock, because it is the only figure that states the project's
+   * actual result rather than one of its inputs. It needs launch velocities
+   * and a run long enough to lose fragments, so it declines to appear on a
+   * replay that has neither. */
+  function renderSizeDecides() {
+    const rows = sizeDecidesData(frames);
+    const summary = sizeDecidesSummary(rows);
+    if (!summary || !summary.travellers.length) return;
+
+    const fig = document.createElement('figure');
+    fig.className = 'lc-fig lc-size';
+    fig.innerHTML = `
+      <figcaption>
+        <div class="lc-fig-title">Fast enough to travel, too small to last</div>
+        <div class="lc-fig-note"></div>
+      </figcaption>
+      <div class="lc-size-plot"></div>
+      <div class="lc-readout"></div>
+    `;
+    fig.querySelector('.lc-fig-note').textContent =
+      'both panels share one size axis · hollow means dust destroyed it, '
+      + 'a ring means it left the inner Solar System';
+    body.insertBefore(fig, body.firstChild);
+
+    sizeDecidesChart(fig.querySelector('.lc-size-plot'), rows);
+
+    const { smallest, largest, speedCorrelation: r, travellers } = summary;
+    fig.querySelector('.lc-readout').textContent =
+      `Ejection speed falls with size, from ${smallest.speedKmS.toFixed(1)} km/s `
+      + `at ${fmt(smallest.radiusMm, 3)} mm to ${largest.speedKmS.toFixed(1)} km/s `
+      + `at ${fmt(largest.radiusMm, 3)} mm (r = ${r.toFixed(2)} against log radius). `
+      + `Only ${travellers.length} of ${summary.total} fragments get past `
+      + `${TRAVELLED_AU} AU; the rest never leave ${fmt(summary.stayHomeMaxAU, 3)} AU. `
+      + `But lifetime is radius divided by erosion rate, so those same `
+      + `${travellers.length} are among the first destroyed. A fragment large `
+      + 'enough to survive the journey is too slow to make it.';
   }
 
   function renderSurvivalPhase() {
@@ -1369,6 +1421,8 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
     renderDepthProfile();
     renderSurvivalPhase();
     renderSameDose();
+    // Last insert, so after every insertBefore it sits at the top of the dock.
+    renderSizeDecides();
     // Last, deliberately: it describes the run the charts above came from, so
     // it reads as a footer to them rather than as a control.
     const prov = document.createElement('div');
