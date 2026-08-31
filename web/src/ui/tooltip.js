@@ -38,7 +38,7 @@ const STYLE = `
     position: fixed; z-index: 990; max-width: 300px;
     background: var(--bg-panel); border: 1px solid var(--line-strong); border-radius: 3px;
     padding: 9px 11px; color: var(--ink);
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-family: var(--font-ui);
     font-size: 0.6875rem; line-height: 1.55;
     box-shadow: 0 8px 26px rgba(0, 0, 0, 0.14);
   }

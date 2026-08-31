@@ -11,7 +11,7 @@ const STYLES = `
 #asteroid-toggle {
   position: fixed; top: 16px; right: 16px;
   background: var(--bg-panel); color: var(--ink); border: 1px solid var(--line-edge);
-  font-family: monospace; font-size: 0.8125rem; padding: 6px 14px;
+  font-family: var(--font-mono); font-size: 0.8125rem; padding: 6px 14px;
   cursor: pointer; border-radius: 4px; z-index: 100;
 }
 #asteroid-toggle:hover { background: var(--bg-raised); }
@@ -19,7 +19,7 @@ const STYLES = `
 #asteroid-panel {
   position: fixed; top: 52px; right: 16px;
   background: var(--bg-sunken); color: var(--ink); border: 1px solid var(--line-edge);
-  font-family: monospace; font-size: 0.8125rem;
+  font-family: var(--font-mono); font-size: 0.8125rem;
   padding: 14px 16px; border-radius: 6px; z-index: 100;
   display: none; width: 15rem;
 }
@@ -27,7 +27,7 @@ const STYLES = `
 #asteroid-panel label { display: block; margin: 6px 0 2px; color: #999; }
 #asteroid-panel input[type=number], #asteroid-panel input[type=color] {
   width: 100%; background: var(--bg-sunken); color: var(--ink); border: 1px solid var(--line-edge);
-  padding: 3px 6px; font-family: monospace; font-size: 0.75rem; border-radius: 3px;
+  padding: 3px 6px; font-family: var(--font-mono); font-size: 0.75rem; border-radius: 3px;
 }
 #asteroid-panel input[type=checkbox] { width: auto; margin-right: 6px; cursor: pointer; }
 #asteroid-panel .physics-row {
@@ -40,14 +40,14 @@ const STYLES = `
 #asteroid-spawn-btn {
   margin-top: 12px; width: 100%;
   background: var(--line-edge); color: var(--ink); border: 1px solid var(--line-strong);
-  font-family: monospace; font-size: 0.8125rem; padding: 6px;
+  font-family: var(--font-mono); font-size: 0.8125rem; padding: 6px;
   cursor: pointer; border-radius: 4px;
 }
 #asteroid-spawn-btn:hover { background: var(--line-strong); }
 #trail-toggle-btn {
   margin-top: 8px; width: 100%;
   background: var(--bg-panel); color: var(--ink); border: 1px solid var(--line-edge);
-  font-family: monospace; font-size: 0.8125rem; padding: 6px;
+  font-family: var(--font-mono); font-size: 0.8125rem; padding: 6px;
   cursor: pointer; border-radius: 4px;
 }
 #trail-toggle-btn.active { background: var(--line-edge); border-color: var(--line-strong); color: var(--accent); }

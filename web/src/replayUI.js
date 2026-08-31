@@ -36,7 +36,7 @@ function injectStyles() {
       background: var(--bg-panel);
       border-top: 1px solid var(--line-edge);
       padding: 7px 20px 10px;
-      font-family: monospace; font-size: 0.8125rem; color: var(--ink);
+      font-family: var(--font-ui); font-size: 0.8125rem; color: var(--ink);
       user-select: none; z-index: 900;
     }
     #replay-bar .rb-scrubber-row {
@@ -73,12 +73,12 @@ function injectStyles() {
     #replay-bar .rb-sps input[type=number] {
       width: 58px; background: var(--bg-sunken); color: var(--ink);
       border: 1px solid var(--line-edge); border-radius: 4px;
-      padding: 2px 5px; font-family: monospace; font-size: 0.8125rem; text-align: right;
+      padding: 2px 5px; font-family: var(--font-mono); font-size: 0.8125rem; text-align: right;
     }
     #replay-bar .rb-scale input[type=number] {
       width: 54px; background: var(--bg-sunken); color: var(--warn);
       border: 1px solid var(--line-edge); border-radius: 4px;
-      padding: 2px 5px; font-family: monospace; font-size: 0.8125rem; text-align: right;
+      padding: 2px 5px; font-family: var(--font-mono); font-size: 0.8125rem; text-align: right;
     }
     #replay-bar .rb-scale input[type=number]:focus { outline: 1px solid var(--warn); }
     #replay-bar .rb-scale input[type=number]::-webkit-inner-spin-button { opacity: .35; }

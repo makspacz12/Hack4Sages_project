@@ -28,7 +28,7 @@ const STYLE = `
     display: flex; align-items: stretch; gap: 0;
     background: var(--bg-panel);
     border-bottom: 1px solid var(--line-edge);
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-family: var(--font-mono);
     font-size: 0.71875rem; user-select: none;
   }
   .mb-menu { position: relative; }

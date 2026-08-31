@@ -248,7 +248,13 @@ function injectLayoutFixes(banner) {
   if (!banner?.root) return;
   const measure = () => {
     const h = banner.root.getBoundingClientRect().height;
-    document.documentElement.style.setProperty('--headline-h', `${Math.ceil(h)}px`);
+    /* Only a banner that genuinely spans the top displaces anything. Once it
+       moved into the left rail it stopped being a band, and publishing its
+       height would have pushed the analysis dock down by 150px against
+       nothing at all. */
+    const isTopBand = getComputedStyle(banner.root).position === 'fixed';
+    document.documentElement.style.setProperty(
+      '--headline-h', isTopBand ? `${Math.ceil(h)}px` : '0px');
   };
   measure();
   // The band reflows with the window, so the offset has to follow it.
@@ -297,7 +303,7 @@ function injectStyles() {
     .lc-coeff-band[data-warn="true"] { color: var(--data-trace); }
     .lc-coeff-reset {
       margin-top: 5px; background: none; border: 1px solid var(--line-edge);
-      color: var(--ink); font-family: monospace; font-size: 0.625rem;
+      color: var(--ink); font-family: var(--font-mono); font-size: 0.625rem;
       padding: 2px 6px; cursor: pointer;
     }
     .lc-coeff-reset:hover { border-color: var(--accent); color: var(--ink-bright); }
@@ -316,7 +322,7 @@ function injectStyles() {
       width: var(--dock-w); z-index: 860;
       background: var(--bg-panel);
       border-left: 1px solid var(--line-edge);
-      font-family: monospace; color: var(--ink);
+      font-family: var(--font-ui); color: var(--ink);
       display: flex; flex-direction: column;
       transition: transform .18s ease;
     }
@@ -357,9 +363,19 @@ function injectStyles() {
     #live-charts .lc-body-wrap.has-more .lc-more { opacity: 1; }
     #live-charts .lc-fig { padding: 8px 12px 5px; border-bottom: 1px solid var(--line-hair); }
     #live-charts .lc-fig:last-child { border-bottom: none; }
-    #live-charts .lc-fig-title { font-size: 0.71875rem; color: var(--ink-bright); font-weight: bold; }
-    #live-charts .lc-fig-note { font-size: 0.625rem; color: var(--ink-dim); margin-top: 1px; }
-    #live-charts .lc-readout { font-size: 0.65625rem; color: var(--ink-dim); margin-top: 4px; }
+    #live-charts .lc-fig-title {
+      font-size: 0.8125rem; color: var(--ink-bright); font-weight: 600;
+      letter-spacing: -0.003em;
+    }
+    #live-charts .lc-fig-note {
+      font-size: 0.6875rem; color: var(--ink-dim); margin-top: 2px; line-height: 1.4;
+    }
+    /* The readout is a measurement, so it keeps the mono face and the tabular
+       figures that stop it jittering as the frame advances. */
+    #live-charts .lc-readout {
+      font-size: 0.6875rem; color: var(--ink-dim); margin-top: 5px;
+      font-family: var(--font-mono);
+    }
     #live-charts .lc-plot { margin-top: 4px; position: relative; }
 
     /* Scoped to the SVG, not to #live-charts. These same charts are rendered
@@ -409,7 +425,7 @@ function injectStyles() {
       background: var(--bg-raised); border: 1px solid var(--line-strong); border-radius: 3px;
       padding: 6px 9px; font-size: 0.6875rem; color: var(--ink-bright);
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12); white-space: nowrap;
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-family: var(--font-mono);
     }
     #live-charts .tt-head, .lc-modal .tt-head { color: var(--ink-dim); margin-bottom: 3px; }
     #live-charts .tt-row, .lc-modal .tt-row { display: flex; align-items: center; gap: 6px; }
@@ -423,7 +439,7 @@ function injectStyles() {
       position: fixed; inset: 0; z-index: 1000;
       background: var(--bg-panel);
       display: flex; align-items: center; justify-content: center; padding: 40px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-family: var(--font-mono);
     }
     .lc-modal-card {
       background: var(--bg-panel); border: 1px solid var(--line-strong); border-radius: 4px;
@@ -460,7 +476,7 @@ function injectStyles() {
     #btn-live-charts {
       position: fixed; top: 14px; right: 14px; z-index: 861;
       background: var(--bg-raised); border: 1px solid var(--line-edge);
-      color: var(--accent); font-family: monospace; font-size: 0.8125rem; font-weight: bold;
+      color: var(--accent); font-family: var(--font-mono); font-size: 0.8125rem; font-weight: bold;
       letter-spacing: .1em; padding: 6px 14px; border-radius: 6px; cursor: pointer;
     }
     #btn-live-charts:hover { border-color: var(--accent); background: var(--bg-sunken); color: var(--accent); }
@@ -1288,7 +1304,10 @@ export function createLiveCharts(simData, { onSelectFragment } = {}) {
     document.body.append(panel, toggle);
     // The band goes up first and spans the window: everything below it is a
     // supporting argument for the number it states.
-    const banner = headlineBanner(document.body, simData, {
+    // Into the rail if the run console offered a slot, otherwise the body.
+    // A page without the console still gets the result, just at the top.
+    const headlineHost = document.getElementById('headline-slot') ?? document.body;
+    const banner = headlineBanner(headlineHost, simData, {
       cMin: COEFF_BANDS.chronicMin, cMax: COEFF_BANDS.chronicMax,
     });
     injectLayoutFixes(banner);

@@ -27,7 +27,10 @@ const contrast = (a, b) => {
 // here was #14100e, a panel colour that no longer exists anywhere in the
 // project: a test measuring against a surface that has been deleted passes
 // while telling you nothing.
-const PANEL = hexToRgb('#FFFFFF');
+// The panel ground, from --bg-panel in theme.css. The interface used to be
+// light chrome around a dark scene; it is now dark throughout, so this is the
+// surface the class colours actually sit on.
+const PANEL = hexToRgb('#141922');
 // The dark inset the 3D scene is drawn on. This was #0a0807, the ground of the
 // old dark theme; the trajectory ramp below was therefore being checked
 // against a colour the application no longer paints anywhere.

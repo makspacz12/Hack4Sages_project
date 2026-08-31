@@ -21,7 +21,7 @@ function injectStyles() {
       border: 1px solid var(--line-edge);
       border-radius: 8px;
       display: flex; flex-direction: column;
-      font-family: monospace; font-size: 0.8125rem; color: var(--ink);
+      font-family: var(--font-mono); font-size: 0.8125rem; color: var(--ink);
       z-index: 800;
       box-shadow: 0 4px 24px #0008;
       transition: opacity .2s;
@@ -45,7 +45,7 @@ function injectStyles() {
       margin: 7px 10px 5px;
       background: var(--bg-sunken); border: 1px solid var(--line-edge);
       border-radius: 5px; color: #ddf; padding: 5px 8px;
-      font-family: monospace; font-size: 0.8125rem; outline: none;
+      font-family: var(--font-mono); font-size: 0.8125rem; outline: none;
       width: calc(100% - 36px);
     }
     #obj-search-panel .osp-input:focus { border-color: var(--accent); }
@@ -80,7 +80,7 @@ function injectStyles() {
       background: var(--bg-panel);
       border: 1px solid var(--line-edge);
       border-radius: 6px;
-      color: var(--ink); font-family: monospace; font-size: 0.8125rem;
+      color: var(--ink); font-family: var(--font-mono); font-size: 0.8125rem;
       padding: 5px 12px; cursor: pointer; z-index: 900;
     }
     #obj-search-toggle:hover { background: var(--bg-raised); }

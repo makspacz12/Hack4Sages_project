@@ -301,11 +301,18 @@ export function createControlPanel({ onFinished }) {
         <div class="rc-brand">Lithopanspermia</div>
         <div class="rc-tagline">Mars ejecta transport, radiation dose and
           microbial survival, a digital twin.</div>
-        <a class="rc-nav" href="./research.html">Research background →</a>
-        <a class="rc-nav" href="./grid.html">Survival heatmap →</a>
-        <a class="rc-nav" href="./sensitivity.html">Sensitivity tornado →</a>
+        <!-- The three page links moved into the Analysis menu, which is
+             where every other navigation target already lives. Three links,
+             a tagline and a paragraph of explanation stood between the reader
+             and the first parameter. -->
       </div>
     </div>
+    <!-- The result sits here, in the rail, directly under the project it
+         belongs to. It used to span the top of the window as a band, which put
+         three lines of prose across the widest thing on screen and pushed the
+         observation down for no gain. Here it reads as what it is: the answer
+         this panel's parameters produce. -->
+    <div id="headline-slot"></div>
     <div class="rc-status">
       <span class="ui-dot" id="rc-dot"></span>
       <span class="rc-status-text" id="rc-status-text">checking solver…</span>
@@ -762,11 +769,7 @@ export function createControlPanel({ onFinished }) {
     const msg = document.createElement('div');
     msg.innerHTML = `
       <div class="rc-msg">
-        <b style="color:var(--ink)">Showing the bundled replay.</b>
-        <div class="rc-msg-sub">The controls below are live and every value is
-          editable. Anything the browser can recompute exactly &mdash; survival
-          against the inactivation coefficient &mdash; updates as you type.
-          Starting the solver is only needed to integrate a new swarm.</div>
+        <b style="color:var(--ink)">Bundled replay. Controls are live.</b>
         <button class="rc-howto" type="button" aria-expanded="false">
           How do I run my own?
         </button>

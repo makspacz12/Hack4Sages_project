@@ -25,7 +25,7 @@ function injectStyles() {
       border: 1px solid var(--line-edge);
       border-radius: 10px;
       padding: 14px 16px 16px;
-      font-family: monospace; font-size: 0.75rem; color: var(--ink);
+      font-family: var(--font-mono); font-size: 0.75rem; color: var(--ink);
       z-index: 800;
       display: none;
       box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);

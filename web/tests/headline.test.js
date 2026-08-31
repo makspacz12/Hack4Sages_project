@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  doseRates, survivalRange, sterilisationTime, spreadAttribution,
-  fmtFraction, fmtYears, HORIZONS,
+  doseRates, survivalRange, sterilisationTime, spreadAttribution, fmtFraction, fmtYears, HORIZONS, fmtFractionHTML,
 } from '../src/charts/headline.js';
 import sim from '../public/data/cosmos_visualizer_simulation.json';
 
@@ -124,5 +123,46 @@ describe('formatters', () => {
     for (const y of [1e3, 1.33e5, 3e6, 9.9e6]) {
       expect(fmtYears(y)).not.toMatch(/e[+-]/);
     }
+  });
+});
+
+/**
+ * The exponent must survive a font that lacks Unicode superscripts.
+ *
+ * fmtFraction builds the exponent from U+207B and the superscript digits.
+ * Those are correct characters, but a font is free to have no glyph for them,
+ * and the browser then drops them silently. Rendering the headline in Segoe UI
+ * Variable Display did exactly that: the superscript minus disappeared and
+ * 6.0x10^-46 was displayed as 6.0x10^46, wrong by ninety two orders of
+ * magnitude, with nothing on screen to indicate it.
+ */
+describe('fmtFractionHTML', () => {
+  it('emits a real superscript element rather than Unicode characters', () => {
+    const html = fmtFractionHTML(0.001);
+    expect(html).toBe('1.0×10<sup>-3</sup>');
+    // No character from the Unicode superscript block may survive.
+    expect(html).not.toMatch(/[\u2070-\u209f]/);
+  });
+
+  it('keeps the minus sign, which is the whole point', () => {
+    expect(fmtFractionHTML(null, -46)).toContain('<sup>-46</sup>');
+  });
+
+  it('agrees with the text form on the value', () => {
+    for (const l of [-3, -46, -2, -137]) {
+      // Superscript 1, 2 and 3 live in Latin-1 (U+00B9, U+00B2, U+00B3),
+      // not in the superscript block, so a range match misses them.
+      const MAP = { '⁻': '-', '⁰': '0', '¹': '1', '²': '2',
+                    '³': '3', '⁴': '4', '⁵': '5', '⁶': '6',
+                    '⁷': '7', '⁸': '8', '⁹': '9' };
+      const plain = [...fmtFraction(null, l)].map(c => MAP[c] ?? c).join('');
+      const html = fmtFractionHTML(null, l).replace(/<\/?sup>/g, '');
+      expect(html).toBe(plain);
+    }
+  });
+
+  it('leaves a plain decimal alone', () => {
+    // Above 1e-2 the formatter prints a decimal with no exponent at all.
+    expect(fmtFractionHTML(0.5)).not.toContain('<sup>');
   });
 });

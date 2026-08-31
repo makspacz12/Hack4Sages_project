@@ -6,21 +6,23 @@
 
 import {
   HORIZONS, doseRates, survivalRange, sterilisationTime, spreadAttribution,
-  fmtFraction, fmtYears,
+  fmtFraction, fmtFractionHTML, fmtYears,
 } from './headline.js';
 
 const STYLE = `
   #headline {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 940;
-    background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-panel) 100%);
+    background: var(--bg-panel);
     border-bottom: 1px solid var(--line-edge);
-    padding: 10px 18px 11px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    padding: 14px 16px 15px;
+    font-family: var(--font-ui);
     color: var(--ink-bright);
   }
   #headline.hidden { display: none; }
   .hl-top { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
-  .hl-q { font-size: 0.6875rem; color: var(--ink-dim); letter-spacing: 0.06em; text-transform: uppercase; }
+  .hl-q {
+    font-size: 0.9375rem; color: var(--ink); font-weight: 600;
+    letter-spacing: -0.005em;
+  }
   .hl-horizons { display: flex; gap: 4px; margin-left: auto; }
   .hl-h {
     background: none; border: 1px solid var(--line-edge); color: var(--ink-dim);
@@ -31,33 +33,52 @@ const STYLE = `
   .hl-h[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
   .hl-h:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-  .hl-box { margin: 9px 0 2px; position: relative; height: 46px; }
+  /* Stacked, not two ends of a bar.
+   *
+   * The original laid the two values at the far ends of a full window width,
+   * which read well across 1900px and collapsed the moment the card moved
+   * into a 280px rail: the numbers overlapped each other and sat on top of
+   * the bar. A range in a narrow column is a list of two rows, not a span. */
+  .hl-box { margin: 12px 0 2px; position: static; height: auto; }
   .hl-axis {
-    position: absolute; left: 0; right: 0; top: 21px; height: 3px;
+    position: static; height: 3px; margin: 9px 0;
     background: var(--line-hair);
   }
   /* The p-box itself. Deliberately a flat bar with hard ends and no gradient:
      a soft edge or a gradient would read as a density, and there is none. */
   .hl-span {
-    position: absolute; top: 18px; height: 9px;
+    position: absolute; height: 9px; margin-top: -12px;
     background: repeating-linear-gradient(
       90deg, var(--data-secondary) 0 6px, rgba(154, 140, 196, 0.40) 6px 12px);
     border-left: 2px solid var(--data-secondary);
     border-right: 2px solid var(--data-secondary);
   }
   .hl-end {
-    position: absolute; top: 0; font-size: 0.9375rem; font-variant-numeric: tabular-nums;
-    white-space: nowrap;
+    position: static; display: block; max-width: none;
+    font-family: var(--font-display);
+    font-size: 1.5rem; font-weight: 600; letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap; color: var(--ink-bright);
   }
-  .hl-end small { display: block; font-size: 0.59375rem; color: var(--ink-dim); margin-top: 2px; }
-  .hl-end--lo { left: 0; text-align: left; }
-  .hl-end--hi { right: 0; text-align: right; }
+  .hl-end sup { font-size: 0.62em; }
+  .hl-end small {
+    display: block; font-family: var(--font-ui); font-weight: 400;
+    font-size: 0.6875rem; color: var(--ink-dim); margin-top: 2px;
+    letter-spacing: 0; white-space: normal; line-height: 1.35;
+  }
+  .hl-end--lo { text-align: left; }
+  .hl-end--hi { text-align: left; margin-top: 10px; }
+  .hl-end small { white-space: normal; line-height: 1.3; }
 
-  .hl-read { font-size: 0.71875rem; color: var(--ink); line-height: 1.5; margin-top: 6px; }
+  .hl-read { font-size: 0.8125rem; color: var(--ink); line-height: 1.5; margin-top: 6px; }
   .hl-read b { color: var(--ink-bright); font-weight: normal; }
   .hl-warn { color: var(--warn); }
-  .hl-note { font-size: 0.65625rem; color: var(--ink-dim); margin-top: 4px; line-height: 1.45; }
-  .hl-caveat { font-size: 0.65625rem; color: var(--ink-dim); margin-top: 4px; line-height: 1.45; }
+  .hl-note { font-size: 0.75rem; color: var(--ink-dim); margin-top: 4px; line-height: 1.45; }
+  .hl-caveat {
+    font-size: 0.75rem; color: var(--ink-dim); margin-top: 8px;
+    line-height: 1.5; padding-left: 10px;
+    border-left: 2px solid var(--warn);
+  }
 
   /* The prose folds away.
    *
@@ -70,8 +91,7 @@ const STYLE = `
   .hl-more {
     display: block; margin-top: 5px; padding: 0;
     background: none; border: 0; cursor: pointer;
-    font-family: inherit; font-size: 0.59375rem; letter-spacing: .07em;
-    text-transform: uppercase; color: var(--ink-faint);
+    font-family: inherit; font-size: 0.75rem; color: var(--accent);
   }
   .hl-more:hover, .hl-more:focus-visible { color: var(--accent); }
   .hl-more:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -114,6 +134,21 @@ export function headlineBanner(container, simData, bands) {
   `;
   container.appendChild(root);
 
+  /* Move into the rail once the run console has built its slot.
+   *
+   * The console mounts after this does, so the slot does not exist yet at
+   * first append and the card lands on the body instead, at the bottom of the
+   * page where nobody sees it. Relocating on the next frame is the same
+   * pattern the menu bar already uses to adopt the panel toggles. */
+  if (container === document.body) {
+    const relocate = () => {
+      const slot = document.getElementById('headline-slot');
+      if (slot && root.parentElement !== slot) slot.appendChild(root);
+    };
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(relocate);
+    else setTimeout(relocate, 0);
+  }
+
   let horizon = HORIZONS.find(h => h.years === 1e6) ?? HORIZONS.at(-1);
 
   const buttons = root.querySelector('.hl-horizons');
@@ -139,14 +174,16 @@ export function headlineBanner(container, simData, bands) {
     }
 
     root.querySelector('.hl-end--lo').innerHTML =
-      `${fmtFraction(null, range.log10Low)}<small>most sensitive organism, most irradiated fragment</small>`;
+      `${fmtFractionHTML(null, range.log10Low)}<small>most sensitive organism, most irradiated fragment</small>`;
     root.querySelector('.hl-end--hi').innerHTML =
-      `${fmtFraction(null, range.log10High)}<small>most resistant, least irradiated</small>`;
+      `${fmtFractionHTML(null, range.log10High)}<small>most resistant, least irradiated</small>`;
 
-    // Inset so the bar never runs under its own end labels.
+    /* The bar spans the whole width now that the values are stacked above and
+       below it rather than sitting at its ends. The 30% inset existed only to
+       keep it out from under those labels. */
     const span = root.querySelector('.hl-span');
-    span.style.left = '30%';
-    span.style.right = '30%';
+    span.style.left = '0';
+    span.style.right = '0';
 
     const decades = range.decades;
     const share = attr ? Math.round(attr.coefficientShare * 100) : null;

@@ -136,6 +136,33 @@ export function fmtFraction(v, log10v = null) {
   return `${m.toFixed(1)}×10${superscript(e)}`;
 }
 
+/**
+ * The same value as markup, with a real superscript instead of Unicode.
+ *
+ * WHY THIS EXISTS. fmtFraction builds the exponent from the Unicode
+ * superscript block, U+207B and U+2070 upward. Those characters are correct
+ * and they survive copy and paste, which is why the text form keeps them.
+ *
+ * But a font is free to have no glyph for them, and when that happens the
+ * browser drops the character silently. Rendering the headline in Segoe UI
+ * Variable Display did exactly that: the superscript minus vanished and
+ * 6.0x10 to the minus 46 was displayed as 6.0x10 to the 46. The DOM was
+ * correct, the arithmetic was correct, and the screen was wrong by ninety two
+ * orders of magnitude, with nothing to indicate it.
+ *
+ * A number that changes meaning depending on which fonts the presenting
+ * machine happens to have installed is not acceptable in the one figure the
+ * whole talk rests on. <sup> with ordinary digits cannot fail that way,
+ * because every font has a minus sign and the digits nought to nine.
+ */
+export function fmtFractionHTML(v, log10v = null) {
+  const text = fmtFraction(v, log10v);
+  if (!text.includes('×')) return text;
+  const [mantissa, exp] = text.split('×10');
+  const plain = [...exp].map(c => PLAIN[c] ?? c).join('');
+  return `${mantissa}×10<sup>${plain}</sup>`;
+}
+
 /** Years rendered at the scale a reader actually thinks in. */
 export function fmtYears(y) {
   if (!Number.isFinite(y)) return '—';
@@ -149,3 +176,8 @@ const SUPER = { '-': '⁻', 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '�
 function superscript(n) {
   return String(n).split('').map(c => SUPER[c] ?? c).join('');
 }
+
+/** Reverse of SUPER, for turning a rendered exponent back into plain digits. */
+const PLAIN = Object.fromEntries(
+  Object.entries(SUPER).map(([plain, sup]) => [sup, plain]),
+);

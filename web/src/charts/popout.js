@@ -24,7 +24,7 @@ const WINDOW_CSS = `
   :root { color-scheme: dark; }
   body {
     margin: 0; background: var(--bg-panel); color: var(--ink);
-    font-family: monospace; display: flex; flex-direction: column;
+    font-family: var(--font-ui); display: flex; flex-direction: column;
     height: 100vh; overflow: hidden;
   }
   header {

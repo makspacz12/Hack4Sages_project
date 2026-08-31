@@ -48,7 +48,7 @@ header {
 }
 
 .header-title {
-  font-family: monospace;
+  font-family: var(--font-ui);
   font-size: 0.9375rem;
   color: var(--accent2);
   letter-spacing: 0.08em;
@@ -59,7 +59,7 @@ header {
   background: none;
   border: 1px solid var(--border);
   color: var(--accent);
-  font-family: monospace;
+  font-family: var(--font-ui);
   font-size: 0.8125rem;
   padding: 5px 16px;
   border-radius: 5px;
@@ -79,7 +79,7 @@ main {
 }
 
 h1 {
-  font-family: monospace;
+  font-family: var(--font-ui);
   color: var(--heading);
   font-size: 1.35rem;
   margin-bottom: 8px;
@@ -105,7 +105,7 @@ pre {
 }
 
 .analysis-meta {
-  font-family: monospace;
+  font-family: var(--font-ui);
   font-size: 0.8125rem;
   color: var(--muted);
   margin-bottom: 20px;
@@ -123,7 +123,7 @@ pre {
 }
 
 .analysis-toolbar label {
-  font-family: monospace;
+  font-family: var(--font-ui);
   font-size: 0.8125rem;
   color: var(--accent);
   border: 1px solid var(--border);
@@ -140,7 +140,7 @@ pre {
 .analysis-toolbar input[type=file] { display: none; }
 
 .analysis-toolbar .btn-link {
-  font-family: monospace;
+  font-family: var(--font-ui);
   font-size: 0.8125rem;
   color: var(--accent2);
   background: none;
@@ -155,7 +155,7 @@ pre {
 
 .analysis-error {
   color: var(--bad);
-  font-family: monospace;
+  font-family: var(--font-ui);
   font-size: 0.8125rem;
   margin-top: 12px;
   display: none;

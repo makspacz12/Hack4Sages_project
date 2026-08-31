@@ -72,7 +72,14 @@
  * The 3D scene is WebGL and is not affected by this; it scales with the
  * viewport instead.
  */
-html { font-size: calc(16px * var(--ui-scale, 1)); }
+html {
+  font-size: calc(16px * var(--ui-scale, 1));
+  /* Numbers line up in columns everywhere in this interface, so tabular
+     figures are the default rather than something each table asks for. */
+  font-variant-numeric: tabular-nums;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
 
 :root {
   --ui-scale: 1;
@@ -80,10 +87,26 @@ html { font-size: calc(16px * var(--ui-scale, 1)); }
 
   /* Surfaces. A trace of blue rather than pure white: a pure neutral reads as
      unconsidered, and the bias ties the ground to the accent. */
-  --bg-void:      #FBFAFC;   /* page ground */
-  --bg-panel:     #FFFFFF;   /* panel body */
-  --bg-raised:    #F1F3F7;   /* inputs, hovered rows, band headers */
-  --bg-sunken:    #F5F6FA;   /* code blocks, plot wells */
+  /* Surfaces.
+   *
+   * The interface used to be light chrome around a dark scene. That split was
+   * the loudest edge on screen: a hard white-to-black boundary down both sides
+   * of the observation, drawing the eye to the frame rather than to what was
+   * inside it. Every reference instrument this project was measured against
+   * (NASA Eyes on the Solar System, ESASky) is dark throughout, for the same
+   * reason a telescope dome is: the thing being looked at is faint.
+   *
+   * The panels are now one step lighter than the scene rather than the
+   * opposite of it, so the observation is still the darkest and quietest
+   * region and the chrome recedes toward it instead of fighting it.
+   *
+   * The data colours did not change. They were chosen against both a white
+   * panel and this scene ground, and the palette test checks every one of them
+   * against both, so they already clear 3:1 here. */
+  --bg-void:      #0C0F16;   /* page ground, a shade under the panels */
+  --bg-panel:     #141922;   /* panel body */
+  --bg-raised:    #1C232F;   /* inputs, hovered rows, band headers */
+  --bg-sunken:    #10151D;   /* code blocks, plot wells */
 
   /* The one dark surface: the 3D scene, and anything drawn on top of it.
      Very slightly blue, so the sky is not a neutral black hole in a cool page. */
@@ -93,25 +116,33 @@ html { font-size: calc(16px * var(--ui-scale, 1)); }
 
   /* Rules. Alpha rather than flat greys, so they sit correctly on both the
      page ground and a white panel without needing a second set of values. */
-  --line-hair:    rgba(16, 24, 40, 0.08);
-  --line-edge:    rgba(16, 24, 40, 0.14);
-  --line-strong:  #8A93A1;
+  --line-hair:    rgba(224, 232, 245, 0.07);
+  --line-edge:    rgba(224, 232, 245, 0.13);
+  --line-strong:  #55617A;
 
   /* Ink, four levels, cooled to sit with the navy. --ink-faint is below 4.5:1
      and is therefore for ticks, hairlines and rules only - never for text. */
-  --ink-bright:   #101418;
-  --ink:          #2E3440;
-  --ink-dim:      #5A6472;
-  --ink-faint:    #8A93A1;
+  /* Ink, measured against --bg-panel #141922:
+   *   --ink-bright  #F2F5FA  16.12:1
+   *   --ink         #C9D2E0  11.56:1
+   *   --ink-dim     #8D9AB0   6.19:1
+   *   --ink-faint   #5E6B80   3.26:1  non-text only, same rule as before */
+  --ink-bright:   #F2F5FA;
+  --ink:          #C9D2E0;
+  --ink-dim:      #8D9AB0;
+  --ink-faint:    #5E6B80;
 
   /* Accent: one muted navy. --accent is the text-safe value and carries links,
      section headings and selected state. --accent-lit is NOT a text colour on
      paper - it is the variant for the dark scene inset, where it reads 5.78:1
      while the navy itself would read 2.30:1. */
-  --accent:       #1D4E89;
-  --accent-lit:   #4A90D9;
-  --accent-dim:   #7C93B5;
-  --accent-glow:  rgba(29, 78, 137, 0.09);
+  /* The navy that carried the accent on a white panel is invisible on a dark
+     one, so the accent moves up the same hue rather than to a new one: it is
+     the same blue, lit for a dark ground. 7.08:1 against the panel. */
+  --accent:       #6FA8E8;
+  --accent-lit:   #9AC5F5;
+  --accent-dim:   #4E7BAD;
+  --accent-glow:  rgba(111, 168, 232, 0.13);
 
   /* Attention. Orange and red are reserved for this and are not spent on
      chrome, which is the point of moving the accent to navy. */
@@ -136,8 +167,39 @@ html { font-size: calc(16px * var(--ui-scale, 1)); }
      19.9 even under protanopia, so the two violets are not confusable. */
   --data-secondary: #9A8CC4;
 
-  --font-ui: ui-sans-serif, system-ui, "Segoe UI", Inter, Roboto, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, "Cascadia Mono", Menlo, monospace;
+  /* Typography.
+   *
+   * The whole interface used to render in a monospace stack, because twenty
+   * places across eight modules hard coded `font-family: monospace` and
+   * overrode these tokens. A terminal face on every label, heading and
+   * paragraph reads as a 1980s console rather than as an instrument, and it
+   * was the single ugliest thing about this interface.
+   *
+   * The split is the one scientific publishing already uses:
+   *
+   *   --font-ui     prose, labels, headings, buttons, everything read as text
+   *   --font-mono   numbers, identifiers, digests, units, anything compared
+   *                 column against column
+   *
+   * Segoe UI Variable is first on the list because this is presented from a
+   * Windows machine and it is measurably better fitted than plain Segoe UI at
+   * small sizes. Cascadia is the same argument for the mono face against
+   * Consolas. Both degrade to the system stack anywhere else, and nothing is
+   * fetched over the network: a conference projector may have no working
+   * connection, and a font that fails to load silently reflows the entire
+   * layout mid-talk. */
+  --font-ui: "Segoe UI Variable Text", "Segoe UI", ui-sans-serif, system-ui,
+             -apple-system, Inter, Roboto, "Helvetica Neue", sans-serif;
+  --font-mono: "Cascadia Mono", "Cascadia Code", ui-monospace, SFMono-Regular,
+               Consolas, Menlo, monospace;
+  /* Display face for the headline number, which is the one piece of type on
+     screen that is meant to be read from the back of a room. */
+  /* The result is the one piece of type meant to be read from the back of a
+     room, and a serif carries that better than another weight of the UI face.
+     Cambria was drawn for screens and ships with Windows; Georgia and the
+     system serif cover everything else. No network fetch, so a projector with
+     no connection cannot reflow the layout mid-talk. */
+  --font-display: Cambria, Georgia, "Times New Roman", ui-serif, serif;
 
   /* Spacing scale */
   --sp-1: 4px;
