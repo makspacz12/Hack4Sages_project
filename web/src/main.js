@@ -169,22 +169,8 @@ async function mainReplay(source) {
   const rollState = createRollState();
 
   /**
-   * Draw the planets at sizes that reflect the planets.
-   *
-   * Every planet shipped with visual.radius = 0.9, so Mercury was rendered
-   * exactly as large as Jupiter. That is not a cosmetic problem: this is a
-   * scientific presentation, and the scene was asserting something false about
-   * the bodies in it. The true radii were in the file all along, under
-   * info.Radius, and simply were not read.
-   *
-   * Mapped by CUBE ROOT rather than linearly. The real span is 29:1, so a
-   * linear map would put Mercury below a pixel at any zoom where Jupiter is
-   * comfortable; the cube root - the ratio of their linear dimensions if you
-   * think in volumes - keeps the ordering unmistakable while keeping the
-   * smallest body visible.
-   *
-   * Heliocentric distances use the same exponent: d_vis = SUN_R × (d_AU/R☉_AU)^(1/3),
-   * so (SUN_R/d_vis) = (R☉/d_real)^(1/3). Simulation data stay in real AU.
+   * Body sizes and orbit distances: sceneScale.js (∛ compression, one law for
+   * both). True radii live in objects[].info.Radius; positions in frames stay AU.
    */
   const planetRadius = planetDrawRadiusFactory(simData.objects ?? []);
   const fragmentRadius = fragmentDrawRadiusFactory(

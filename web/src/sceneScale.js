@@ -1,16 +1,24 @@
 /**
  * sceneScale.js
  *
- * Display scaling for the 3D replay. Simulation data stay in real AU and
- * metres; only what is drawn is remapped.
+ * Display scaling for the 3D replay. Positions and radii in the JSON stay in
+ * real AU and metres; only what is drawn is remapped.
  *
- * Sizes:  SUN_R × (R_body / R_sun)^(1/n)
- * Distances from the Sun: SUN_R × (d_AU / R_sun_AU)^(1/n)
+ * One law for sizes and heliocentric distances (same exponent n):
+ *   sphere radius:  SUN_R × (R_body / R_sun)^(1/n)
+ *   orbit distance: SUN_R × (d_AU / R_sun_AU)^(1/n)
  *
- * n defaults to SCENE_RATIO_ROOT (change there, or pass ?root=N in the URL).
- * Production target is n = 3 (cube root).
+ * Equivalently (SUN_R / d_vis) = (R_sun / d_real)^(1/n) — the visual ratio of
+ * Sun radius to orbit radius is the n-th root of the physical ratio. Planets
+ * keep their true ordering; the inner system is not swallowed by the Sun.
+ *
+ * n = SCENE_RATIO_ROOT (default 3, cube root). ?root=N in the URL overrides.
+ *
+ * What is NOT remapped: frame times, doses, survival, charts, info panel —
+ * every computed quantity reads the simulation as integrated.
  */
 
+/** Drawn Sun radius in world units. Anchor for every other size and distance. */
 export const SUN_R = 14.0;
 
 /** Target exponent when settling on cube-root compression. */
@@ -65,7 +73,9 @@ export const KM_PER_AU = 149597870.7;
 
 export const DEFAULT_SUN_RADIUS_M = 695_709_902;
 
-/** Largest fragment draw radius as a fraction of Mercury's drawn radius. */
+/** Largest fragment draw radius as a fraction of Mercury's drawn radius.
+ *  At true cube-root size the biggest stone is sub-pixel; a uniform boost
+ *  preserves fragment-to-fragment ratios while keeping the swarm visible. */
 export const FRAGMENT_MAX_MERCURY_FRACTION = 0.33;
 
 /**
@@ -134,14 +144,9 @@ export function displayHelioOffset(
 }
 
 /**
- * Map one body's replay position (AU, barycentric) to world units.
- * The Sun keeps its small linear drift; everything else is Sun-relative.
- *
- * @param {{ id?: string, x: number, y: number, z: number }} posAU
- * @param {{ x: number, y: number, z: number }} sunPosAU
- * @param {number} sunRadiusAU
- * @param {number} [linearScale]  meta.positionScale × scaleMultiplier for Sun drift
- * @param {number} [multiplier]   extra uniform scale (defaults to 1)
+ * Replay position (AU, barycentric) → world units for the 3D view.
+ * Bodies orbit the Sun on the compressed scale; the Sun itself keeps only its
+ * small linear drift (meta.positionScale) because it is the anchor.
  */
 export function displayWorldPosition(
   posAU,
@@ -174,8 +179,9 @@ export function displayWorldPosition(
 }
 
 /**
- * @param {object[]} [objects]
- * @returns {((obj: object) => number|null)|null}
+ * Planet draw radii from info.Radius (metres). Linear ratios would hide
+ * Mercury at any zoom where Jupiter is comfortable; the n-th root compresses
+ * the 29:1 span while keeping order exact.
  */
 export function planetDrawRadiusFactory(objects) {
   const sunR = sunRadiusMetres(objects);
@@ -191,9 +197,10 @@ export function planetDrawRadiusFactory(objects) {
 }
 
 /**
- * @param {object[]} [frames]
- * @param {object[]} [objects]
- * @returns {((id: string) => number|null)|null}
+ * Fragment draw radii: same n-th-root law as planets, then one uniform boost
+ * so the largest sits near FRAGMENT_MAX_MERCURY_FRACTION × Mercury. A fragment
+ * may draw larger than Mercury on screen — that is visibility, not a claim
+ * about mass or composition.
  */
 export function fragmentDrawRadiusFactory(frames, objects) {
   const radii = new Map();
