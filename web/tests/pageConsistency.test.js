@@ -164,12 +164,13 @@ describe('the borrowed coefficient control keeps working', () => {
 });
 
 /**
- * The dose colour bar sits alone at the bottom of the scene.
+ * The scene carries an honesty note about display scaling, beside the dose bar.
  */
-describe('the dose legend is present on the scene page', () => {
-  it('includes the dose legend markup', async () => {
+describe('the scene captions are present on the page', () => {
+  it('includes the scale note and the dose legend', async () => {
     const html = await read('index.html');
+    expect(html).toContain('id="scale-note"');
+    expect(html).toContain('∛ display scale');
     expect(html).toContain('id="dose-legend"');
-    expect(html).not.toContain('id="scale-note"');
   });
 });
