@@ -482,7 +482,15 @@ def _collect_json_output_payloads(
     )
 
     # Gamma: use radionuclide-based dose rate [Gy/year] as a simple gamma proxy.
-    gamma_dose_gy_per_year = radiation_decay_gy_per_year_from_rock(rock)
+    # Pass this fragment's own radius and density so the exported figure carries
+    # the finite-size correction, matching the value the survival loop actually
+    # applies. Without them the function returns the infinite-matrix upper bound,
+    # so the JSON claimed more internal dose than the run used to kill microbes.
+    gamma_dose_gy_per_year = radiation_decay_gy_per_year_from_rock(
+        rock,
+        radius_m=rock.radius_m,
+        density_kg_m3=rock.density_kg_m3,
+    )
 
     radiation_record = {
         "time_years": time_years,
@@ -1156,10 +1164,17 @@ def run_mars_ejecta_pipeline_demo(
             # Passing the geometry applies the finite-size correction: a small
             # fragment loses gamma dose out through its own surface, and below
             # about 20 cm radius that is most of it.
+            #
+            # Use this fragment's own density, not the configuration default.
+            # The self-dose fraction depends on rho*R, so passing the basalt
+            # default here while passing the fragment's real radius was the same
+            # "one fragment, two bodies" error the survival call a few lines up
+            # was fixed for: a CI chondrite fragment (1190 kg/m3) had its
+            # displayed internal dose computed at basalt's 3460.
             gamma_dose = radiation_decay_gy_per_year_from_rock(
                 rock,
                 radius_m=asteroid_state.radius_m,
-                density_kg_m3=material_config.rock_material.density,
+                density_kg_m3=rock.density_kg_m3,
             )
             env_updates["gamma_local_flux"] = gamma_dose
             env_updates["hydrolysis_rate_s_inv"] = body_report.hydrolysis_rate_s_inv

@@ -45,12 +45,16 @@ web/       →  Three.js replay / Run console
 | 6 | Interior | U/Th/K → Bq → α/β/γ dose (Cresswell et al.) | `radiation/radionuclide_model/gamma.py` |
 | 7 | Surface T | `T = ((1−A)·F / 4σ)^(1/4)` | `thermal/surface_temperature.py` |
 | 8 | Interior T | `T(r) = T_s + Q/(6k_th)·(R²−r²)` | `thermal/internal_profile.py` |
-| 9 | Hydrolysis | `k = A·exp(−Ea/R_gT)·w_water`; T&lt;273.15 → 0 | `chemistry/hydrolysis_model.py` |
+| 9 | Hydrolysis | `k = A·exp(−Ea/R_gT)·a_w(T)·w_water`; `a_w`=1 for T≥273.15 K, smooth curve below (no hard cut) | `chemistry/hydrolysis_model.py` |
 | 10 | Survival | `N/N₀ = exp(−(kill_rad + kill_hyd)·t)` | `biology/survival.py` |
 
 - `kill_rad = radiation_surv_coeff · (D_space + D_decay)` [1/yr]
 - `kill_hyd = k_hydrolysis · SECONDS_PER_YEAR · 1200` [1/yr]
 - `1200 = 1.2/0.001` — **uncited**, audit parameter (T9c)
+- `a_w(T)` — activity of liquid water in equilibrium with ice:
+  `ln a_w = −(ΔH_fus/R_g)·(1/T − 1/T_melt)`, ≈0.81 at 253 K. This replaced an
+  earlier hard `T<273.15 → 0` cut; the channel is now continuous and non-zero in
+  interplanetary space (still negligible there, but as a computed result).
 
 ---
 
