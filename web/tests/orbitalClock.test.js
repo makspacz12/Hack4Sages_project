@@ -14,7 +14,21 @@ import {
   createOrbitalClock, tickOrbitalClock, resetOrbitalClock, applyOrbitalClock,
   DEFAULT_ORBITAL_RATE,
 } from '../src/orbitalClock.js';
+import { displayWorldPosition, sunRadiusAU } from '../src/sceneScale.js';
 import sim from '../public/data/cosmos_visualizer_simulation.json';
+
+const LINEAR = sim.meta.positionScale;
+const OBJECTS = sim.objects;
+const SUN_RAU = sunRadiusAU(OBJECTS);
+
+function apply(c, frame, m) {
+  return applyOrbitalClock(c, frame, m, LINEAR, OBJECTS, 1);
+}
+
+function expectedPos(pos) {
+  const sun = sim.frames[0].positions.find(p => p.id === 'sun');
+  return displayWorldPosition(pos, sun, SUN_RAU, LINEAR, 1);
+}
 
 function meshes(frame) {
   const m = new Map();
@@ -49,10 +63,10 @@ describe('orbital clock', () => {
     const c = createOrbitalClock();
     resetOrbitalClock(c, 0);
     const m = meshes(frame);
-    applyOrbitalClock(c, frame, m, 1);
+    apply(c, frame, m);
     const before = { ...m.get('asteroid_003').position };
     c.years = 0.6;                       // a quarter of a typical orbit
-    applyOrbitalClock(c, frame, m, 1);
+    apply(c, frame, m);
     const after = m.get('asteroid_003').position;
     const moved = Math.hypot(after.x - before.x, after.y - before.y, after.z - before.z);
     expect(moved).toBeGreaterThan(0.1);
@@ -62,12 +76,12 @@ describe('orbital clock', () => {
     const c = createOrbitalClock();
     resetOrbitalClock(c, 0);
     const m = meshes(frame);
-    applyOrbitalClock(c, frame, m, 1);
+    apply(c, frame, m);
     const start = { ...m.get('asteroid_003').position };
     const el = c._elements.get('asteroid_003');
     expect(el).toBeTruthy();
     c.years = el.period;
-    applyOrbitalClock(c, frame, m, 1);
+    apply(c, frame, m);
     const end = m.get('asteroid_003').position;
     expect(Math.hypot(end.x - start.x, end.y - start.y, end.z - start.z)).toBeLessThan(1e-6);
   });
@@ -77,11 +91,12 @@ describe('orbital clock', () => {
     resetOrbitalClock(c, 0);
     const m = meshes(frame);
     c.years = 5;
-    applyOrbitalClock(c, frame, m, 1);
+    apply(c, frame, m);
     const sun = frame.positions.find(p => p.id === 'sun');
     const drawn = m.get('sun').position;
-    expect(drawn.x).toBeCloseTo(sun.x, 12);
-    expect(drawn.y).toBeCloseTo(sun.y, 12);
+    const want = expectedPos(sun);
+    expect(drawn.x).toBeCloseTo(want.x, 9);
+    expect(drawn.y).toBeCloseTo(want.y, 9);
   });
 
   it('leaves the outlier at its sampled position rather than guessing', () => {
@@ -91,17 +106,18 @@ describe('orbital clock', () => {
     resetOrbitalClock(c, 0);
     const m = meshes(frame);
     c.years = 40;
-    applyOrbitalClock(c, frame, m, 1);
+    apply(c, frame, m);
     const sampled = frame.positions.find(p => p.id === 'asteroid_011');
     const drawn = m.get('asteroid_011').position;
-    expect(drawn.x).toBeCloseTo(sampled.x, 12);
-    expect(drawn.y).toBeCloseTo(sampled.y, 12);
+    const want = expectedPos(sampled);
+    expect(drawn.x).toBeCloseTo(want.x, 9);
+    expect(drawn.y).toBeCloseTo(want.y, 9);
   });
 
   it('forgets its elements when the transport moves', () => {
     const c = createOrbitalClock();
     resetOrbitalClock(c, 0);
-    applyOrbitalClock(c, frame, meshes(frame), 1);
+    apply(c, frame, meshes(frame));
     expect(c._elements.size).toBeGreaterThan(0);
     resetOrbitalClock(c, 40);
     expect(c._elements.size).toBe(0);
@@ -136,7 +152,7 @@ describe('the orbital clock answers to the smoothing control', () => {
     const frame = sim.frames[0];
     const m = meshes(frame);
     // Returns false so main.js knows to use the sampled positions instead.
-    expect(applyOrbitalClock(c, frame, m, 1)).toBe(false);
+    expect(applyOrbitalClock(c, frame, m, LINEAR, OBJECTS, 1)).toBe(false);
   });
 
   it('does not advance its own time while disabled', () => {

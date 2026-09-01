@@ -37,6 +37,7 @@
  */
 
 import { stateToElements, propagateElements, keplerSafe } from './orbits.js';
+import { displayWorldPosition, sunRadiusAU } from './sceneScale.js';
 
 /**
  * Simulated years per second of wall clock for the orbital view.
@@ -93,11 +94,22 @@ export function resetOrbitalClock(clock, frameIndex) {
  * unbound - is left at its sampled position, which is the one place its
  * position is actually known.
  */
-export function applyOrbitalClock(clock, frame, meshById, scale) {
+export function applyOrbitalClock(clock, frame, meshById, linearScale, objects, multiplier = 1) {
   if (!clock?.enabled || !frame) return false;
 
   const sunPos = (frame.positions ?? []).find(p => p.id === 'sun');
   if (!sunPos) return false;
+  const sunRAU = sunRadiusAU(objects);
+  const linear = linearScale ?? 60;
+
+  const place = (id, x, y, z) => {
+    const mesh = meshById.get(id);
+    if (!mesh) return;
+    const w = displayWorldPosition(
+      { id, x, y, z }, sunPos, sunRAU, linear, multiplier,
+    );
+    mesh.position.set(w.x, w.y, w.z);
+  };
 
   if (clock._elements.size === 0) {
     const sunVel = (frame.velocities ?? []).find(v => v.id === 'sun');
@@ -121,29 +133,21 @@ export function applyOrbitalClock(clock, frame, meshById, scale) {
   }
 
   for (const p of frame.positions ?? []) {
-    const mesh = meshById.get(p.id);
-    if (!mesh) continue;
     if (p.id === 'sun') {
-      mesh.position.set(p.x * scale, p.y * scale, p.z * scale);
+      place('sun', p.x, p.y, p.z);
       continue;
     }
     const el = clock._elements.get(p.id);
-    // keplerSafe is asked about the interval actually being propagated, which
-    // for this clock is however far it has run since the sample.
     if (!el || !keplerSafe(el, clock.years)) {
-      mesh.position.set(p.x * scale, p.y * scale, p.z * scale);
+      place(p.id, p.x, p.y, p.z);
       continue;
     }
     const rel = propagateElements(el, clock.years);
     if (!rel) {
-      mesh.position.set(p.x * scale, p.y * scale, p.z * scale);
+      place(p.id, p.x, p.y, p.z);
       continue;
     }
-    mesh.position.set(
-      (rel.x + sunPos.x) * scale,
-      (rel.y + sunPos.y) * scale,
-      (rel.z + sunPos.z) * scale,
-    );
+    place(p.id, rel.x + sunPos.x, rel.y + sunPos.y, rel.z + sunPos.z);
   }
   return true;
 }

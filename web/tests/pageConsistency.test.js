@@ -164,23 +164,12 @@ describe('the borrowed coefficient control keeps working', () => {
 });
 
 /**
- * Two fixed captions share the bottom of the scene.
- *
- * The size-scale note had a `left` and no `right`, so its width came from its
- * own text: 1082px on a 1280px window. It ran underneath the dose colour bar
- * and continued past the edge of the window. Both captions exist to stop a
- * reader misreading the picture, and the overlap made the size-exaggeration
- * one unreadable, which is the one that matters most.
- *
- * jsdom does not lay anything out, so this checks the rule rather than the
- * geometry: the note must reserve room on its right, and the reservation must
- * grow when the analysis dock pushes the legend inward.
+ * The dose colour bar sits alone at the bottom of the scene.
  */
-describe('the two scene captions do not collide', () => {
-  it('bounds the size note on the right, in both dock states', async () => {
+describe('the dose legend is present on the scene page', () => {
+  it('includes the dose legend markup', async () => {
     const html = await read('index.html');
-    expect(html).toMatch(/#scale-note\s*\{\s*right:/);
-    expect(html).toMatch(
-      /body\.charts-docked\s+#scale-note\s*\{\s*right:\s*calc\(var\(--dock-w\)/);
+    expect(html).toContain('id="dose-legend"');
+    expect(html).not.toContain('id="scale-note"');
   });
 });

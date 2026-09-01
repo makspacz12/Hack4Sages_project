@@ -128,8 +128,10 @@ describe('updateShaderTime', () => {
 // ─── GLSL sanity checks ───────────────────────────────────────────────────────
 
 describe('GLSL shader strings', () => {
-  it('PLANET_VERT contains "vNormal"', () => {
-    expect(PLANET_VERT).toContain('vNormal');
+  it('PLANET_VERT uses world-space normals for sun lighting', () => {
+    expect(PLANET_VERT).toContain('vWorldNormal');
+    expect(PLANET_VERT).toContain('mat3(modelMatrix)');
+    expect(PLANET_VERT).not.toContain('normalMatrix');
   });
 
   it('PLANET_FRAG references "uColor"', () => {
@@ -140,12 +142,13 @@ describe('GLSL shader strings', () => {
     expect(PLANET_FRAG).toContain('uTime');
   });
 
-  it('PLANET_FRAG implements ambient lighting floor', () => {
-    expect(PLANET_FRAG).toContain('ambient');
+  it('PLANET_FRAG implements sun-hemisphere ambient', () => {
+    expect(PLANET_FRAG).toContain('hemiAmbient');
   });
 
-  it('PLANET_FRAG implements rim lighting', () => {
-    expect(PLANET_FRAG).toContain('rim');
+  it('PLANET_FRAG implements atmospheric limb on lit bodies', () => {
+    expect(PLANET_FRAG).toContain('atmosLimb');
+    expect(PLANET_FRAG).toContain('uAtmosphere');
   });
 
   it('SUN_FRAG references corona', () => {

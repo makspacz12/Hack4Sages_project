@@ -21,11 +21,11 @@ export function createScene() {
  * @returns {{ sunLight: THREE.PointLight, ambientLight: THREE.AmbientLight }}
  */
 export function addLighting(scene) {
-  const sunLight = new THREE.PointLight(0xffffff, 6, 2000, 1.2);
+  const sunLight = new THREE.PointLight(0xffffff, 0, 0);
   sunLight.position.set(0, 0, 0);
   scene.add(sunLight);
 
-  const ambientLight = new THREE.AmbientLight(0x334466, 2.5);
+  const ambientLight = new THREE.AmbientLight(0x223344, 0.4);
   scene.add(ambientLight);
 
   return { sunLight, ambientLight };
