@@ -31,6 +31,19 @@
          visualisation does this; the ones worth trusting say so on screen
          rather than in a footnote nobody opens. Distances, times and every
          computed quantity are untouched. */
+      #scale-note {
+        position: fixed; left: 0; bottom: var(--rail-h);
+        z-index: 300; pointer-events: none;
+        padding: 5px 12px;
+        font-family: var(--font-mono);
+        font-size: 0.625rem; line-height: 1.5;
+        color: var(--scene-ink); opacity: 0.72;
+        background: linear-gradient(to right, rgba(11,14,20,0.82), rgba(11,14,20,0));
+      }
+      #scale-note b { font-weight: 600; opacity: 0.95; }
+      body.console-docked #scale-note { left: var(--panel-w); }
+      #scale-note { right: 13rem; }
+      body.charts-docked #scale-note { right: calc(var(--dock-w) + 13rem); }
 
       /* The dose colour bar.
        *
@@ -103,6 +116,12 @@
          longer called, plus four lines of mouse instructions. The workspace
          menu carries navigation now and the run console carries the name, so
          the only thing this added was a wrong title over the scene. -->
+
+    <div id="scale-note">
+      <b>∛ display scale.</b> Sizes, positions and paths share one compression;
+      fragments are drawn larger so the swarm stays visible. Doses, times and
+      charts read the simulation as integrated.
+    </div>
 
     <div id="dose-legend">
       <div class="dl-title">Absorbed dose</div>
