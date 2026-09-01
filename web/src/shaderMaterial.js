@@ -11,14 +11,15 @@ import * as THREE from 'three';
 // ─── GLSL ────────────────────────────────────────────────────────────────────
 
 export const PLANET_VERT = /* glsl */`
-  varying vec3 vNormal;
+  varying vec3 vWorldNormal;
   varying vec3 vWorldPos;
   varying vec2 vUv;
 
   void main() {
     vec4 worldPos = modelMatrix * vec4(position, 1.0);
     vWorldPos     = worldPos.xyz;
-    vNormal       = normalize(normalMatrix * normal);
+    // World-space normals — must match uSunPos / vWorldPos (world space).
+    vWorldNormal  = normalize(mat3(modelMatrix) * normal);
     vUv           = uv;
     gl_Position   = projectionMatrix * viewMatrix * worldPos;
   }
@@ -28,13 +29,15 @@ export const PLANET_FRAG = /* glsl */`
   uniform vec3      uColor;
   uniform sampler2D uMap;
   uniform float     uAirless;
+  uniform float     uAtmosphere;
   uniform float     uHasMap;
+  uniform vec3      uSunPos;
   uniform vec3      uDoseColor;      // batlow ramp at this fragment's dose
   uniform float     uDoseIntensity;  // 0 = not shown, 1 = full
   uniform float uTime;
   uniform float uHeatIntensity;   // 0 = cool, 1 = burning
 
-  varying vec3 vNormal;
+  varying vec3 vWorldNormal;
   varying vec3 vWorldPos;
   varying vec2 vUv;
 
@@ -66,67 +69,37 @@ export const PLANET_FRAG = /* glsl */`
     vec3 base = uHasMap > 0.5
       ? texture2D(uMap, vUv).rgb
       : uColor;
-    vec3 toSun   = normalize(-vWorldPos);
-    vec3 toEye   = normalize(cameraPosition - vWorldPos);
 
-    // Airless bodies are not Lambertian.
-    //
-    // Regolith backscatters: light returns toward its source rather than
-    // spreading as cos(i). Measured on Bennu, the Lunar-Lambert partition is
-    // L(a) = exp(-0.009a), so L(0) = 1.0 - at low phase the surface is PURE
-    // Lommel-Seeliger with no Lambertian component at all, and the independent
-    // Minnaert fit agrees at k = 0.530 (k = 0.5 is the Lommel-Seeliger limit).
-    //   Golish et al. 2021, Icarus 357, 113724
-    //
-    // The visible consequence is exactly what makes real asteroid photographs
-    // look unlike renders: a Lambertian sphere fades smoothly from the middle
-    // outward and reads as a billiard ball, while a real airless body stays
-    // evenly bright almost to the terminator and then falls off sharply.
-    //
-    // Applied only where it is true. The fragments are airless rock, and so
-    // are Mercury and Mars; Jupiter and the other gas giants have no regolith
-    // and no surface, so for them uAirless is 0 and the term stays Lambertian.
-    float ci     = max(dot(vNormal, toSun), 0.0);
-    float ce     = max(dot(vNormal, toEye), 0.0);
-    float ls     = ci / max(ci + ce, 1e-4);
-    // Lommel-Seeliger returns at most 0.5, so it is doubled to sit on the same
-    // scale as the cosine it replaces.
-    float diff   = mix(ci, ls * 2.0 * step(1e-4, ci), uAirless);
+    vec3 toSun   = normalize(uSunPos - vWorldPos);
+    vec3 viewDir = normalize(cameraPosition - vWorldPos);
 
-    // Ambient floor, kept low.
-    //
-    // This was 0.55, so more than half of every planet's brightness was a
-    // constant independent of direction and the terminator - the day/night
-    // boundary that makes a sphere read as a sphere - was almost invisible.
-    // That was the whole reason the planets looked like flat discs. At 0.12
-    // the unlit side is still legible on a projector, which is what the floor
-    // is for, without drowning the shading that carries the shape.
-    float ambient = 0.12;
+    float ci = max(dot(vWorldNormal, toSun), 0.0);
+    float ce = max(dot(vWorldNormal, viewDir), 0.0);
 
-    // Soft fill from the camera direction, so the night side is dark rather
-    // than black. Also reduced: it was competing with the sunlight.
-    vec3 viewDir  = normalize(cameraPosition - vWorldPos);
-    // Fill from the camera, raised from 0.10 to 0.34.
-    //
-    // The lighting is physically right - the Sun is at the origin and lights
-    // outward - but the default camera looks INWARD from beyond the swarm, so
-    // the hemisphere facing it is the night side of every planet. Rendered
-    // strictly, the scene is a bright Sun surrounded by black discs, which is
-    // what the sky really looks like from out there and is useless to an
-    // audience. The fill is the one term that lights what the viewer can
-    // actually see, so it carries the surface detail here.
-    float fill    = max(dot(vNormal, viewDir), 0.0) * 0.34;
+    // Airless bodies are not Lambertian — Lommel-Seeliger backscatter.
+    // Gas giants and Earth stay Lambertian (uAirless = 0).
+    float ls   = ci / max(ci + ce, 1e-4);
+    float diff = mix(ci, ls * 2.0 * step(1e-4, ci), uAirless);
 
-    // Specular highlight from sun.
-    vec3 halfDir  = normalize(toSun + viewDir);
-    float spec    = pow(max(dot(vNormal, halfDir), 0.0), 24.0) * 0.22;
+    // Hemisphere ambient tied to the Sun, not the camera: faint night side,
+    // brighter day side. Enough to read surface detail on a projector without
+    // washing out the terminator.
+    float hemiAmbient = mix(0.045, 0.14, smoothstep(-0.1, 0.28, ci));
 
-    // Rim / atmosphere glow on planet edges.
-    float rim     = 1.0 - max(dot(viewDir, vNormal), 0.0);
-    rim           = pow(rim, 2.8) * 0.50;
+    // Specular from the Sun on the lit hemisphere only.
+    vec3  halfDir = normalize(toSun + viewDir);
+    float spec = pow(max(dot(vWorldNormal, halfDir), 0.0), 36.0)
+               * 0.14 * smoothstep(0.0, 0.1, ci);
 
-    // Sunlight now dominates rather than merely tipping the balance.
-    vec3 litColor = base * (ambient + diff * 1.15 + fill) + base * spec + vec3(rim * 0.30);
+    // Atmospheric limb: brightens the silhouette on the sun-facing hemisphere.
+    float viewLimb  = 1.0 - max(dot(viewDir, vWorldNormal), 0.0);
+    float atmosLimb = pow(viewLimb, 3.5) * pow(max(ci, 0.0), 0.55) * uAtmosphere * 0.40;
+
+    // Slight warm day-side tint — star colour bleeding onto lit rock/clouds.
+    vec3 dayTint  = vec3(1.0, 0.98, 0.93);
+    vec3 litColor = base * dayTint * (hemiAmbient + diff * 1.28);
+    litColor     += base * spec;
+    litColor     += base * atmosLimb;
 
     // Absorbed dose, as a rim.
     //
@@ -140,14 +113,14 @@ export const PLANET_FRAG = /* glsl */`
     // does; accumulated dose does not, and animating it would suggest a
     // variability the number does not have.
     if (uDoseIntensity > 0.001) {
-      float doseRim = pow(1.0 - max(dot(viewDir, vNormal), 0.0), 2.0);
+      float doseRim = pow(1.0 - max(dot(viewDir, vWorldNormal), 0.0), 2.0);
       litColor += uDoseColor * (doseRim * 0.85 + 0.16) * uDoseIntensity;
     }
 
     // ── UV heat / burning effect ───────────────────────────
     if (uHeatIntensity > 0.001) {
       // Raw rim for fire effect (sharper falloff than atmosphere rim)
-      float rawRim  = 1.0 - max(dot(viewDir, vNormal), 0.0);
+      float rawRim  = 1.0 - max(dot(viewDir, vWorldNormal), 0.0);
 
       // Animated flicker: world-position noise approximation
       float flicker = 0.82 + 0.18 * sin(uTime * 11.0
@@ -214,11 +187,15 @@ export const SUN_FRAG = /* glsl */`
 
 /**
  * Create a ShaderMaterial for a planet/moon.
- * Uniforms: uColor (vec3), uTime (float).
  * @param {string} colorHex  e.g. '#2E86AB'
+ * @param {THREE.Texture|null} [map]
+ * @param {boolean|{ airless?: boolean, atmosphere?: boolean }} [opts]
  * @returns {THREE.ShaderMaterial}
  */
-export function createPlanetMaterial(colorHex, map = null, airless = false) {
+export function createPlanetMaterial(colorHex, map = null, opts = false) {
+  const options = typeof opts === 'boolean'
+    ? { airless: opts, atmosphere: false }
+    : { airless: false, atmosphere: false, ...opts };
   return new THREE.ShaderMaterial({
     vertexShader:   PLANET_VERT,
     fragmentShader: PLANET_FRAG,
@@ -226,9 +203,9 @@ export function createPlanetMaterial(colorHex, map = null, airless = false) {
       uColor:         { value: new THREE.Color(colorHex) },
       uMap:           { value: map },
       uHasMap:        { value: map ? 1 : 0 },
-      // Backscattering regolith, for bodies that actually have any. See the
-      // note beside the diffuse term in PLANET_FRAG.
-      uAirless:       { value: airless ? 1 : 0 },
+      uAirless:       { value: options.airless ? 1 : 0 },
+      uAtmosphere:    { value: options.atmosphere ? 1 : 0 },
+      uSunPos:        { value: new THREE.Vector3(0, 0, 0) },
       uDoseColor:     { value: new THREE.Color(0, 0, 0) },
       uDoseIntensity: { value: 0 },
       uTime:          { value: 0 },
@@ -267,5 +244,35 @@ export function updateShaderTime(materials, elapsed) {
     if (mat.uniforms?.uTime !== undefined) {
       mat.uniforms.uTime.value = elapsed;
     }
+  }
+}
+
+/**
+ * Point every lit body shader at the Sun's current world position.
+ * @param {THREE.ShaderMaterial[]} materials
+ * @param {THREE.Vector3} sunWorldPos
+ */
+export function updateShaderSunPosition(materials, sunWorldPos) {
+  for (const mat of materials) {
+    if (mat.uniforms?.uSunPos) {
+      mat.uniforms.uSunPos.value.copy(sunWorldPos);
+    }
+  }
+}
+
+const _sunWorldPos = new THREE.Vector3();
+
+/**
+ * Read the Sun mesh world position and push it to every lit body shader.
+ * @param {Map<string, THREE.Mesh>} meshById
+ */
+export function syncSceneSunLighting(meshById) {
+  const sunMesh = meshById?.get('sun');
+  if (!sunMesh) return;
+  sunMesh.updateWorldMatrix(true, false);
+  sunMesh.getWorldPosition(_sunWorldPos);
+  for (const mesh of meshById.values()) {
+    const u = mesh.material?.uniforms?.uSunPos;
+    if (u) u.value.copy(_sunWorldPos);
   }
 }

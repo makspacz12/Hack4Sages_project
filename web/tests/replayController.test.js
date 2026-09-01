@@ -6,6 +6,7 @@ import {
   tickReplay, getFramePositions, getFrameTime, applyReplayFrame,
   replayFrameCount,
 } from '../src/replayController.js';
+import { displayHelioDistanceAU, sunRadiusAU } from '../src/sceneScale.js';
 
 const makeSimData = (n = 5) => ({
   meta:    { playbackFPS: 10, positionScale: 1, timeUnit: 'yr' },
@@ -138,11 +139,29 @@ describe('getFramePositions / getFrameTime', () => {
 });
 
 describe('applyReplayFrame', () => {
-  it('updates mesh positions', () => {
-    const c = createReplayController(makeSimData());
-    setReplayFrame(c, 2);
-    const mesh = { position: { set: (...a) => Object.assign(mesh.position, { x: a[0], y: a[1], z: a[2] }) } };
+  it('updates mesh positions with cube-root heliocentric mapping', () => {
+    const objects = [{ id: 'sun', info: { Radius: { value: 695_709_902 } } }];
+    const sunRAU = sunRadiusAU(objects);
+    const data = {
+      meta: { playbackFPS: 10, positionScale: 60, timeUnit: 'yr' },
+      objects,
+      frames: [{
+        frame: 0,
+        time: 0,
+        positions: [
+          { id: 'sun', x: 0, y: 0, z: 0 },
+          { id: 'planet', x: 1, y: 0, z: 0 },
+        ],
+      }],
+    };
+    const c = createReplayController(data);
+    const mesh = {
+      position: {
+        set(x, y, z) { this.x = x; this.y = y; this.z = z; },
+      },
+    };
     applyReplayFrame(c, new Map([['planet', mesh]]));
-    expect(mesh.position.x).toBe(4);  // frame 2 → x = 2*2 = 4
+    expect(mesh.position.x).toBeCloseTo(displayHelioDistanceAU(1, sunRAU), 9);
+    expect(mesh.position.y).toBe(0);
   });
 });

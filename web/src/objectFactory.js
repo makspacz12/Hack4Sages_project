@@ -47,11 +47,16 @@ export function createMaterial(color, emissive, id = null, rockType = null) {
   // asserting something false about what the viewer is looking at. Earth is
   // left Lambertian too - most of the disc is ocean and cloud.
   const AIRLESS = new Set(['planet_mercury', 'planet_mars']);
+  const ATMOSPHERE = new Set([
+    'planet_venus', 'planet_earth', 'planet_jupiter',
+    'planet_saturn', 'planet_uranus', 'planet_neptune',
+  ]);
   const airless = Boolean(rockType) || AIRLESS.has(id);
+  const atmosphere = ATMOSPHERE.has(id);
 
   return emissive
     ? createSunMaterial(color, map)
-    : createPlanetMaterial(color, map, airless);
+    : createPlanetMaterial(color, map, { airless, atmosphere });
 }
 
 /**

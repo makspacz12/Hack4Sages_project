@@ -18,7 +18,7 @@ import { createFocusController, setFocusTarget, clearFocus, updateFocus,
 import { createSelectionGlow } from './selectionGlow.js';
 import { addAsteroid, removeAsteroid, updateAsteroidPositions } from './asteroidManager.js';
 import { initAsteroidUI, refreshAsteroidList } from './asteroidUI.js';
-import { updateShaderTime } from './shaderMaterial.js';
+import { updateShaderTime, syncSceneSunLighting } from './shaderMaterial.js';
 import { createPhysicsEngine, stepPhysics } from './physics.js';
 import {
   registerStaticBodies, registerAsteroidBody, removeAsteroidBody,
@@ -35,6 +35,14 @@ import {
 import {
   createOrbitalClock, tickOrbitalClock, resetOrbitalClock, applyOrbitalClock,
 } from './orbitalClock.js';
+import {
+  SUN_R,
+  planetDrawRadiusFactory,
+  fragmentDrawRadiusFactory,
+  displayWorldPosition,
+  displayHelioDistanceAU,
+  sunRadiusAU,
+} from './sceneScale.js';
 import {
   doseColor, dosesAtFrame, doseLegendStops, DOSE_MAX_GY,
 } from './doseColor.js';
@@ -173,151 +181,16 @@ async function mainReplay(source) {
    * linear map would put Mercury below a pixel at any zoom where Jupiter is
    * comfortable; the cube root - the ratio of their linear dimensions if you
    * think in volumes - keeps the ordering unmistakable while keeping the
-   * smallest body visible. The whole scene is already exaggerated by a factor
-   * of several hundred against the orbital distances, so this makes no claim
-   * to true scale; it only stops the sizes being actively wrong.
+   * smallest body visible.
+   *
+   * Heliocentric distances use the same exponent: d_vis = SUN_R × (d_AU/R☉_AU)^(1/3),
+   * so (SUN_R/d_vis) = (R☉/d_real)^(1/3). Simulation data stay in real AU.
    */
-  /**
-   * How large the planets are drawn.
-   *
-   * ONE FACTOR, APPLIED TO EVERY BODY. This used to remap the true radii onto
-   * a 5 to 11 unit band through a cube root, which kept the ordering but threw
-   * away the proportions: Jupiter is 29.3 times Mercury's radius and was being
-   * drawn 2.2 times its size, flattening the real ratio by a factor of
-   * thirteen. A viewer reading those spheres was reading a lie about the
-   * Solar System, and it was a lie the true radii were sitting right there to
-   * contradict.
-   *
-   * Multiplying every radius by the same constant keeps every ratio between
-   * bodies EXACTLY right. Nothing is remapped and nothing is compressed. The
-   * scene overstates all the planets equally, which is a statement a reader
-   * can correct for, rather than overstating each one differently, which is a
-   * statement nobody can undo.
-   *
-   * WHY IT CANNOT BE TRUE SCALE. At 60 world units per AU, Earth's true radius
-   * is 0.0000426 units and would render at 4.2e-3 of a pixel. Every planet is
-   * four to five orders of magnitude below one pixel, so a true-scale view is
-   * an empty black rectangle. There is no version of this that is both to
-   * scale and visible, which is why every planetarium visualisation
-   * exaggerates body size, and why the honest ones say so on screen.
-   *
-   * THE FACTOR. 1300 puts Mercury at 2.1 pixels across at the default framing
-   * and Jupiter at 61, which is the smallest exaggeration where the smallest
-   * planet still resolves as more than a single pixel. Larger would be easier
-   * to see and further from the truth; this is the point where it stops being
-   * a dot.
-   *
-   * What is NOT exaggerated is the thing the model is about. Orbital
-   * distances, transfer times, doses and survival are untouched. Only the
-   * spheres marking where the planets are got bigger, and they all got bigger
-   * by the same amount.
-   */
-  const BODY_EXAGGERATION = 1300;
-
-  /** Kilometres per astronomical unit, for turning a true radius into units. */
-  const KM_PER_AU = 149597870.7;
-
-  /**
-   * The Sun is scaled separately, and the scene says so.
-   *
-   * At the same factor the Sun would be 363 world units across against
-   * Mercury's orbital radius of 28: it would swallow the orbit it sits inside
-   * and assert something false about the structure of the system, which is the
-   * one exaggeration this project cannot make. It is drawn at 14 units, a
-   * quarter of that orbit, so it reads as the central body without eating the
-   * inner system.
-   *
-   * That means the Sun is NOT on the planets' scale, and the on-screen note
-   * says which bodies share a scale and which does not. An unlabelled
-   * inconsistency would be worse than the compression this change removes.
-   */
-  const SUN_R = 14.0;
-
-  function planetRadii() {
-    return (obj) => {
-      const rMetres = obj.info?.Radius?.value;
-      if (!Number.isFinite(rMetres) || rMetres <= 0) return null;
-      // Radius arrives in metres; positionScale is world units per AU.
-      const rAU = (rMetres / 1000) / KM_PER_AU;
-      return rAU * (simData.meta?.positionScale ?? 60) * BODY_EXAGGERATION;
-    };
-  }
-  /**
-   * How large each fragment is drawn.
-   *
-   * ONE FACTOR, LIKE THE PLANETS. Every fragment used to be drawn at the same
-   * 0.18 world units, and then on a log remap from 1.6 to 4.2, which
-   * compressed a real 44.2 to 1 span into 2.6 to 1. Multiplying every true
-   * radius by a single constant keeps the ratio between any two fragments
-   * exactly right, for the same reason it does for the planets: a shared
-   * multiplier cancels in a ratio.
-   *
-   * WHY THE FACTOR IS NOT THE PLANETS' FACTOR. At the planets' 1300 a 57.5 mm
-   * stone is 4.9e-8 of a pixel, eight orders of magnitude below visibility.
-   * The bodies in this scene span eleven orders of magnitude in radius, from a
-   * millimetre of rock to the Sun, and no single exaggeration makes that range
-   * visible at once. Three factors are therefore used, and the scene names all
-   * three on screen rather than letting a viewer assume one.
-   *
-   * Within each family the proportions are exact. Across families they are
-   * not, and the caption says so, which is the honest form of a compromise
-   * that cannot be avoided.
-   *
-   * WHY A FRAGMENT MAY NOW BE DRAWN LARGER THAN MERCURY. It used to be a rule
-   * here that it must not, on the grounds that a 57 mm stone drawn bigger than
-   * a planet reads as a world. Giving the planets their true proportions makes
-   * that rule unworkable: Mercury comes out at 2.1 pixels, because Mercury
-   * really is small next to Jupiter, and holding the fragments under it forced
-   * every one of the fourteen onto the visibility floor. They became the same
-   * dot again, which is the exact defect the size scaling was added to fix.
-   *
-   * The rule is dropped, and the caption carries the reason: the families are
-   * on three different scales and a reader is told so, which makes comparing
-   * a fragment to a planet by eye a category error rather than a wrong answer.
-   * Within each family the proportions are exact, and that is the property
-   * worth protecting.
-   *
-   * For scale, Jupiter at 1300 is already 37 world units across against
-   * Mercury's 28 unit orbital radius, so the largest planet is wider than the
-   * innermost orbit. That is the ceiling for the planets, and it is why the
-   * two families cannot share one number.
-   *
-   * THE NUMBERS. At 8e11 the swarm runs from 0.55 pixels for the 1.05 mm
-   * grain to 17.8 for the 33.9 mm stone, against Jupiter at 61: large enough
-   * that the 32 to 1 span between the smallest and largest fragment is
-   * visible, small enough that no fragment is mistakable for a planet.
-   *
-   * THE FLOOR. Anything below it is drawn AT it, and is therefore the one
-   * place in this scene where a size is not proportional. That is a deliberate
-   * visibility floor rather than a scale, and a fragment sitting on it is
-   * telling you it is too small to draw, not how big it is.
-   */
-  const FRAGMENT_EXAGGERATION = 8e11;
-  /** Smallest radius drawn, in world units: about 0.6 px at default framing. */
-  const FRAGMENT_FLOOR = 0.36;
-
-  function fragmentRadii(frames) {
-    const radii = new Map();
-    for (const frame of frames ?? []) {
-      for (const prop of frame?.properties ?? []) {
-        if (prop?.id?.startsWith('asteroid_') && Number.isFinite(prop.radius)
-            && prop.radius > 0 && !radii.has(prop.id)) {
-          radii.set(prop.id, prop.radius);
-        }
-      }
-    }
-    if (radii.size < 1) return null;
-    const scale = simData.meta?.positionScale ?? 60;
-    return (id) => {
-      const rMetres = radii.get(id);
-      if (!Number.isFinite(rMetres) || rMetres <= 0) return null;
-      const rAU = (rMetres / 1000) / KM_PER_AU;
-      return Math.max(FRAGMENT_FLOOR, rAU * scale * FRAGMENT_EXAGGERATION);
-    };
-  }
-
-  const planetRadius = planetRadii(simData.objects ?? []);
-  const fragmentRadius = fragmentRadii(simData.frames ?? []);
+  const planetRadius = planetDrawRadiusFactory(simData.objects ?? []);
+  const fragmentRadius = fragmentDrawRadiusFactory(
+    simData.frames ?? [], simData.objects ?? [],
+  );
+  const sunRAU = sunRadiusAU(simData.objects);
 
   addLighting(scene);
   const starfieldMesh = addStarfield(scene);
@@ -417,7 +290,7 @@ async function mainReplay(source) {
   // Literal for the same reason as orbitLine: THREE.Color cannot resolve a
   // custom property. Tracks --ink-dim by hand.
   const PLANET_TRAIL_COLOR = '#98897d';
-  const trailPosScale  = simData.meta?.positionScale ?? 1;
+  const trailLinearScale = simData.meta?.positionScale ?? 60;
   const replayTrailMap = new Map();
   for (const { body, mesh } of nodes) {
     const t = (body.type ?? '').toLowerCase();
@@ -433,6 +306,13 @@ async function mainReplay(source) {
       trail.line.visible = false;
       replayTrailMap.set(body.id, { trail, mesh, type: 'planet', trailLen: PLANET_TRAIL_LEN });
     }
+  }
+
+  function displayPos(posAU, sunPosAU) {
+    const mult = ctrl.scaleMultiplier ?? 1;
+    return displayWorldPosition(
+      posAU, sunPosAU, sunRAU, trailLinearScale, mult,
+    );
   }
 
   /**
@@ -451,7 +331,6 @@ async function mainReplay(source) {
       const vis = trailShouldBeVisible(id);
       trail.line.visible = vis;
       if (!vis) { trail.history.length = 0; trail.line.geometry.setDrawRange(0, 0); continue; }
-      const tScale = trailPosScale * (ctrl.scaleMultiplier ?? 1);
 
       // Draw the orbit the body is on, not the chords between the frames it
       // was sampled at.
@@ -476,9 +355,9 @@ async function mainReplay(source) {
           },
         );
         if (orbit) {
-          setTrailHistory(trail, orbit.points.map(q => ({
-            x: q.x * tScale, y: q.y * tScale, z: q.z * tScale,
-          })), { closed: true });
+          setTrailHistory(trail, orbit.points.map(q => displayPos(
+            { x: q.x, y: q.y, z: q.z }, origin,
+          )), { closed: true });
           continue;
         }
       }
@@ -488,9 +367,7 @@ async function mainReplay(source) {
       // figure, but an escaping fragment is not looping, so consecutive
       // samples are genuinely near the path it took.
       const positions = buildTrailPositions(ctrl.frames, ctrl.currentFrame, trailLen, id);
-      setTrailHistory(trail, positions.map(p => ({
-        x: p.x * tScale, y: p.y * tScale, z: p.z * tScale,
-      })));
+      setTrailHistory(trail, positions.map(p => displayPos(p, origin)));
     }
   }
 
@@ -532,7 +409,8 @@ async function mainReplay(source) {
     if (!aphelia.length) return;
     aphelia.sort((a, b) => a - b);
     const median = aphelia[Math.floor(aphelia.length / 2)];
-    const radius = median * trailPosScale;
+    const mult = ctrl.scaleMultiplier ?? 1;
+    const radius = displayHelioDistanceAU(median, sunRAU) * mult;
     // 60 degree vertical field of view, so half-height = distance * tan(30).
     // The 1.9 leaves the swarm comfortably inside the frame rather than
     // touching its edges.
@@ -579,6 +457,7 @@ async function mainReplay(source) {
     }
   }
   applyReplayFrame(ctrl, meshById);   // apply frame 0 immediately
+  syncSceneSunLighting(meshById);
   paintDose(ctrl.frames[0]);          // and colour it, so nothing loads blank
 
   /* Fill the colour bar from the same function that colours the fragments.
@@ -987,7 +866,8 @@ async function mainReplay(source) {
         paintDose(curFrame());
       }
 
-      const posScale = (ctrl.meta?.positionScale ?? 1) * (ctrl.scaleMultiplier ?? 1);
+      const linearScale = ctrl.meta?.positionScale ?? 60;
+      const mult = ctrl.scaleMultiplier ?? 1;
       /* The clock only owns the geometry while the replay is actually running.
        *
        * It was applied every animation tick regardless, so a paused scene kept
@@ -1000,7 +880,9 @@ async function mainReplay(source) {
        * the ones the integration actually produced. */
       orbitalClock.enabled = ctrl.smooth !== false && ctrl.playing === true;
       const orbitalDrove = orbitalClock.enabled
-        && applyOrbitalClock(orbitalClock, curFrame(), meshById, posScale);
+        && applyOrbitalClock(
+          orbitalClock, curFrame(), meshById, linearScale, simData.objects, mult,
+        );
       // Coming out of playback, put the bodies back where the frame says they
       // are rather than leaving the last propagated pose on screen.
       if (!orbitalClock.enabled && orbitalClock.years !== 0) {
@@ -1011,6 +893,7 @@ async function mainReplay(source) {
       if (ctrl.smooth && !orbitalDrove) {
         applyReplayFrameLerp(ctrl, meshById);
       }
+      syncSceneSunLighting(meshById);
       if (ctrl.smooth) {
         if (frameChanged) {
           refreshUI(ctrl);
@@ -1039,7 +922,13 @@ async function main() {
   // Default: replay mode with solar_simulation.json
   // ?replay=path/to/file.json → custom simulation file
   // ?live → original orbital-mechanics solar system
+  // ?root=N → 1/N compression for sizes and distances (?ratioExp=0.25 too)
   const params     = new URLSearchParams(location.search);
+  const { applyRatioExpFromSearch, formatRatioExponent } = await import('./sceneScale.js');
+  applyRatioExpFromSearch(params);
+  if (import.meta.env?.DEV) {
+    console.info(`[scene] ratio exponent ${formatRatioExponent()} (?root=N to compare)`);
+  }
   const customFile = params.get('replay');
   const runId      = params.get('run');
   const liveMode   = params.has('live');
@@ -1390,6 +1279,7 @@ async function main() {
       // Update uTime on static bodies + any live asteroids.
       const astMats = asteroids.map(a => a.mesh.material);
       updateShaderTime([...staticShaderMats, ...astMats], elapsed);
+      syncSceneSunLighting(new Map(nodes.map(n => [n.body.id, n.mesh])));
 
       updateAsteroidPositions(asteroids, deltaSec);
 

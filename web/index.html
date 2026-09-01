@@ -31,29 +31,6 @@
          visualisation does this; the ones worth trusting say so on screen
          rather than in a footnote nobody opens. Distances, times and every
          computed quantity are untouched. */
-      #scale-note {
-        position: fixed; left: 0; bottom: var(--rail-h);
-        z-index: 300; pointer-events: none;
-        padding: 5px 12px;
-        font-family: var(--font-mono);
-        font-size: 0.625rem; line-height: 1.5;
-        color: var(--scene-ink); opacity: 0.72;
-        background: linear-gradient(to right, rgba(11,14,20,0.82), rgba(11,14,20,0));
-      }
-      #scale-note b { font-weight: 600; opacity: 0.95; }
-      /* Follow the run console when it is docked, or the note reads as half a
-         sentence emerging from behind the panel. */
-      body.console-docked #scale-note { left: var(--panel-w); }
-      /* Stop before the dose legend.
-       *
-       * With only a `left` the note was as wide as its text, 1082px at 1280px
-       * wide, so it ran underneath the dose colour bar and on past the edge of
-       * the window. Two captions overlapping is worse than either alone: the
-       * sentence that exists to be honest about the size exaggeration was the
-       * one rendered unreadable. The reserve is the legend's own width plus a
-       * gap, and it grows by the dock when the dock is open. */
-      #scale-note { right: 13rem; }
-      body.charts-docked #scale-note { right: calc(var(--dock-w) + 13rem); }
 
       /* The dose colour bar.
        *
@@ -126,13 +103,6 @@
          longer called, plus four lines of mouse instructions. The workspace
          menu carries navigation now and the run console carries the name, so
          the only thing this added was a wrong title over the scene. -->
-
-    <div id="scale-note">
-      <b>Three size scales, named.</b> Planets share one exaggeration, so their
-      proportions to each other are exact. The Sun and the fragments each use
-      their own, because the bodies here span eleven orders of magnitude in
-      radius. Orbits, distances and every computed quantity are to scale.
-    </div>
 
     <div id="dose-legend">
       <div class="dl-title">Absorbed dose</div>
